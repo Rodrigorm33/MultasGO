@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MultasGO | Consulta de Infrações de Trânsito</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <meta name="description" content="MultasGO - Sistema de consulta rápida de infrações de trânsito">
+    <link rel="icon" href="{{ url_for('static', path='/img/favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="container header-container">
+                <div class="logo-container">
+                    <h1 class="logo">
+                        <a href="/" class="logo-link">
+                            <span class="logo-text">Multas<span class="logo-highlight">GO</span></span>
+                        </a>
+                    </h1>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li class="nav-item"><a href="/" class="nav-link active">Início</a></li>
+                        <li class="nav-item"><a href="/sobre" class="nav-link">Sobre</a></li>
+                        <li class="nav-item"><a href="/contato" class="nav-link">Contato</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="container">
+                <div class="hero-content animate-fade-in">
+                    <div class="hero-flex-container">
+                        <div class="hero-image-container">
+                            <img src="{{ url_for('static', path='/img/logo6.png') }}" alt="MultasGO" class="hero-logo-image">
+                        </div>
+                        <div class="hero-text-container">
+                            <h2 class="hero-title">Consulta de <span class="text-highlight">Infrações</span> de <span class="text-highlight">Trânsito</span></h2>
+                            <p class="hero-subtitle">Pesquise pelo código da infração ou descrição e obtenha informações detalhadas sobre multas, pontuação e valores.</p>
+                            
+                            <!-- Search Form -->
+                            <form id="search-form" class="search-form">
+                                <div class="search-container">
+                                    <input 
+                                        type="text" 
+                                        id="search-input" 
+                                        class="search-input" 
+                                        placeholder="Digite o código ou uma palavra-chave"
+                                        autocomplete="off"
+                                        required
+                                    >
+                                    <button type="submit" id="search-btn" class="search-button">GO!</button>
+                                </div>
+                                <div id="error-message" class="error-message"></div>
+                                <div id="suggestion-container" class="suggestion-container"></div>
+                                <div id="loading-indicator" class="loading-indicator">
+                                    <div class="spinner-container">
+                                        <div class="spinner"></div>
+                                        <span>Buscando...</span>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results-section" class="results-section">
+            <div class="container">
+                <div id="results-container" class="results-container animate-fade-in">
+                    <div class="results-header">
+                        <h3 class="results-title">Resultados da Pesquisa</h3>
+                        <p id="results-count" class="results-count">0 resultados encontrados</p>
+                    </div>
+                    <div class="results-table-container">
+                        <table id="results-table" class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Descrição</th>
+                                    <th>Gravidade</th>
+                                    <th>Valor</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Resultados serão inseridos aqui via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Details Section -->
+        <section id="details-container" class="details-section">
+            <div class="container">
+                <!-- Detalhes serão inseridos aqui via JavaScript -->
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <div class="container">
+                <h3 class="section-title">Recursos do MultasGO</h3>
+                <div class="features-grid">
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </div>
+                        <h4 class="feature-title">Busca Rápida</h4>
+                        <p class="feature-description">Encontre infrações pelo código ou descrição em segundos, com resultados precisos e detalhados.</p>
+                    </div>
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <h4 class="feature-title">Informações Completas</h4>
+                        <p class="feature-description">Acesse todos os detalhes sobre a infração, incluindo valor, pontuação e base legal.</p>
+                    </div>
+                    <div class="feature-card animate-fade-in">
+                        <div class="feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                        </div>
+                        <h4 class="feature-title">Design Responsivo</h4>
+                        <p class="feature-description">Interface adaptada para todos os dispositivos, ideal para uso em campo por agentes de trânsito.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explorador de Infrações Section -->
+        <section id="explorer-section" class="explorer-section">
+            <div class="container">
+                <h3 class="section-title">Explorador de Infrações</h3>
+                <p class="section-description">Explore todas as infrações de trânsito com filtros e ordenação personalizados.</p>
+                
+                <div class="explorer-controls">
+                    <div class="filter-container">
+                        <h4 class="filter-title">Filtros</h4>
+                        <div class="filter-group">
+                            <label for="filter-gravidade">Gravidade:</label>
+                            <select id="filter-gravidade" class="filter-select">
+                                <option value="">Todas</option>
+                                <option value="Leve">Leve</option>
+                                <option value="Média">Média</option>
+                                <option value="Grave">Grave</option>
+                                <option value="Gravíssima">Gravíssima</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-responsavel">Responsável:</label>
+                            <select id="filter-responsavel" class="filter-select">
+                                <option value="">Todos</option>
+                                <option value="Condutor">Condutor</option>
+                                <option value="Proprietário">Proprietário</option>
+                                <option value="Embarcador">Embarcador</option>
+                                <option value="Transportador">Transportador</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-pontos">Pontos:</label>
+                            <select id="filter-pontos" class="filter-select">
+                                <option value="">Todos</option>
+                                <option value="3">3 pontos</option>
+                                <option value="4">4 pontos</option>
+                                <option value="5">5 pontos</option>
+                                <option value="7">7 pontos</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="sort-container">
+                        <h4 class="sort-title">Ordenação</h4>
+                        <div class="sort-group">
+                            <label for="sort-field">Ordenar por:</label>
+                            <select id="sort-field" class="sort-select">
+                                <option value="codigo">Código</option>
+                                <option value="descricao">Descrição</option>
+                                <option value="valor_multa">Valor da Multa</option>
+                                <option value="pontos">Pontos</option>
+                            </select>
+                        </div>
+                        <div class="sort-group">
+                            <label for="sort-direction">Direção:</label>
+                            <select id="sort-direction" class="sort-select">
+                                <option value="asc">Crescente</option>
+                                <option value="desc">Decrescente</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="explorer-actions">
+                        <button id="apply-filters" class="btn-primary">Aplicar Filtros</button>
+                        <button id="reset-filters" class="btn-secondary">Limpar Filtros</button>
+                    </div>
+                </div>
+                
+                <div id="explorer-results" class="explorer-results">
+                    <div class="explorer-header">
+                        <h4 class="explorer-title">Infrações</h4>
+                        <p id="explorer-count" class="explorer-count">0 infrações encontradas</p>
+                    </div>
+                    <div class="explorer-table-container">
+                        <table id="explorer-table" class="explorer-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Descrição</th>
+                                    <th>Gravidade</th>
+                                    <th>Responsável</th>
+                                    <th>Pontos</th>
+                                    <th>Valor</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Resultados serão inseridos aqui via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-container">
+                        <button id="prev-page" class="pagination-btn" disabled>Anterior</button>
+                        <span id="page-info" class="page-info">Página 1 de 1</span>
+                        <button id="next-page" class="pagination-btn" disabled>Próxima</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div>
+                        <div class="footer-logo">
+                            <a href="/" class="footer-logo-link">
+                                <span class="footer-logo-text">Multas<span class="footer-logo-highlight">GO</span></span>
+                            </a>
+                            <p class="footer-tagline">Consulta rápida de infrações de trânsito</p>
+                        </div>
+                    </div>
+                    <div class="footer-links">
+                        <div class="footer-links-column">
+                            <h4 class="footer-links-title">Navegação</h4>
+                            <ul class="footer-links-list">
+                                <li><a href="/">Início</a></li>
+                                <li><a href="/sobre">Sobre</a></li>
+                                <li><a href="/contato">Contato</a></li>
+                            </ul>
+                        </div>
+                        <div class="footer-links-column">
+                            <h4 class="footer-links-title">Recursos</h4>
+                            <ul class="footer-links-list">
+                                <li><a href="#">API</a></li>
+                                <li><a href="#">Documentação</a></li>
+                                <li><a href="/suporte">Suporte</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p class="copyright">&copy; 2023 MultasGO. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+</body>
+</html> 

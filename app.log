@@ -1,0 +1,34 @@
+2025-03-02 19:45:53,134 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 19:45:53,134 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 19:45:53,134 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 19:45:53,134 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 19:47:05,764 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 19:47:05,764 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 19:47:05,764 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 19:47:05,765 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 19:47:06,767 - MultasGO - INFO - Recriando as tabelas no banco de dados...
+2025-03-02 19:47:06,768 - MultasGO - INFO - Recriando as tabelas no banco de dados...
+2025-03-02 19:47:06,769 - MultasGO - INFO - Recriando as tabelas no banco de dados...
+2025-03-02 19:47:06,776 - MultasGO - INFO - Recriando as tabelas no banco de dados...
+2025-03-02 19:47:13,245 - MultasGO - INFO - Tabelas recriadas com sucesso.
+2025-03-02 19:47:13,262 - MultasGO - INFO - Iniciando a aplicação...
+2025-03-02 19:47:13,264 - MultasGO - INFO - Iniciando importação do arquivo CSV: C:\Users\rocha\Desktop\MultasGO_Backups\MultasGO_backup_20250227_081615\dbautos.csv
+2025-03-02 19:47:13,291 - MultasGO - INFO - Colunas encontradas no CSV: Código de infração, Infração, Responsável, Valor da multa, Órgão Autuador, Artigos do CTB, Pontos, Gravidade 
+2025-03-02 19:47:13,294 - MultasGO - WARNING - Colunas não encontradas no CSV: Gravidade
+2025-03-02 19:47:13,299 - MultasGO - INFO - Encontradas colunas similares a 'gravidade': ['Gravidade ']
+2025-03-02 19:47:16,486 - MultasGO - INFO - Progresso: 440/440 registros processados
+2025-03-02 19:47:16,487 - MultasGO - INFO - Importação concluída: 440 novos, 0 atualizados, 0 ignorados.
+2025-03-02 19:47:16,488 - MultasGO - INFO - Dados importados com sucesso: 440 registros
+2025-03-02 19:48:38,844 - MultasGO - INFO - Listagem de infrações: 440 registros retornados
+2025-03-02 19:48:53,112 - MultasGO - INFO - Iniciando pesquisa com termo: '75790'
+2025-03-02 19:48:53,915 - MultasGO - INFO - Pesquisa por código '75790' (normalizado: '75790') retornou 1 resultados
+2025-03-02 19:48:58,374 - MultasGO - INFO - Iniciando pesquisa com termo: 'cinto'
+2025-03-02 19:48:59,153 - MultasGO - INFO - Pesquisa fuzzy por descrição 'cinto' retornou 2 resultados
+2025-03-02 19:49:03,825 - MultasGO - INFO - Iniciando pesquisa com termo: 'xinelo'
+2025-03-02 19:49:04,602 - MultasGO - INFO - Pesquisa fuzzy por descrição 'xinelo' retornou 0 resultados
+2025-03-02 19:49:04,603 - MultasGO - INFO - Buscando sugestão para o termo: 'xinelo'
+2025-03-02 19:49:04,604 - MultasGO - INFO - Sugestão direta encontrada para 'xinelo': 'chinelo'
+2025-03-02 19:49:06,662 - MultasGO - INFO - Iniciando pesquisa com termo: 'chinelo'
+2025-03-02 19:49:07,436 - MultasGO - INFO - Pesquisa fuzzy por descrição 'chinelo' retornou 1 resultados
+2025-03-02 19:49:11,150 - MultasGO - INFO - Iniciando pesquisa com termo: 'viseira'
+2025-03-02 19:49:11,921 - MultasGO - INFO - Pesquisa fuzzy por descrição 'viseira' retornou 2 resultados
