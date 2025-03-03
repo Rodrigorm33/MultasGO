@@ -35,13 +35,11 @@ class Settings:
     LOG_LEVEL: str = get_env_variable("LOG_LEVEL", "INFO")
     
     # Configurações do banco de dados
-    # Se estiver no Railway, use o endereço interno do PostgreSQL
+    # Se estiver no Railway, use o endereço do PostgreSQL fornecido
     DATABASE_URL: str = None
     if is_railway:
-        # Prioriza o endereço interno do PostgreSQL no Railway
-        railway_db_url = "postgresql://postgres:FbFuyWYNXEEGPwdBUsvrUvhrtqaKGSOs@postgres.railway.internal:5432/railway"
-        DATABASE_URL = get_env_variable("DATABASE_URL", railway_db_url, is_secret=True)
-        print("Usando endereço interno do PostgreSQL no Railway")
+        DATABASE_URL = get_env_variable("DATABASE_URL", is_secret=True)
+        print("Usando endereço do PostgreSQL configurado no Railway")
     else:
         # Usa o DATABASE_URL do ambiente ou o valor padrão
         DATABASE_URL = get_env_variable("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/multas_db", is_secret=True)
