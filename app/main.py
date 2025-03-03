@@ -249,11 +249,15 @@ def check_tables_endpoint():
 
 if __name__ == "__main__":
     import uvicorn
+    import os
+    
+    # Obter a porta do ambiente ou usar 8080 como padrão
+    port = int(os.getenv("PORT", 8080))
     
     # Iniciar o servidor
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,
+        port=port,
         reload=settings.DEBUG
     )
