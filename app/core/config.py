@@ -2,9 +2,13 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Carrega as variáveis de ambiente do arquivo .env
+# Carrega as variáveis de ambiente do arquivo .env apenas se ele existir
 env_path = Path('.') / '.env'
-load_dotenv(dotenv_path=env_path)
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+    print("Arquivo .env encontrado e carregado.")
+else:
+    print("Arquivo .env não encontrado. Usando variáveis de ambiente do sistema.")
 
 # Função para obter variável de ambiente com fallback e log
 def get_env_variable(var_name, default_value=None, is_secret=False):
