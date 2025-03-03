@@ -35,9 +35,9 @@ ENV GUNICORN_CMD_ARGS="--timeout=120 --keep-alive=5"
 # Garantir que o script start.sh use LF ao invés de CRLF
 RUN sed -i 's/\r$//' start.sh
 
-# Adicionar healthcheck
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
+# Melhorar o healthcheck com timeout e retry mais adequados
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl --fail --silent --max-time 10 http://localhost:${PORT}/health || exit 1
 
 # Usar o script start.sh como ponto de entrada
 ENTRYPOINT ["/bin/bash", "start.sh"]

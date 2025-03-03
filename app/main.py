@@ -207,30 +207,40 @@ def diagnostico():
     }
 
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
-@app.get("/health")
 def health_check():
     """
-    Endpoint para verificação de saúde da aplicação.
+    Endpoint completo para verificação de saúde da aplicação.
     """
+    health_status = {
+        "status": "ok",
+        "timestamp": datetime.utcnow().isoformat(),
+        "services": {}
+    }
+    
     try:
-        # Verificar a conexão com o banco de dados
+        # Verificar banco de dados
         db = next(get_db())
         db.execute("SELECT 1")
+        health_status["services"]["database"] = "connected"
         
-        return {
-            "status": "ok",
-            "database": "conectado"
+        # Verificar sistema de arquivos
+        if os.access("app/templates", os.R_OK):
+            health_status["services"]["filesystem"] = "readable"
+        
+        # Verificar memória
+        import psutil
+        memory = psutil.virtual_memory()
+        health_status["services"]["memory"] = {
+            "available": memory.available,
+            "percent": memory.percent
         }
+        
+        return health_status
     except Exception as e:
-        logger.error(f"Erro na verificação de saúde: {e}")
-        return {
-            "status": "warning",
-            "database": "desconectado",
-            "error": str(e)
-        }
+        logger.error(f"Health check failed: {e}")
+        health_status["status"] = "error"
+        health_status["error"] = str(e)
+        return health_status, 500
 
 @app.get("/check-tables")
 def check_tables_endpoint():

@@ -1,18 +1,25 @@
 #!/bin/bash
 
+# Melhorar manipulação de sinais
+trap 'kill -TERM $PID' TERM INT
+
 # Exibir informações de diagnóstico
 echo "Iniciando MultasGO (versão de diagnóstico)..."
 echo "Diretório atual: $(pwd)"
 echo "Conteúdo do diretório: $(ls -la)"
 echo "Variáveis de ambiente disponíveis: $(env | grep -v SECRET | grep -v PASSWORD | cut -d= -f1 | sort)"
 
+# Configurar logs estruturados
+export GUNICORN_ACCESS_LOGFORMAT='%(h)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %({x-request-id}i)s %(L)s'
+export GUNICORN_ERROR_LOGFORMAT='[%(t)s] [%(p)s] [%(l)s] %(h)s %(m)s'
+
 # Definir a porta padrão se não estiver definida
-if [ -z "$PORT" ]; então
+if [ -z "$PORT" ]; then
     export PORT=8080
 fi
 
 # Converter $PORT para inteiro e validar
-if ! [[ "$PORT" =~ ^[0-9]+$ ]]; então
+if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
     echo "PORT não é um número válido, usando porta padrão 8080"
     export PORT=8080
 fi
@@ -29,8 +36,14 @@ exec gunicorn app.main:app \
     --log-level info \
     --access-logfile - \
     --error-logfile - \
+    --logger-class gunicorn.glogging.structlog.StructlogLogger \
     --graceful-timeout 30 \
     --worker-connections 1000 \
     --max-requests 1000 \
     --max-requests-jitter 50 \
-    --preload
+    --preload \
+    --capture-output \
+    --enable-stdio-inheritance &
+
+PID=$!
+wait $PID
