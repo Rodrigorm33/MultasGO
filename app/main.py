@@ -1,4 +1,5 @@
 import os
+import sys
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -15,6 +16,12 @@ from app.db.database import get_db, engine, Base
 from app.services.import_service import importar_csv_para_db
 from app.routers import infracoes
 from app.scripts.check_tables import check_tables
+
+# Adicionar logs de diagnóstico
+logger.info(f"Python version: {sys.version}")
+logger.info(f"Current working directory: {os.getcwd()}")
+logger.info(f"Environment variables: {list(os.environ.keys())}")
+logger.info(f"PORT environment variable: {os.environ.get('PORT', 'não definido')}")
 
 # Recriar as tabelas no banco de dados (drop e create)
 try:
@@ -76,10 +83,16 @@ app.router.default_response_class = UJSONResponse
 # Configurar cabeçalhos CORS para UTF-8
 @app.middleware("http")
 async def add_charset_middleware(request: Request, call_next):
-    response = await call_next(request)
-    if response.headers.get("content-type") == "application/json":
-        response.headers["content-type"] = "application/json; charset=utf-8"
-    return response
+    logger.info(f"Recebida requisição: {request.method} {request.url.path}")
+    try:
+        response = await call_next(request)
+        if response.headers.get("content-type") == "application/json":
+            response.headers["content-type"] = "application/json; charset=utf-8"
+        logger.info(f"Resposta enviada: {response.status_code}")
+        return response
+    except Exception as e:
+        logger.error(f"Erro ao processar requisição: {e}")
+        raise
 
 # Endpoint simples para diagnóstico
 @app.get("/ping")
@@ -89,7 +102,25 @@ def ping():
     Não depende do banco de dados ou de outras dependências.
     """
     logger.info("Endpoint /ping acessado")
-    return {"ping": "pong", "status": "ok", "port": os.environ.get("PORT", "não definido")}
+    try:
+        # Coletar informações de diagnóstico
+        diagnostico = {
+            "ping": "pong",
+            "status": "ok",
+            "port": os.environ.get("PORT", "não definido"),
+            "python_version": sys.version,
+            "cwd": os.getcwd(),
+            "env_vars": list(os.environ.keys()),
+            "railway_env": os.environ.get("RAILWAY_ENVIRONMENT", "não definido"),
+            "railway_service": os.environ.get("RAILWAY_SERVICE_NAME", "não definido"),
+            "railway_project": os.environ.get("RAILWAY_PROJECT_NAME", "não definido"),
+            "railway_domain": os.environ.get("RAILWAY_PUBLIC_DOMAIN", "não definido")
+        }
+        logger.info(f"Diagnóstico: {diagnostico}")
+        return diagnostico
+    except Exception as e:
+        logger.error(f"Erro no endpoint /ping: {e}")
+        return {"ping": "error", "error": str(e)}
 
 # Endpoint raiz simplificado para diagnóstico
 @app.get("/")

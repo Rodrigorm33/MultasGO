@@ -1,0 +1,32 @@
+# Arquivos de ambiente
+.env
+.env.*
+
+# Arquivos de cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Arquivos de log
+*.log
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Diretórios de desenvolvimento
+.git/
+.github/
+.vscode/
+.idea/
+
+# Arquivos de documentação
+docs/
+README.md
+LICENSE
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.swp 
