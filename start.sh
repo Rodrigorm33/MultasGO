@@ -205,5 +205,5 @@ python -m app.scripts.create_tables || echo "Erro ao criar tabelas, mas a aplica
 
 # Iniciar a aplicação completa
 echo "Iniciando a aplicação completa com uvicorn..."
-echo "Usando porta: $PORT"
-exec uvicorn app.main:app --host 0.0.0.0 --port $PORT --log-level debug 
+echo "Usando porta fixa: 8080"
+exec uvicorn app.main:app --host 0.0.0.0 --port 8080 --log-level debug 
