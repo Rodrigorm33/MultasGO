@@ -11,5 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie o restante do código da aplicação
 COPY . .
 
-# Comando para iniciar a aplicação usando a variável de ambiente PORT
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}
+# Tornar o script de inicialização executável
+RUN chmod +x start.sh
+
+# Comando para iniciar a aplicação usando o script
+CMD ["./start.sh"]
