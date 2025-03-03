@@ -32,3 +32,18 @@
 2025-03-02 19:49:07,436 - MultasGO - INFO - Pesquisa fuzzy por descrição 'chinelo' retornou 1 resultados
 2025-03-02 19:49:11,150 - MultasGO - INFO - Iniciando pesquisa com termo: 'viseira'
 2025-03-02 19:49:11,921 - MultasGO - INFO - Pesquisa fuzzy por descrição 'viseira' retornou 2 resultados
+2025-03-02 21:33:08,078 - MultasGO - INFO - Versão do SQLAlchemy: 2.0.23
+2025-03-02 21:33:08,078 - MultasGO - INFO - Conectando ao banco de dados: postgresql:***@dpg-cuvqsftsvqrc73emgvqg-a.oregon-postgres.render.com/dbautos
+2025-03-02 21:33:08,128 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-02 21:33:11,710 - MultasGO - INFO - Tabelas encontradas no banco de dados: ['infracoes']
+2025-03-02 21:33:11,712 - MultasGO - INFO - Iniciando importação do arquivo CSV: C:\Users\rocha\Desktop\MultasGO_Backups\MultasGO_backup_20250227_081615\dbautos.csv
+2025-03-02 21:33:11,726 - MultasGO - INFO - Colunas encontradas no CSV: Código de infração, Infração, Responsável, Valor da multa, Órgão Autuador, Artigos do CTB, Pontos, Gravidade 
+2025-03-02 21:33:11,727 - MultasGO - WARNING - Colunas não encontradas no CSV: Gravidade
+2025-03-02 21:33:11,732 - MultasGO - INFO - Encontradas colunas similares a 'gravidade': ['Gravidade ']
+2025-03-02 21:33:15,679 - MultasGO - INFO - Encontrados 439 registros existentes no banco.
+2025-03-02 21:35:41,863 - MultasGO - INFO - Progresso: 440/440 registros processados
+2025-03-02 21:35:41,863 - MultasGO - INFO - Importação concluída: 0 novos, 440 atualizados, 0 ignorados.
+2025-03-02 21:35:45,682 - MultasGO - INFO - Tabelas encontradas no banco de dados: ['infracoes']
+2025-03-02 21:40:44,179 - MultasGO - INFO - Versão do SQLAlchemy: 2.0.23
+2025-03-02 21:40:44,180 - MultasGO - INFO - Conectando ao banco de dados: postgresql:***@dpg-cuvqsftsvqrc73emgvqg-a.oregon-postgres.render.com/dbautos
+2025-03-02 21:40:44,239 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
