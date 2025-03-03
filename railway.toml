@@ -17,7 +17,7 @@ timeout = 10
 retries = 3
 
 [deploy.env]
-PORT = 8080  # Removidas as aspas intencionalmente
+# Railway injeta a PORT automaticamente, não precisamos definir aqui
 PYTHONPATH = "/app"
 GUNICORN_CMD_ARGS = "--timeout=120 --keep-alive=5 --log-level=info"
 

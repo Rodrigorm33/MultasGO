@@ -14,12 +14,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie o restante do código da aplicação
 COPY . .
 
-# Definir a porta padrão (será sobrescrita pelo Railway)
-ENV PORT=8080
-EXPOSE 8080
+# Railway injeta a PORT automaticamente
+EXPOSE 8000
 
 # Configurar variáveis de ambiente para melhor performance
 ENV PYTHONUNBUFFERED=1
 
-# Usar o comando uvicorn para iniciar a aplicação
-CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
+# Usar shell form para permitir expansão de variáveis
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
