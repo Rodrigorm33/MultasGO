@@ -17,8 +17,8 @@ class Infracao(Base):
     __tablename__ = "infracoes"
     
     id = Column(Integer, primary_key=True, index=True)
-    codigo = Column(String(10), index=True, nullable=False, comment="Código da infração")
-    descricao = Column(Text, nullable=False, comment="Descrição da infração")
+    codigo = Column(String, index=True, nullable=False, comment="Código da infração")
+    descricao = Column(String, nullable=False, comment="Descrição da infração")
     responsavel = Column(String(50), nullable=False, comment="Responsável pela infração")
     valor_multa = Column(Float, nullable=False, comment="Valor da multa em reais")
     orgao_autuador = Column(String(100), nullable=False, comment="Órgão responsável pela autuação")
@@ -27,4 +27,4 @@ class Infracao(Base):
     gravidade = Column(String(20), nullable=False, comment="Gravidade da infração")
     
     def __repr__(self):
-        return f"<Infracao(codigo='{self.codigo}', descricao='{self.descricao[:30]}...')>" 
+        return f"<Infracao(codigo='{self.codigo}', descricao='{self.descricao[:30]}...')>"

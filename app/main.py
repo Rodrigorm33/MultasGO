@@ -14,12 +14,25 @@ from app.core.logger import logger
 from app.db.database import get_db, engine, Base
 from app.services.import_service import importar_csv_para_db
 from app.routers import infracoes
+from app.scripts.check_tables import check_tables
 
 # Recriar as tabelas no banco de dados (drop e create)
-logger.info("Recriando as tabelas no banco de dados...")
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-logger.info("Tabelas recriadas com sucesso.")
+try:
+    logger.info("Recriando as tabelas no banco de dados...")
+    logger.info(f"Usando DATABASE_URL: {settings.DATABASE_URL[:20]}...")  # Mostra apenas o início da URL por segurança
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    logger.info("Tabelas recriadas com sucesso.")
+    
+    # Verificar se as tabelas foram realmente criadas
+    tabelas = check_tables()
+    if tabelas:
+        logger.info(f"Tabelas verificadas após criação: {tabelas}")
+    else:
+        logger.warning("Nenhuma tabela encontrada após tentativa de criação!")
+except Exception as e:
+    logger.error(f"Erro ao recriar tabelas: {e}")
+    logger.error("A aplicação continuará, mas pode não funcionar corretamente.")
 
 # Inicializar a aplicação FastAPI
 app = FastAPI(
@@ -84,20 +97,37 @@ async def startup_event():
         
         # Caminho para o arquivo CSV
         csv_path = os.path.join(os.getcwd(), "dbautos.csv")
+        logger.info(f"Procurando arquivo CSV em: {csv_path}")
         
         # Verificar se o arquivo CSV existe
         if not os.path.exists(csv_path):
             logger.warning(f"Arquivo CSV não encontrado: {csv_path}. A aplicação continuará sem importar dados.")
+            
+            # Listar arquivos no diretório atual para debug
+            try:
+                arquivos = os.listdir(os.getcwd())
+                logger.info(f"Arquivos encontrados no diretório atual: {arquivos}")
+            except Exception as e:
+                logger.error(f"Erro ao listar arquivos: {e}")
+            
             return
         
         # Importar os dados do CSV para o banco de dados
         try:
+            logger.info("Iniciando importação de dados...")
             registros_importados = importar_csv_para_db(db, csv_path, force_update=False)
             
             if registros_importados > 0:
                 logger.info(f"Dados importados com sucesso: {registros_importados} registros")
             else:
                 logger.info("Nenhum dado foi importado")
+                
+            # Verificar novamente as tabelas após a importação
+            tabelas = check_tables()
+            if tabelas:
+                logger.info(f"Tabelas após importação: {tabelas}")
+            else:
+                logger.warning("Nenhuma tabela encontrada após importação!")
         except Exception as e:
             logger.error(f"Erro durante a importação do CSV: {e}")
             logger.info("A aplicação continuará sem importar dados.")
@@ -155,6 +185,17 @@ def health_check():
     except Exception as e:
         logger.error(f"Erro na verificação de saúde: {e}")
         raise HTTPException(status_code=500, detail=f"Erro na verificação de saúde: {str(e)}")
+
+@app.get("/check-tables")
+def check_tables_endpoint():
+    """
+    Endpoint temporário para verificar as tabelas no banco de dados.
+    """
+    tables = check_tables()
+    if tables:
+        return {"message": "Tabelas encontradas no banco de dados", "tables": tables}
+    else:
+        return {"message": "Nenhuma tabela encontrada no banco de dados"}
 
 if __name__ == "__main__":
     import uvicorn
