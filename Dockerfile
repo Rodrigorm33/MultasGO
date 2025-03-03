@@ -11,8 +11,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie o restante do código da aplicação
 COPY . .
 
-# Tornar o script de inicialização executável
-RUN chmod +x start.sh
+# Definir variável de ambiente Railway
+ENV RAILWAY_ENVIRONMENT=production
 
-# Comando para iniciar a aplicação usando o script
-CMD ["./start.sh"]
+# Definir a porta padrão
+ENV PORT=8080
+
+# Comando para iniciar a aplicação diretamente com uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${PORT}", "--log-level", "debug"]
