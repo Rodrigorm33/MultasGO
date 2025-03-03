@@ -53,8 +53,9 @@ app.add_middleware(
 )
 
 # Configurar templates e arquivos estáticos
-templates = Jinja2Templates(directory="app/templates")
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Comentado temporariamente para diagnóstico
+# templates = Jinja2Templates(directory="app/templates")
+# app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Classe personalizada para lidar com codificação UTF-8
 class UJSONResponse(JSONResponse):
@@ -79,6 +80,36 @@ async def add_charset_middleware(request: Request, call_next):
     if response.headers.get("content-type") == "application/json":
         response.headers["content-type"] = "application/json; charset=utf-8"
     return response
+
+# Endpoint simples para diagnóstico
+@app.get("/ping")
+def ping():
+    """
+    Endpoint simples para verificar se a aplicação está funcionando.
+    Não depende do banco de dados ou de outras dependências.
+    """
+    logger.info("Endpoint /ping acessado")
+    return {"ping": "pong", "status": "ok", "port": os.environ.get("PORT", "não definido")}
+
+# Endpoint raiz simplificado para diagnóstico
+@app.get("/")
+def root():
+    """
+    Endpoint raiz simplificado para diagnóstico.
+    """
+    logger.info("Endpoint raiz (/) acessado")
+    return {
+        "message": "API MultasGO funcionando",
+        "status": "ok",
+        "endpoints": [
+            "/ping",
+            "/api",
+            "/health",
+            "/check-tables",
+            "/docs",
+            "/redoc"
+        ]
+    }
 
 # Incluir as rotas da API
 app.include_router(api_router, prefix="/api/v1")
@@ -136,33 +167,34 @@ async def startup_event():
         logger.error(f"Erro durante a inicialização da aplicação: {e}")
         logger.info("A aplicação continuará mesmo com erro na inicialização.")
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    """
-    Página inicial do MultasGO.
-    """
-    return templates.TemplateResponse("index.html", {"request": request})
+# Comentado temporariamente para diagnóstico
+# @app.get("/", response_class=HTMLResponse)
+# async def home(request: Request):
+#     """
+#     Página inicial do MultasGO.
+#     """
+#     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/sobre", response_class=HTMLResponse)
-async def sobre(request: Request):
-    """
-    Página Sobre do MultasGO.
-    """
-    return templates.TemplateResponse("sobre.html", {"request": request})
+# @app.get("/sobre", response_class=HTMLResponse)
+# async def sobre(request: Request):
+#     """
+#     Página Sobre do MultasGO.
+#     """
+#     return templates.TemplateResponse("sobre.html", {"request": request})
 
-@app.get("/contato", response_class=HTMLResponse)
-async def contato(request: Request):
-    """
-    Página de Contato do MultasGO.
-    """
-    return templates.TemplateResponse("contato.html", {"request": request})
+# @app.get("/contato", response_class=HTMLResponse)
+# async def contato(request: Request):
+#     """
+#     Página de Contato do MultasGO.
+#     """
+#     return templates.TemplateResponse("contato.html", {"request": request})
 
-@app.get("/suporte", response_class=HTMLResponse)
-async def suporte(request: Request):
-    """
-    Página de Suporte do MultasGO (mesmo conteúdo da página de Contato).
-    """
-    return templates.TemplateResponse("suporte.html", {"request": request})
+# @app.get("/suporte", response_class=HTMLResponse)
+# async def suporte(request: Request):
+#     """
+#     Página de Suporte do MultasGO (mesmo conteúdo da página de Contato).
+#     """
+#     return templates.TemplateResponse("suporte.html", {"request": request})
 
 @app.get("/api")
 def api_root():
