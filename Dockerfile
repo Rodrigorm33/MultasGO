@@ -5,10 +5,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Instalar ferramentas de diagnóstico e PostgreSQL client
-RUN apt-get update && apt-get install -y curl procps net-tools postgresql-client && apt-get clean
-
-# Instalar gunicorn explicitamente junto com outras dependências
-RUN pip install --no-cache-dir gunicorn uvicorn
+RUN apt-get update && apt-get install -y curl && apt-get clean
 
 # Copie o arquivo de requisitos e instale as dependências
 COPY requirements.txt .
@@ -17,27 +14,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie o restante do código da aplicação
 COPY . .
 
-# Tornar o script de inicialização executável
-RUN chmod +x start.sh
-
-# Definir variável de ambiente Railway
-ENV RAILWAY_ENVIRONMENT=production
-
 # Definir a porta padrão (será sobrescrita pelo Railway)
 ENV PORT=8080
 EXPOSE 8080
 
 # Configurar variáveis de ambiente para melhor performance
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV GUNICORN_CMD_ARGS="--timeout=120 --keep-alive=5"
 
-# Garantir que o script start.sh use LF ao invés de CRLF
-RUN sed -i 's/\r$//' start.sh
-
-# Melhorar o healthcheck com timeout e retry mais adequados
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl --fail --silent --max-time 10 http://localhost:${PORT}/health || exit 1
-
-# Usar o script start.sh como ponto de entrada
-ENTRYPOINT ["/bin/bash", "start.sh"]
+# Usar o comando uvicorn para iniciar a aplicação
+CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT

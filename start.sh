@@ -1,49 +1,22 @@
 #!/bin/bash
 
-# Melhorar manipulação de sinais
-trap 'kill -TERM $PID' TERM INT
-
 # Exibir informações de diagnóstico
-echo "Iniciando MultasGO (versão de diagnóstico)..."
-echo "Diretório atual: $(pwd)"
-echo "Conteúdo do diretório: $(ls -la)"
-echo "Variáveis de ambiente disponíveis: $(env | grep -v SECRET | grep -v PASSWORD | cut -d= -f1 | sort)"
-
-# Configurar logs estruturados
-export GUNICORN_ACCESS_LOGFORMAT='%(h)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %({x-request-id}i)s %(L)s'
-export GUNICORN_ERROR_LOGFORMAT='[%(t)s] [%(p)s] [%(l)s] %(h)s %(m)s'
+echo "Iniciando MultasGO..."
 
 # Definir a porta padrão se não estiver definida
-if [ -z "$PORT" ]; then
-    export PORT=8080
-fi
+export PORT=${PORT:-8080}
 
-# Converter $PORT para inteiro e validar
+# Validar se PORT é um número
 if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
-    echo "PORT não é um número válido, usando porta padrão 8080"
+    echo "PORT inválida ($PORT), usando 8080"
     export PORT=8080
 fi
 
 echo "Porta configurada: $PORT"
 
-# Iniciar o gunicorn com configurações otimizadas para o Railway
-exec gunicorn app.main:app \
-    --bind 0.0.0.0:${PORT} \
-    --workers 4 \
-    --worker-class uvicorn.workers.UvicornWorker \
-    --timeout 120 \
-    --keep-alive 5 \
-    --log-level info \
-    --access-logfile - \
-    --error-logfile - \
-    --logger-class gunicorn.glogging.structlog.StructlogLogger \
-    --graceful-timeout 30 \
-    --worker-connections 1000 \
-    --max-requests 1000 \
-    --max-requests-jitter 50 \
-    --preload \
-    --capture-output \
-    --enable-stdio-inheritance &
-
-PID=$!
-wait $PID
+# Iniciar o servidor diretamente com uvicorn (mais simples e direto)
+exec uvicorn app.main:app \
+    --host 0.0.0.0 \
+    --port $PORT \
+    --timeout-keep-alive 5 \
+    --log-level info
