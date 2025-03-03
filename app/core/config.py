@@ -22,6 +22,9 @@ def get_env_variable(var_name, default_value=None, is_secret=False):
         print(f"INFO: {var_name} configurado como {value}")
     return value
 
+# Verifica se estamos no ambiente Railway
+is_railway = os.getenv("RAILWAY_ENVIRONMENT") is not None
+
 class Settings:
     # Informações da aplicação
     APP_NAME: str = get_env_variable("APP_NAME", "MultasGO")
@@ -32,7 +35,16 @@ class Settings:
     LOG_LEVEL: str = get_env_variable("LOG_LEVEL", "INFO")
     
     # Configurações do banco de dados
-    DATABASE_URL: str = get_env_variable("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/multas_db", is_secret=True)
+    # Se estiver no Railway, use o endereço interno do PostgreSQL
+    DATABASE_URL: str = None
+    if is_railway:
+        # Prioriza o endereço interno do PostgreSQL no Railway
+        railway_db_url = "postgresql://postgres:FbFuyWYNXEEGPwdBUsvrUvhrtqaKGSOs@postgres.railway.internal:5432/railway"
+        DATABASE_URL = get_env_variable("DATABASE_URL", railway_db_url, is_secret=True)
+        print("Usando endereço interno do PostgreSQL no Railway")
+    else:
+        # Usa o DATABASE_URL do ambiente ou o valor padrão
+        DATABASE_URL = get_env_variable("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/multas_db", is_secret=True)
     
     # Configurações de segurança
     SECRET_KEY: str = get_env_variable("SECRET_KEY", "chave_secreta_padrao_nao_use_em_producao", is_secret=True)
