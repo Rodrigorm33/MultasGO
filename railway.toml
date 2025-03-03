@@ -10,9 +10,9 @@ restartPolicyMaxRetries = 10
 
 [deploy.healthcheck]
 path = "/ping"
-interval = 15
-timeout = 5
-retries = 5
+interval = 60
+timeout = 30
+retries = 10
 
 [deploy.env]
 PORT = "8080" 

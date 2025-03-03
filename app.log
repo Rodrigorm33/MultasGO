@@ -47,3 +47,39 @@
 2025-03-02 21:40:44,179 - MultasGO - INFO - Versão do SQLAlchemy: 2.0.23
 2025-03-02 21:40:44,180 - MultasGO - INFO - Conectando ao banco de dados: postgresql:***@dpg-cuvqsftsvqrc73emgvqg-a.oregon-postgres.render.com/dbautos
 2025-03-02 21:40:44,239 - MultasGO - INFO - Conexão com o banco de dados estabelecida com sucesso
+2025-03-03 00:45:46,845 - MultasGO - INFO - Python version: 3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]
+2025-03-03 00:45:46,845 - MultasGO - INFO - Python version: 3.12.8 (tags/v3.12.8:2dc476b, Dec  3 2024, 19:30:04) [MSC v.1942 64 bit (AMD64)]
+2025-03-03 00:45:46,846 - MultasGO - INFO - Current working directory: C:\Users\rocha\Desktop\MultasGO_Backups\MultasGO_backup_20250227_081615
+2025-03-03 00:45:46,846 - MultasGO - INFO - Current working directory: C:\Users\rocha\Desktop\MultasGO_Backups\MultasGO_backup_20250227_081615
+2025-03-03 00:45:46,846 - MultasGO - INFO - Environment variables: ['ALLOWED_HOSTS', 'ALLUSERSPROFILE', 'ANDROID_HOME', 'APPDATA', 'APP_NAME', 'CHROME_CRASHPAD_PIPE_NAME', 'COLORTERM', 'COMMONPROGRAMFILES', 'COMMONPROGRAMFILES(X86)', 'COMMONPROGRAMW6432', 'COMPUTERNAME', 'COMSPEC', 'CURSOR_TRACE_ID', 'DATABASE_URL', 'DEBUG', 'DRIVERDATA', 'EFC_26112', 'FPS_BROWSER_APP_PROFILE_STRING', 'FPS_BROWSER_USER_PROFILE_STRING', 'FUZZY_SEARCH_THRESHOLD', 'GIT_ASKPASS', 'HOMEDRIVE', 'HOMEPATH', 'IGCCSVC_DB', 'LANG', 'LOCALAPPDATA', 'LOGONSERVER', 'LOG_LEVEL', 'NUMBER_OF_PROCESSORS', 'ONEDRIVE', 'ORIGINAL_XDG_CURRENT_DESKTOP', 'OS', 'PATH', 'PATHEXT', 'PROCESSOR_ARCHITECTURE', 'PROCESSOR_IDENTIFIER', 'PROCESSOR_LEVEL', 'PROCESSOR_REVISION', 'PROGRAMDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)', 'PROGRAMW6432', 'PROMPT', 'PSMODULEPATH', 'PUBLIC', 'RAILWAY_ENVIRONMENT', 'RAILWAY_ENVIRONMENT_ID', 'RAILWAY_ENVIRONMENT_NAME', 'RAILWAY_PRIVATE_DOMAIN', 'RAILWAY_PROJECT_ID', 'RAILWAY_PROJECT_NAME', 'RAILWAY_PUBLIC_DOMAIN', 'RAILWAY_SERVICE_ID', 'RAILWAY_SERVICE_MULTASGO_URL', 'RAILWAY_SERVICE_NAME', 'RAILWAY_STATIC_URL', 'SECRET_KEY', 'SESSIONNAME', 'SYSTEMDRIVE', 'SYSTEMROOT', 'TEMP', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'TMP', 'USERDOMAIN', 'USERDOMAIN_ROAMINGPROFILE', 'USERNAME', 'USERPROFILE', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS', 'VSCODE_GIT_ASKPASS_MAIN', 'VSCODE_GIT_ASKPASS_NODE', 'VSCODE_GIT_IPC_HANDLE', 'VSCODE_INJECTION', 'WINDIR', 'ZES_ENABLE_SYSMAN']
+2025-03-03 00:45:46,846 - MultasGO - INFO - Environment variables: ['ALLOWED_HOSTS', 'ALLUSERSPROFILE', 'ANDROID_HOME', 'APPDATA', 'APP_NAME', 'CHROME_CRASHPAD_PIPE_NAME', 'COLORTERM', 'COMMONPROGRAMFILES', 'COMMONPROGRAMFILES(X86)', 'COMMONPROGRAMW6432', 'COMPUTERNAME', 'COMSPEC', 'CURSOR_TRACE_ID', 'DATABASE_URL', 'DEBUG', 'DRIVERDATA', 'EFC_26112', 'FPS_BROWSER_APP_PROFILE_STRING', 'FPS_BROWSER_USER_PROFILE_STRING', 'FUZZY_SEARCH_THRESHOLD', 'GIT_ASKPASS', 'HOMEDRIVE', 'HOMEPATH', 'IGCCSVC_DB', 'LANG', 'LOCALAPPDATA', 'LOGONSERVER', 'LOG_LEVEL', 'NUMBER_OF_PROCESSORS', 'ONEDRIVE', 'ORIGINAL_XDG_CURRENT_DESKTOP', 'OS', 'PATH', 'PATHEXT', 'PROCESSOR_ARCHITECTURE', 'PROCESSOR_IDENTIFIER', 'PROCESSOR_LEVEL', 'PROCESSOR_REVISION', 'PROGRAMDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)', 'PROGRAMW6432', 'PROMPT', 'PSMODULEPATH', 'PUBLIC', 'RAILWAY_ENVIRONMENT', 'RAILWAY_ENVIRONMENT_ID', 'RAILWAY_ENVIRONMENT_NAME', 'RAILWAY_PRIVATE_DOMAIN', 'RAILWAY_PROJECT_ID', 'RAILWAY_PROJECT_NAME', 'RAILWAY_PUBLIC_DOMAIN', 'RAILWAY_SERVICE_ID', 'RAILWAY_SERVICE_MULTASGO_URL', 'RAILWAY_SERVICE_NAME', 'RAILWAY_STATIC_URL', 'SECRET_KEY', 'SESSIONNAME', 'SYSTEMDRIVE', 'SYSTEMROOT', 'TEMP', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'TMP', 'USERDOMAIN', 'USERDOMAIN_ROAMINGPROFILE', 'USERNAME', 'USERPROFILE', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS', 'VSCODE_GIT_ASKPASS_MAIN', 'VSCODE_GIT_ASKPASS_NODE', 'VSCODE_GIT_IPC_HANDLE', 'VSCODE_INJECTION', 'WINDIR', 'ZES_ENABLE_SYSMAN']
+2025-03-03 00:45:46,847 - MultasGO - INFO - PORT environment variable: not set
+2025-03-03 00:45:46,847 - MultasGO - INFO - PORT environment variable: not set
+2025-03-03 00:45:46,848 - MultasGO - INFO - PostgreSQL environment variables: {'PGUSER': 'not set', 'PGHOST': 'not set', 'PGPORT': 'not set', 'PGDATABASE': 'not set'}
+2025-03-03 00:45:46,848 - MultasGO - INFO - PostgreSQL environment variables: {'PGUSER': 'not set', 'PGHOST': 'not set', 'PGPORT': 'not set', 'PGDATABASE': 'not set'}
+2025-03-03 00:45:46,848 - MultasGO - INFO - Versão do SQLAlchemy: 2.0.23
+2025-03-03 00:45:46,848 - MultasGO - INFO - Versão do SQLAlchemy: 2.0.23
+2025-03-03 00:45:46,848 - MultasGO - INFO - Tentativa 1 de conexão ao banco de dados: postgresql:***@dpg-cuvqsftsvqrc73emgvqg-a.oregon-postgres.render.com/dbautos?connect_timeout=10&application_name=multasgo&keepalives=1&keepalives_idle=5&keepalives_interval=2&keepalives_count=3
+2025-03-03 00:45:46,848 - MultasGO - INFO - Tentativa 1 de conexão ao banco de dados: postgresql:***@dpg-cuvqsftsvqrc73emgvqg-a.oregon-postgres.render.com/dbautos?connect_timeout=10&application_name=multasgo&keepalives=1&keepalives_idle=5&keepalives_interval=2&keepalives_count=3
+2025-03-03 00:45:48,699 - sqlalchemy.engine.Engine - INFO - select pg_catalog.version()
+2025-03-03 00:45:48,700 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2025-03-03 00:45:49,144 - sqlalchemy.engine.Engine - INFO - select current_schema()
+2025-03-03 00:45:49,146 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2025-03-03 00:45:49,550 - sqlalchemy.engine.Engine - INFO - show standard_conforming_strings
+2025-03-03 00:45:49,551 - sqlalchemy.engine.Engine - INFO - [raw sql] {}
+2025-03-03 00:45:50,006 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-03-03 00:45:50,008 - sqlalchemy.engine.Engine - INFO - SELECT 1
+2025-03-03 00:45:50,009 - sqlalchemy.engine.Engine - INFO - [generated in 0.00235s] {}
+2025-03-03 00:45:50,441 - MultasGO - INFO - Conexão com o banco de dados estabelecida e testada com sucesso: (1,)
+2025-03-03 00:45:50,441 - MultasGO - INFO - Conexão com o banco de dados estabelecida e testada com sucesso: (1,)
+2025-03-03 00:45:50,443 - sqlalchemy.engine.Engine - INFO - 
+                        SELECT EXISTS (
+                            SELECT FROM information_schema.tables 
+                            WHERE table_schema = 'public' 
+                            AND table_name = 'autos'
+                        )
+                    
+2025-03-03 00:45:50,444 - sqlalchemy.engine.Engine - INFO - [generated in 0.00192s] {}
+2025-03-03 00:45:50,650 - MultasGO - WARNING - Tabela 'autos' NÃO encontrada no banco de dados
+2025-03-03 00:45:50,650 - MultasGO - WARNING - Tabela 'autos' NÃO encontrada no banco de dados
+2025-03-03 00:45:50,653 - sqlalchemy.engine.Engine - INFO - ROLLBACK

@@ -24,6 +24,23 @@ def setup_logger():
     logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
     
+    # Crie um handler para escrever os logs em um arquivo
+    file_handler = logging.FileHandler("app.log")
+    file_handler.setLevel(logging.INFO)
+
+    # Crie um handler para escrever os logs no console
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+
+    # Crie um formatter e adicione-o aos handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+
+    # Adicione os handlers ao logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
     return logger
 
 # Instância do logger para uso em toda a aplicação
