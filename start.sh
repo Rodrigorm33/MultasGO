@@ -7,12 +7,12 @@ echo "Conteúdo do diretório: $(ls -la)"
 echo "Variáveis de ambiente disponíveis: $(env | grep -v SECRET | grep -v PASSWORD | cut -d= -f1 | sort)"
 
 # Definir a porta padrão se não estiver definida
-if [ -z "$PORT" ]; then
+if [ -z "$PORT" ]; então
     export PORT=8080
 fi
 
 # Converter $PORT para inteiro e validar
-if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
+if ! [[ "$PORT" =~ ^[0-9]+$ ]]; então
     echo "PORT não é um número válido, usando porta padrão 8080"
     export PORT=8080
 fi

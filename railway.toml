@@ -15,4 +15,11 @@ timeout = 30
 retries = 10
 
 [deploy.env]
-PORT = "8080" 
+PORT = "8080"
+
+[service]
+name = "multasgo"
+start = "bash start.sh"
+
+[env]
+PORT = "8080"
