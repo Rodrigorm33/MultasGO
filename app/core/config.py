@@ -38,8 +38,20 @@ class Settings:
     # Se estiver no Railway, use o endereço do PostgreSQL fornecido
     DATABASE_URL: str = None
     if is_railway:
-        DATABASE_URL = get_env_variable("DATABASE_URL", is_secret=True)
-        print("Usando endereço do PostgreSQL configurado no Railway")
+        # Obter a URL base do banco de dados
+        db_url = get_env_variable("DATABASE_URL", is_secret=True)
+        
+        # Adicionar parâmetros de conexão para melhorar a estabilidade
+        if "?" not in db_url:
+            db_url += "?"
+        else:
+            db_url += "&"
+            
+        # Adicionar parâmetros para retry e timeout
+        db_url += "connect_timeout=10&application_name=multasgo&keepalives=1&keepalives_idle=5&keepalives_interval=2&keepalives_count=3"
+        
+        DATABASE_URL = db_url
+        print("Usando endereço do PostgreSQL configurado no Railway com parâmetros de conexão adicionais")
     else:
         # Usa o DATABASE_URL do ambiente ou o valor padrão
         DATABASE_URL = get_env_variable("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/multas_db", is_secret=True)
