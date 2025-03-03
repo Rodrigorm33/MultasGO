@@ -43,16 +43,13 @@ echo "POSTGRES_USER existe: $(if [ -n "$POSTGRES_USER" ]; then echo "SIM - $POST
 echo "POSTGRES_PASSWORD existe: $(if [ -n "$POSTGRES_PASSWORD" ]; then echo "SIM - (valor oculto)"; else echo "NÃO"; fi)"
 echo "POSTGRES_DB existe: $(if [ -n "$POSTGRES_DB" ]; then echo "SIM - $POSTGRES_DB"; else echo "NÃO"; fi)"
 
-# Definir a porta padrão se não estiver definida
-export PORT=${PORT:-8080}
-echo "Porta configurada: $PORT"
-
-# Garantir que PORT seja um número inteiro válido
+# Definir a porta padrão se não estiver definida ou se não for um número válido
 if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
-    echo "AVISO: PORT não é um número inteiro válido: '$PORT'. Usando 8080 como padrão."
     export PORT=8080
+    echo "Porta configurada para o padrão: $PORT"
+else
+    echo "Porta configurada: $PORT"
 fi
-echo "Porta final configurada: $PORT"
 
 # Verificar se o Python está instalado corretamente
 echo "Versão do Python: $(python --version)"
@@ -205,5 +202,5 @@ python -m app.scripts.create_tables || echo "Erro ao criar tabelas, mas a aplica
 
 # Iniciar a aplicação completa
 echo "Iniciando a aplicação completa com uvicorn..."
-echo "Usando porta fixa: 8080"
-exec uvicorn app.main:app --host 0.0.0.0 --port 8080 --log-level debug 
+echo "Usando porta: $PORT"
+exec uvicorn app.main:app --host 0.0.0.0 --port $PORT 
