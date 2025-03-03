@@ -24,5 +24,5 @@ ENV RAILWAY_ENVIRONMENT=production
 ENV PORT=8080
 EXPOSE 8080
 
-# Iniciar o uvicorn diretamente, sem usar o script start.sh
-CMD uvicorn app.main:app --host 0.0.0.0 --port 8080
+# Iniciar o uvicorn diretamente usando a variável de ambiente PORT
+CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
