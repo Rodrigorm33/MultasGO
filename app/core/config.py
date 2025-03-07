@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+from decouple import config
 
 # Carrega as variáveis de ambiente do arquivo .env apenas se ele existir
 env_path = Path('.') / '.env'
@@ -35,60 +36,65 @@ class Settings:
     LOG_LEVEL: str = get_env_variable("LOG_LEVEL", "INFO")
     
     # Configurações do banco de dados
-    # Se estiver no Railway, use o endereço do PostgreSQL fornecido
-    DATABASE_URL: str = None
-    if is_railway:
-        # Tentar obter a URL do banco de dados de várias fontes possíveis
-        db_url = None
-        
-        # Opção 1: Variável DATABASE_URL direta
-        db_url = os.getenv("DATABASE_URL")
-        if db_url:
-            print("Usando DATABASE_URL direta")
-        
-        # Opção 2: Variável compartilhada do PostgreSQL
-        if not db_url:
-            pg_user = os.getenv("PGUSER") or os.getenv("POSTGRES_USER") or "postgres"
-            pg_password = os.getenv("PGPASSWORD") or os.getenv("POSTGRES_PASSWORD")
-            pg_host = os.getenv("PGHOST") or "postgres.railway.internal"
-            pg_port = os.getenv("PGPORT") or "5432"
-            pg_db = os.getenv("PGDATABASE") or os.getenv("POSTGRES_DB") or "railway"
+    # Usar python-decouple para carregar DATABASE_URL
+    DATABASE_URL: str = config('DATABASE_URL', default=None)
+    
+    # Se DATABASE_URL não foi definido pelo decouple, continuar com a lógica anterior
+    if DATABASE_URL is None:
+        if is_railway:
+            # Tentar obter a URL do banco de dados de várias fontes possíveis
+            db_url = None
             
-            # Verificar se temos pelo menos o usuário e a senha
-            if pg_password:
-                db_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
-                print(f"Construindo DATABASE_URL a partir de variáveis PG_*: postgresql://{pg_user}:***@{pg_host}:{pg_port}/{pg_db}")
-        
-        # Opção 3: Usar valores fixos como último recurso
-        if not db_url:
-            print("AVISO: Nenhuma variável de banco de dados encontrada! Usando valores fixos para o Railway.")
-            db_url = "postgresql://postgres:FbFuyWYNXEEGPwdBUsvrUvhrtqaKGSOs@postgres.railway.internal:5432/railway"
-        
-        # Verificar se a URL não está vazia antes de adicionar parâmetros
-        if db_url and db_url.startswith("postgresql://"):
-            # Adicionar parâmetros de conexão para melhorar a estabilidade
-            if "?" not in db_url:
-                db_url += "?"
-            else:
-                db_url += "&"
+            # Opção 1: Variável DATABASE_URL direta
+            db_url = os.getenv("DATABASE_URL")
+            if db_url:
+                print("Usando DATABASE_URL direta")
+            
+            # Opção 2: Variável compartilhada do PostgreSQL
+            if not db_url:
+                pg_user = os.getenv("PGUSER") or os.getenv("POSTGRES_USER") or "postgres"
+                pg_password = os.getenv("PGPASSWORD") or os.getenv("POSTGRES_PASSWORD")
+                pg_host = os.getenv("PGHOST") or "postgres.railway.internal"
+                pg_port = os.getenv("PGPORT") or "5432"
+                pg_db = os.getenv("PGDATABASE") or os.getenv("POSTGRES_DB") or "railway"
                 
-            # Adicionar parâmetros para retry e timeout
-            db_url += "connect_timeout=10&application_name=multasgo&keepalives=1&keepalives_idle=5&keepalives_interval=2&keepalives_count=3"
+                # Verificar se temos pelo menos o usuário e a senha
+                if pg_password:
+                    db_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
+                    print(f"Construindo DATABASE_URL a partir de variáveis PG_*: postgresql://{pg_user}:***@{pg_host}:{pg_port}/{pg_db}")
             
-            DATABASE_URL = db_url
+            # Opção 3: Usar valores fixos como último recurso
+            if not db_url:
+                print("AVISO: Nenhuma variável de banco de dados encontrada! Usando valores fixos para o Railway.")
+                db_url = "postgresql://postgres:FbFuyWYNXEEGPwdBUsvrUvhrtqaKGSOs@postgres.railway.internal:5432/railway"
             
-            # Exibir URL de forma segura (sem senha)
-            try:
-                print(f"URL final do banco de dados: (formato seguro)")
-            except Exception as e:
-                print(f"Erro ao exibir URL do banco de dados: {e}")
+            # Verificar se a URL não está vazia antes de adicionar parâmetros
+            if db_url and db_url.startswith("postgresql://"):
+                # Adicionar parâmetros de conexão para melhorar a estabilidade
+                if "?" not in db_url:
+                    db_url += "?"
+                else:
+                    db_url += "&"
+                    
+                # Adicionar parâmetros para retry e timeout
+                db_url += "connect_timeout=10&application_name=multasgo&keepalives=1&keepalives_idle=5&keepalives_interval=2&keepalives_count=3"
+                
+                DATABASE_URL = db_url
+                
+                # Exibir URL de forma segura (sem senha)
+                try:
+                    print(f"URL final do banco de dados: (formato seguro)")
+                except Exception as e:
+                    print(f"Erro ao exibir URL do banco de dados: {e}")
+            else:
+                print("ERRO: URL do banco de dados inválida ou vazia!")
+                # Usar uma URL padrão para evitar erros
+                DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/railway"
         else:
-            print("ERRO: URL do banco de dados inválida ou vazia!")
-            # Usar uma URL padrão para evitar erros
-            DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/railway"
+            # Usa o DATABASE_URL do ambiente ou o valor padrão
+            DATABASE_URL = get_env_variable("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/multas_db", is_secret=True)
     else:
-        # Usa o DATABASE_URL do ambiente ou o valor padrão
-        DATABASE_URL = get_env_variable("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/multas_db", is_secret=True)
+        print("DATABASE_URL carregada com sucesso usando python-decouple")
     
     # Configurações de segurança
     SECRET_KEY: str = get_env_variable("SECRET_KEY", "chave_secreta_padrao_nao_use_em_producao", is_secret=True)
