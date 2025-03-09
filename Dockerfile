@@ -11,11 +11,14 @@ RUN apt-get update && apt-get install -y \
 # Copiar requirements primeiro para aproveitar o cache das camadas do Docker
 COPY requirements.txt .
 
-# Instalar dependências Python (sem usar cache mount que estava causando problemas)
+# Instalar dependências Python
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar o restante do código
 COPY . .
 
-# Comando para iniciar a aplicação
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"]
+# Script de inicialização para dar tempo ao banco de dados conectar
+CMD echo "Esperando o banco de dados inicializar..." && \
+    sleep 10 && \
+    echo "Iniciando aplicação..." && \
+    uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
