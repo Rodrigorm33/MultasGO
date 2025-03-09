@@ -17,8 +17,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar o restante do código
 COPY . .
 
-# Script de inicialização para dar tempo ao banco de dados conectar
+# Script de inicialização com solução para a expansão da variável PORT
 CMD echo "Esperando o banco de dados inicializar..." && \
     sleep 10 && \
     echo "Iniciando aplicação..." && \
-    uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+    if [ -z "$PORT" ]; then \
+      export PORT=8000; \
+    fi && \
+    uvicorn app.main:app --host 0.0.0.0 --port $PORT
