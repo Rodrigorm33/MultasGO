@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+
+# Arquivos de ambiente
+.env
+
+# Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Logs
+*.log
+
+# Ambientes virtuais
+venv/
+ENV/
+
+# Arquivos IDE
+.idea/
+.vscode/
+
+# Outros
+README.md
