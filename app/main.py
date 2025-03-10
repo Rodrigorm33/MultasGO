@@ -5,8 +5,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 import json
 from typing import Any, Dict
+import time
+from datetime import datetime
 
 from app.api.api import api_router
 from app.core.config import settings
@@ -86,7 +89,7 @@ async def startup_event():
     try:
         # Testar conexão com o banco de dados
         db = next(get_db())
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         logger.info("Conexão com o banco de dados verificada com sucesso.")
     except Exception as e:
         logger.error(f"Erro ao conectar ao banco de dados: {e}")
@@ -137,18 +140,36 @@ def health_check():
     """
     Endpoint para verificação de saúde da aplicação.
     """
+    start_time = time.time()
+    
     try:
         # Verificar a conexão com o banco de dados
         db = next(get_db())
-        db.execute("SELECT 1")
-        
-        return {
-            "status": "ok",
-            "database": "conectado"
-        }
+        db.execute(text("SELECT 1"))
+        db_status = "conectado"
+        db_error = None
     except Exception as e:
         logger.error(f"Erro na verificação de saúde: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro na verificação de saúde: {str(e)}")
+        db_status = "erro"
+        db_error = str(e)
+    
+    end_time = time.time()
+    response_time = round((end_time - start_time) * 1000, 2)  # em milissegundos
+    
+    health_info = {
+        "status": "ok" if db_status == "conectado" else "erro",
+        "database": db_status,
+        "version": settings.PROJECT_VERSION,
+        "timestamp": datetime.now().isoformat(),
+        "response_time_ms": response_time
+    }
+    
+    if db_error:
+        health_info["database_error"] = db_error
+        # Retornar status 503 Service Unavailable se o banco de dados não estiver disponível
+        return JSONResponse(content=health_info, status_code=503)
+    
+    return health_info
 
 if __name__ == "__main__":
     import uvicorn
