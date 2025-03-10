@@ -17,5 +17,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar o restante do código
 COPY . .
 
-# Comando de inicialização
+# Comando de inicialização de acordo com a documentação FastAPI do Railway
 CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
