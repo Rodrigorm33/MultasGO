@@ -14,7 +14,7 @@ class Infracao(Base):
     - Pontos
     - Gravidade
     """
-    __tablename__ = "infracoes"
+    __tablename__ = "bdbautos"
     
     id = Column(Integer, primary_key=True, index=True)
     codigo = Column(String(10), index=True, nullable=False, comment="Código da infração")
