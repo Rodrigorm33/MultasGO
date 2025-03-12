@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from rapidfuzz import fuzz, process
 from typing import Dict, List, Any
+import traceback
 
 from app.core.config import settings
 from app.core.logger import logger
@@ -39,6 +40,8 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         LIMIT :limit OFFSET :skip
         """
         
+        logger.info(f"Executando consulta SQL para código: {sql_query} com parâmetro: {codigo_search}")
+        
         result = db.execute(
             text(sql_query), 
             {"codigo_search": codigo_search, "limit": limit, "skip": skip}
@@ -46,14 +49,16 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         
         # Obter os nomes das colunas
         colunas = result.keys()
+        logger.info(f"Colunas encontradas: {[col for col in colunas]}")
+        
+        # Coletar resultados em uma lista para que possamos contar
+        rows = list(result)
+        logger.info(f"Número de resultados na busca por código: {len(rows)}")
         
         # Processar resultados
         resultados_codigo = []
-        for row in result:
+        for row in rows:
             try:
-                # Criar objeto Infracao
-                infracao = Infracao()
-                
                 # Criar um dicionário mapeando nomes de colunas para valores
                 row_dict = {}
                 for i, col in enumerate(colunas):
@@ -63,18 +68,24 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     if i < len(row):
                         row_dict[col_name] = row[i]
                 
-                infracao.codigo = row_dict.get("Código de Infração", "")
-                infracao.descricao = row_dict.get("Infração", "")
-                infracao.responsavel = row_dict.get("Responsável", "")
-                infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
-                infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
-                infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
-                infracao.pontos = row_dict.get("pontos", 0)
-                infracao.gravidade = row_dict.get("gravidade", "")
+                # Criar objeto Infracao diretamente com o construtor para evitar erros de validação
+                infracao = Infracao(
+                    codigo=str(row_dict.get("Código de Infração", "")),
+                    descricao=str(row_dict.get("Infração", "")),
+                    responsavel=str(row_dict.get("Responsável", "")),
+                    valor_multa=float(row_dict.get("Valor da Multa", 0.0)),
+                    orgao_autuador=str(row_dict.get("Órgão Autuador", "")),
+                    artigos_ctb=str(row_dict.get("Artigos do CTB", "")),
+                    pontos=int(row_dict.get("pontos", 0)),
+                    gravidade=str(row_dict.get("gravidade", ""))
+                )
                 
                 resultados_codigo.append(infracao)
             except Exception as e:
                 logger.error(f"Erro ao processar resultado: {e}")
+                logger.error(f"Detalhes do erro: {traceback.format_exc()}")
+                logger.error(f"Dados da linha: {row}")
+                logger.error(f"Row dict: {row_dict}")
         
         # Se encontrou resultados pela busca de código, retorna
         if resultados_codigo:
@@ -104,18 +115,21 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         LIMIT :limit OFFSET :skip
         """
         
+        logger.info(f"Executando consulta SQL para descrição: {sql_query} com parâmetro: {descricao_search}")
+        
         result = db.execute(
             text(sql_query), 
             {"descricao_search": descricao_search, "limit": limit, "skip": skip}
         )
         
+        # Coletar resultados em uma lista para que possamos contar
+        rows = list(result)
+        logger.info(f"Número de resultados na busca por descrição: {len(rows)}")
+        
         # Processar resultados
         resultados_descricao = []
-        for row in result:
+        for row in rows:
             try:
-                # Criar objeto Infracao
-                infracao = Infracao()
-                
                 # Criar um dicionário mapeando nomes de colunas para valores
                 row_dict = {}
                 for i, col in enumerate(colunas):
@@ -125,18 +139,23 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     if i < len(row):
                         row_dict[col_name] = row[i]
                 
-                infracao.codigo = row_dict.get("Código de Infração", "")
-                infracao.descricao = row_dict.get("Infração", "")
-                infracao.responsavel = row_dict.get("Responsável", "")
-                infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
-                infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
-                infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
-                infracao.pontos = row_dict.get("pontos", 0)
-                infracao.gravidade = row_dict.get("gravidade", "")
+                # Criar objeto Infracao diretamente com o construtor para evitar erros de validação
+                infracao = Infracao(
+                    codigo=str(row_dict.get("Código de Infração", "")),
+                    descricao=str(row_dict.get("Infração", "")),
+                    responsavel=str(row_dict.get("Responsável", "")),
+                    valor_multa=float(row_dict.get("Valor da Multa", 0.0)),
+                    orgao_autuador=str(row_dict.get("Órgão Autuador", "")),
+                    artigos_ctb=str(row_dict.get("Artigos do CTB", "")),
+                    pontos=int(row_dict.get("pontos", 0)),
+                    gravidade=str(row_dict.get("gravidade", ""))
+                )
                 
                 resultados_descricao.append(infracao)
             except Exception as e:
                 logger.error(f"Erro ao processar resultado: {e}")
+                logger.error(f"Detalhes do erro: {traceback.format_exc()}")
+                logger.error(f"Dados da linha: {row}")
         
         if resultados_descricao:
             # Contar total de resultados para descrição
@@ -162,11 +181,15 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         SELECT "Infração" FROM bdbautos
         LIMIT 1000
         """
+        logger.info(f"Executando consulta SQL para busca fuzzy: {sql_query}")
+        
         result = db.execute(text(sql_query))
         
         descricoes = []
         for row in result:
             descricoes.append(row[0])
+        
+        logger.info(f"Número de descrições para busca fuzzy: {len(descricoes)}")
         
         # Realizar busca fuzzy com a biblioteca RapidFuzz
         if descricoes:
@@ -175,6 +198,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             
             if matches and matches[0][1] >= fuzzy_threshold:
                 sugestao = matches[0][0]
+                logger.info(f"Sugestão fuzzy encontrada: {sugestao} com score {matches[0][1]}")
                 
                 # Buscar resultados com a sugestão
                 sugestao_search = f"%{sugestao}%"
@@ -190,13 +214,14 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     {"descricao_search": sugestao_search, "limit": limit, "skip": skip}
                 )
                 
+                # Coletar resultados em uma lista para que possamos contar
+                rows = list(result)
+                logger.info(f"Número de resultados para a sugestão: {len(rows)}")
+                
                 # Processar resultados
                 resultados_sugestao = []
-                for row in result:
+                for row in rows:
                     try:
-                        # Criar objeto Infracao
-                        infracao = Infracao()
-                        
                         # Criar um dicionário mapeando nomes de colunas para valores
                         row_dict = {}
                         for i, col in enumerate(colunas):
@@ -206,18 +231,23 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                             if i < len(row):
                                 row_dict[col_name] = row[i]
                         
-                        infracao.codigo = row_dict.get("Código de Infração", "")
-                        infracao.descricao = row_dict.get("Infração", "")
-                        infracao.responsavel = row_dict.get("Responsável", "")
-                        infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
-                        infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
-                        infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
-                        infracao.pontos = row_dict.get("pontos", 0)
-                        infracao.gravidade = row_dict.get("gravidade", "")
+                        # Criar objeto Infracao diretamente com o construtor para evitar erros de validação
+                        infracao = Infracao(
+                            codigo=str(row_dict.get("Código de Infração", "")),
+                            descricao=str(row_dict.get("Infração", "")),
+                            responsavel=str(row_dict.get("Responsável", "")),
+                            valor_multa=float(row_dict.get("Valor da Multa", 0.0)),
+                            orgao_autuador=str(row_dict.get("Órgão Autuador", "")),
+                            artigos_ctb=str(row_dict.get("Artigos do CTB", "")),
+                            pontos=int(row_dict.get("pontos", 0)),
+                            gravidade=str(row_dict.get("gravidade", ""))
+                        )
                         
                         resultados_sugestao.append(infracao)
                     except Exception as e:
                         logger.error(f"Erro ao processar resultado: {e}")
+                        logger.error(f"Detalhes do erro: {traceback.format_exc()}")
+                        logger.error(f"Dados da linha: {row}")
                 
                 # Retornar resultados encontrados com a sugestão
                 if resultados_sugestao:
@@ -239,6 +269,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     }
         
         # Se chegou aqui, não encontrou nenhum resultado
+        logger.info("Nenhum resultado encontrado em nenhuma das buscas")
         return {
             "resultados": [],
             "total": 0,
@@ -248,6 +279,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         
     except Exception as e:
         logger.error(f"Erro ao pesquisar infrações: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return {
             "resultados": [],
             "total": 0,
