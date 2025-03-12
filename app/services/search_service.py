@@ -11,15 +11,6 @@ from app.models.infracao import Infracao
 def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0) -> Dict[str, Any]:
     """
     Pesquisa infrações por código ou descrição com suporte a busca aproximada (fuzzy search).
-    
-    Args:
-        db: Sessão do banco de dados
-        query: Termo de pesquisa (código ou descrição)
-        limit: Número máximo de resultados a retornar
-        skip: Número de resultados para pular (para paginação)
-        
-    Returns:
-        Dict com resultados da pesquisa, contagem total e possível sugestão
     """
     query = query.strip()
     resultados = []
@@ -31,7 +22,6 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         # Busca exata por código
         codigo_search = f"%{query}%"
         
-        # Usar SQL direto com parâmetros para evitar injeção de SQL
         # Converter o campo "Código de Infração" para texto antes de usar LIKE
         sql_query = """
         SELECT * FROM bdbautos 
@@ -49,15 +39,10 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         
         # Obter os nomes das colunas
         colunas = result.keys()
-        logger.info(f"Colunas encontradas: {[col for col in colunas]}")
-        
-        # Coletar resultados em uma lista para que possamos contar
-        rows = list(result)
-        logger.info(f"Número de resultados na busca por código: {len(rows)}")
         
         # Processar resultados
         resultados_codigo = []
-        for row in rows:
+        for row in result:
             try:
                 # Criar um dicionário mapeando nomes de colunas para valores
                 row_dict = {}
@@ -68,7 +53,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     if i < len(row):
                         row_dict[col_name] = row[i]
                 
-                # Criar objeto Infracao diretamente com o construtor para evitar erros de validação
+                # Criar objeto Infracao manualmente para lidar com possíveis tipos de dados incompatíveis
                 infracao = Infracao(
                     codigo=str(row_dict.get("Código de Infração", "")),
                     descricao=str(row_dict.get("Infração", "")),
@@ -84,8 +69,6 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             except Exception as e:
                 logger.error(f"Erro ao processar resultado: {e}")
                 logger.error(f"Detalhes do erro: {traceback.format_exc()}")
-                logger.error(f"Dados da linha: {row}")
-                logger.error(f"Row dict: {row_dict}")
         
         # Se encontrou resultados pela busca de código, retorna
         if resultados_codigo:
@@ -122,13 +105,9 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             {"descricao_search": descricao_search, "limit": limit, "skip": skip}
         )
         
-        # Coletar resultados em uma lista para que possamos contar
-        rows = list(result)
-        logger.info(f"Número de resultados na busca por descrição: {len(rows)}")
-        
         # Processar resultados
         resultados_descricao = []
-        for row in rows:
+        for row in result:
             try:
                 # Criar um dicionário mapeando nomes de colunas para valores
                 row_dict = {}
@@ -139,7 +118,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     if i < len(row):
                         row_dict[col_name] = row[i]
                 
-                # Criar objeto Infracao diretamente com o construtor para evitar erros de validação
+                # Criar objeto Infracao manualmente
                 infracao = Infracao(
                     codigo=str(row_dict.get("Código de Infração", "")),
                     descricao=str(row_dict.get("Infração", "")),
@@ -155,7 +134,6 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             except Exception as e:
                 logger.error(f"Erro ao processar resultado: {e}")
                 logger.error(f"Detalhes do erro: {traceback.format_exc()}")
-                logger.error(f"Dados da linha: {row}")
         
         if resultados_descricao:
             # Contar total de resultados para descrição
@@ -176,7 +154,6 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             }
         
         # Se não encontrou resultados, realizar busca fuzzy
-        # Primeiro, buscar todas as descrições para comparação
         sql_query = """
         SELECT "Infração" FROM bdbautos
         LIMIT 1000
@@ -214,13 +191,9 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     {"descricao_search": sugestao_search, "limit": limit, "skip": skip}
                 )
                 
-                # Coletar resultados em uma lista para que possamos contar
-                rows = list(result)
-                logger.info(f"Número de resultados para a sugestão: {len(rows)}")
-                
                 # Processar resultados
                 resultados_sugestao = []
-                for row in rows:
+                for row in result:
                     try:
                         # Criar um dicionário mapeando nomes de colunas para valores
                         row_dict = {}
@@ -231,7 +204,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                             if i < len(row):
                                 row_dict[col_name] = row[i]
                         
-                        # Criar objeto Infracao diretamente com o construtor para evitar erros de validação
+                        # Criar objeto Infracao manualmente
                         infracao = Infracao(
                             codigo=str(row_dict.get("Código de Infração", "")),
                             descricao=str(row_dict.get("Infração", "")),
@@ -247,7 +220,6 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     except Exception as e:
                         logger.error(f"Erro ao processar resultado: {e}")
                         logger.error(f"Detalhes do erro: {traceback.format_exc()}")
-                        logger.error(f"Dados da linha: {row}")
                 
                 # Retornar resultados encontrados com a sugestão
                 if resultados_sugestao:

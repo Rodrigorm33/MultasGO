@@ -1,11 +1,11 @@
 from sqlalchemy import Column, Integer, String, Float, Text
 from sqlalchemy.dialects.postgresql import TEXT
 from app.db.database import Base
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 
 class InfracaoBase(Base):
     """
-    Modelo para representar uma infração de trânsito.
+    Modelo SQLAlchemy para representar uma infração de trânsito.
     """
     __tablename__ = "bdbautos"
     
@@ -22,13 +22,14 @@ class InfracaoBase(Base):
         return f"<Infracao(codigo='{self.codigo}', descricao='{self.descricao[:30]}...')>"
 
 class Infracao(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    codigo: str 
+    descricao: str
+    responsavel: str
+    valor_multa: float
+    orgao_autuador: str
+    artigos_ctb: str
+    pontos: int
+    gravidade: str
     
-    codigo: str = Field(default="", description="Código da infração")
-    descricao: str = Field(default="", description="Descrição da infração")
-    responsavel: str = Field(default="", description="Responsável pela infração")
-    valor_multa: float = Field(default=0.0, description="Valor da multa")
-    orgao_autuador: str = Field(default="", description="Órgão autuador")
-    artigos_ctb: str = Field(default="", description="Artigos do CTB")
-    pontos: int = Field(default=0, description="Pontos da infração")
-    gravidade: str = Field(default="", description="Gravidade da infração")
+    class Config:
+        from_attributes = True
