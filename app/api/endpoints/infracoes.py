@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import List, Optional, Dict, Any
 import traceback
 
@@ -25,7 +26,61 @@ def listar_infracoes(
     """
     try:
         logger.info(f"Listando infrações com skip={skip}, limit={limit}")
-        infracoes = db.query(Infracao).offset(skip).limit(limit).all()
+        
+        # Usar SQL direto em vez de ORM para evitar problemas com tipos de dados
+        consulta_sql = f"SELECT * FROM bdbautos LIMIT {limit} OFFSET {skip}"
+        logger.debug(f"Executando consulta SQL: {consulta_sql}")
+        
+        result = db.execute(text(consulta_sql))
+        
+        # Obter os nomes das colunas
+        colunas = result.keys()
+        logger.debug(f"Colunas encontradas: {[col for col in colunas]}")
+        
+        # Processar os resultados
+        infracoes = []
+        for row in result:
+            try:
+                # Criar objeto Infracao
+                infracao = Infracao()
+                
+                # Verificar se row é um dicionário ou uma tupla
+                if hasattr(row, 'items'):  # É um dicionário ou objeto semelhante
+                    infracao.codigo = row["Código de Infração"]
+                    infracao.descricao = row["Infração"]
+                    infracao.responsavel = row["Responsável"]
+                    infracao.valor_multa = row["Valor da Multa"]
+                    infracao.orgao_autuador = row["Órgão Autuador"]
+                    infracao.artigos_ctb = row["Artigos do CTB"]
+                    infracao.pontos = row["pontos"]
+                    infracao.gravidade = row["gravidade"]
+                else:  # É uma tupla ou lista
+                    # Criar um dicionário mapeando nomes de colunas para valores
+                    row_dict = {}
+                    for i, col in enumerate(colunas):
+                        col_name = str(col)  # Garantir que o nome da coluna seja uma string
+                        if hasattr(col, 'name'):
+                            col_name = col.name
+                        if i < len(row):
+                            row_dict[col_name] = row[i]
+                    
+                    logger.debug(f"Row dict: {row_dict}")
+                    
+                    infracao.codigo = row_dict.get("Código de Infração", "")
+                    infracao.descricao = row_dict.get("Infração", "")
+                    infracao.responsavel = row_dict.get("Responsável", "")
+                    infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
+                    infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
+                    infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
+                    infracao.pontos = row_dict.get("pontos", 0)
+                    infracao.gravidade = row_dict.get("gravidade", "")
+                
+                infracoes.append(infracao)
+            except Exception as e:
+                logger.error(f"Erro ao processar resultado: {e}")
+                logger.error(f"Detalhes da linha: {row}")
+                # Continuar com a próxima linha
+        
         logger.info(f"Listagem de infrações: {len(infracoes)} registros retornados")
         
         if not infracoes:
@@ -115,8 +170,61 @@ def obter_infracao(codigo: str, db: Session = Depends(get_db)):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Código de infração inválido: {codigo}. O código deve ter pelo menos 3 caracteres."
             )
-            
-        infracao = db.query(Infracao).filter(Infracao.codigo == codigo).first()
+        
+        # Usar SQL direto em vez de ORM para evitar problemas com tipos de dados
+        # Usar parâmetros para evitar injeção de SQL
+        consulta_sql = "SELECT * FROM bdbautos WHERE \"Código de Infração\" = :codigo LIMIT 1"
+        logger.debug(f"Executando consulta SQL: {consulta_sql}")
+        
+        result = db.execute(text(consulta_sql), {"codigo": codigo})
+        
+        # Obter os nomes das colunas
+        colunas = result.keys()
+        
+        # Processar o resultado
+        infracao = None
+        for row in result:
+            try:
+                # Criar objeto Infracao
+                infracao = Infracao()
+                
+                # Verificar se row é um dicionário ou uma tupla
+                if hasattr(row, 'items'):  # É um dicionário ou objeto semelhante
+                    infracao.codigo = row["Código de Infração"]
+                    infracao.descricao = row["Infração"]
+                    infracao.responsavel = row["Responsável"]
+                    infracao.valor_multa = row["Valor da Multa"]
+                    infracao.orgao_autuador = row["Órgão Autuador"]
+                    infracao.artigos_ctb = row["Artigos do CTB"]
+                    infracao.pontos = row["pontos"]
+                    infracao.gravidade = row["gravidade"]
+                else:  # É uma tupla ou lista
+                    # Criar um dicionário mapeando nomes de colunas para valores
+                    row_dict = {}
+                    for i, col in enumerate(colunas):
+                        col_name = str(col)  # Garantir que o nome da coluna seja uma string
+                        if hasattr(col, 'name'):
+                            col_name = col.name
+                        if i < len(row):
+                            row_dict[col_name] = row[i]
+                    
+                    logger.debug(f"Row dict: {row_dict}")
+                    
+                    infracao.codigo = row_dict.get("Código de Infração", "")
+                    infracao.descricao = row_dict.get("Infração", "")
+                    infracao.responsavel = row_dict.get("Responsável", "")
+                    infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
+                    infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
+                    infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
+                    infracao.pontos = row_dict.get("pontos", 0)
+                    infracao.gravidade = row_dict.get("gravidade", "")
+                
+                # Encontramos a primeira infração, podemos sair do loop
+                break
+            except Exception as e:
+                logger.error(f"Erro ao processar resultado: {e}")
+                logger.error(f"Detalhes da linha: {row}")
+                # Continuar com a próxima linha
         
         if not infracao:
             logger.warning(f"Infração com código '{codigo}' não encontrada")

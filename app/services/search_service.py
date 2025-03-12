@@ -134,11 +134,16 @@ def encontrar_sugestao(db: Session, termo: str) -> str:
         )
         
         if resultado:
-            termo_sugerido, score = resultado
-            # Se a sugestão for igual ao termo, não sugerir
-            if termo_sugerido != termo_normalizado:
-                logger.info(f"Sugestão fuzzy encontrada para '{termo_str}': '{termo_sugerido}' (score: {score})")
-                return termo_sugerido
+            # Verificar se o resultado é uma tupla com pelo menos 2 elementos
+            if isinstance(resultado, tuple) and len(resultado) >= 2:
+                termo_sugerido, score = resultado
+                # Se a sugestão for igual ao termo, não sugerir
+                if termo_sugerido != termo_normalizado:
+                    logger.info(f"Sugestão fuzzy encontrada para '{termo_str}': '{termo_sugerido}' (score: {score})")
+                    return termo_sugerido
+            else:
+                # Se o formato do resultado for diferente do esperado, registrar e continuar
+                logger.warning(f"Formato inesperado do resultado de fuzzy search: {resultado}")
         
         logger.info(f"Nenhuma sugestão encontrada para '{termo_str}'")
         return None
