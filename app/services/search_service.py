@@ -207,7 +207,8 @@ def pesquisar_por_codigo(db: Session, codigo: str, limit: int = 10, skip: int = 
                     
                     # Verificar se row é um dicionário ou uma tupla
                     if hasattr(row, 'items'):  # É um dicionário ou objeto semelhante
-                        infracao.codigo = row["Código de Infração"]
+                        # Garantir que o código seja string
+                        infracao.codigo = str(row["Código de Infração"])
                         infracao.descricao = row["Infração"]
                         infracao.responsavel = row["Responsável"]
                         infracao.valor_multa = row["Valor da Multa"]
@@ -227,7 +228,8 @@ def pesquisar_por_codigo(db: Session, codigo: str, limit: int = 10, skip: int = 
                         
                         logger.debug(f"Row dict: {row_dict}")
                         
-                        infracao.codigo = row_dict.get("Código de Infração", "")
+                        # Garantir que o código seja string
+                        infracao.codigo = str(row_dict.get("Código de Infração", ""))
                         infracao.descricao = row_dict.get("Infração", "")
                         infracao.responsavel = row_dict.get("Responsável", "")
                         infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
@@ -495,7 +497,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                 # Se encontrou resultados por código, retornar
                 if resultados_codigo:
                     # Se encontrou resultados, não mostrar mensagem de erro de formato
-                    if formato_invalido and len(resultados_codigo) > 0:
+                    if formato_invalido && len(resultados_codigo) > 0:
                         mensagem = None
                     
                     return {
@@ -538,4 +540,13 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
     except Exception as e:
         logger.error(f"Erro ao pesquisar infrações: {e}")
         logger.error(f"Stack trace: {traceback.format_exc()}")
-        raise 
+        raise
+
+async def search_by_code(self, code: str, limit: int = 10, skip: int = 0) -> List[Infracao]:
+    # ...existing code...
+    results = await collection.find(query).skip(skip).limit(limit).to_list(length=None)
+    for result in results:
+        if isinstance(result.get('codigo'), int):
+            result['codigo'] = str(result['codigo'])
+    return [Infracao(**result) for result in results]
+    # ...existing code...
