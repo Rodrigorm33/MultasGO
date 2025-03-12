@@ -47,136 +47,157 @@ def diagnostico_banco(db: Session):
 
 def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0) -> Dict[str, Any]:
     """
-    Pesquisa infrações por código ou descrição com busca altamente tolerante a erros.
-    Projetado para uso em condições de campo por agentes de trânsito.
+    Pesquisa infrações por código ou descrição.
+    Otimizado para uso por agentes de trânsito em campo.
     """
-    # Limpar e normalizar o termo de busca
-    if not query or query.strip() == "":
+    # Preparar o termo de busca (limpar e normalizar)
+    query_limpa = query.strip()
+    if not query_limpa:
         # Se a busca estiver vazia, mostrar os primeiros resultados
         return _buscar_todos(db, limit, skip)
     
-    query = query.strip().lower()
-    query = query.replace("-", "").replace(".", "").replace(",", "")  # Remover separadores comuns
+    query_limpa = query_limpa.lower()
+    query_limpa = query_limpa.replace("-", "").replace(".", "").replace(",", "")
     
     try:
         # Executar diagnóstico primeiro para verificar a conexão com o banco
         diagnostico = diagnostico_banco(db)
-        logger.info(f"Conexão com banco OK. Encontrados {len(diagnostico)} registros de exemplo")
+        logger.info(f"Diagnóstico do banco: encontrados {len(diagnostico)} registros de exemplo")
         
-        # 1. Mapeamento abrangente de termos e sinônimos comuns em trânsito
-        termos_comuns = {
-            "estacionar": ["estacionar", "estacionamento", "parado", "parada", "estacionado", "estacionou", "parou"],
-            "velocidade": ["velocidade", "excesso", "rapido", "rapida", "veloz", "veloc", "acelerado", "ve loc"],
-            "celular": ["celular", "telefone", "aparelho", "whatsapp", "mensagem", "celul", "fone", "smartphone"],
-            "cinto": ["cinto", "seguranca", "seguranc", "cinto de seguranca", "c seguranca"],
-            "alcool": ["alcool", "embriaguez", "bebida", "alcoolizado", "bebida", "embriagado", "bebeu", "etilico"],
-            "semaforo": ["semaforo", "sinal", "vermelho", "farol", "sinaleira", "pare", "sinal fechado"],
-            "parar": ["parar", "parada", "parou", "freou", "freado", "detenção", "retencao"],
-            "ultrapassagem": ["ultrapassagem", "ultrapas", "ultrapa", "ultrapassa", "ultrapasso", "ultrapassou"],
-            "contramao": ["contramao", "contra-mao", "sentido", "mao contraria", "direcao", "contra mao"],
-            "capacete": ["capacete", "moto", "capac", "motocicleta", "motoqueiro", "motociclista", "motoboy"],
-            "faixa": ["faixa", "pedestre", "pedestres", "pista", "faixa de pedestre", "travessia"]
-        }
+        # Lista para armazenar todos os resultados
+        resultados_combinados = []
+        codigos_existentes = set()
         
-        # 2. Verificar se o termo se parece com um código numérico
-        # Extrair todos os dígitos para busca numérica parcial
-        apenas_numeros = ''.join(c for c in query if c.isdigit())
-        
-        # 3. Preparar múltiplos termos para busca
-        termos_para_busca = []
-        
-        # Adicionar o termo original e variações diretas
-        termos_para_busca.append(query)
-        
-        # Verificar termos comuns para sinônimos e variações
-        for termo_comum, variantes in termos_comuns.items():
-            # Checar semelhança com cada variante para tolerar erros ortográficos
-            for variante in variantes:
-                # Usar comparação simples primeiro (mais rápido)
-                if variante in query or query in variante:
-                    if termo_comum not in termos_para_busca:
-                        termos_para_busca.append(termo_comum)
-                        logger.info(f"Termo '{query}' mapeado para termo comum '{termo_comum}' (correspondência simples)")
-                        break
-                # Verificar similaridade para erros ortográficos
-                elif len(query) > 3 and len(variante) > 3:  # Aplicar apenas a termos não muito curtos
-                    # Calcular similaridade usando lógica simples
-                    if query[:3] == variante[:3] or query[-3:] == variante[-3:]:  # Primeiras ou últimas 3 letras iguais
-                        if termo_comum not in termos_para_busca:
-                            termos_para_busca.append(termo_comum)
-                            logger.info(f"Termo '{query}' mapeado para termo comum '{termo_comum}' (prefixo/sufixo)")
-                            break
-        
-        # 4. Busca combinada (numérica + texto) para maior flexibilidade
-        todos_resultados = []
-        
-        # 4.1 Se temos dígitos, realizar busca por código
-        if apenas_numeros:
-            # Realizar busca por código, aceitando correspondências parciais
-            sql_query = """
+        # 1. Busca direta por código
+        codigo_limpo = ''.join(c for c in query_limpa if c.isdigit())
+        if codigo_limpo:
+            sql_codigo = """
             SELECT * FROM bdbautos 
-            WHERE CAST("Código de Infração" AS TEXT) LIKE :codigo_search
+            WHERE CAST("Código de Infração" AS TEXT) = :codigo_exato
+               OR CAST("Código de Infração" AS TEXT) LIKE :codigo_parcial
             ORDER BY "Código de Infração" ASC
-            LIMIT :limit OFFSET :skip
+            LIMIT :limit
             """
             
-            # Buscar com qualquer parte do código
-            codigo_search = f"%{apenas_numeros}%"
-            logger.info(f"Executando busca por código parcial: {codigo_search}")
-            
-            result = db.execute(
-                text(sql_query), 
-                {"codigo_search": codigo_search, "limit": limit*2, "skip": skip}  # Buscamos mais para permitir mesclagem
+            result_codigo = db.execute(
+                text(sql_codigo), 
+                {
+                    "codigo_exato": codigo_limpo, 
+                    "codigo_parcial": f"%{codigo_limpo}%",
+                    "limit": limit*2
+                }
             )
             
-            # Processar resultados da busca por código
-            resultados_codigo = _processar_resultados(result)
-            todos_resultados.extend(resultados_codigo)
+            resultados_codigo = _processar_resultados(result_codigo)
+            for resultado in resultados_codigo:
+                resultados_combinados.append(resultado)
+                codigos_existentes.add(resultado.codigo)
+            
             logger.info(f"Busca por código encontrou {len(resultados_codigo)} resultados")
         
-        # 4.2 Busca por texto para cada termo
-        for termo in termos_para_busca:
-            sql_query = """
-            SELECT * FROM bdbautos 
-            WHERE LOWER("Infração") LIKE :texto_search
-               OR LOWER("Responsável") LIKE :texto_search
-               OR LOWER("Órgão Autuador") LIKE :texto_search
-               OR LOWER("Artigos do CTB") LIKE :texto_search
-               OR LOWER("gravidade") LIKE :texto_search
-            ORDER BY "Código de Infração" ASC
-            LIMIT :limit OFFSET :skip
-            """
-            
-            texto_search = f"%{termo.lower()}%"
-            logger.info(f"Executando busca por texto: {texto_search}")
-            
-            result = db.execute(
-                text(sql_query), 
-                {"texto_search": texto_search, "limit": limit*2, "skip": skip}
-            )
-            
-            resultados_texto = _processar_resultados(result)
-            
-            # Adicionar apenas resultados ainda não incluídos (evitar duplicatas)
-            codigos_existentes = {r.codigo for r in todos_resultados}
-            for r in resultados_texto:
-                if r.codigo not in codigos_existentes:
-                    todos_resultados.append(r)
-                    codigos_existentes.add(r.codigo)
-            
-            logger.info(f"Busca por '{termo}' adicionou {len(resultados_texto) - len(codigos_existentes)} resultados únicos")
+        # 2. Busca direta por texto na descrição e outros campos
+        sql_texto = """
+        SELECT * FROM bdbautos 
+        WHERE LOWER("Infração") LIKE LOWER(:texto_search)
+           OR LOWER("Responsável") LIKE LOWER(:texto_search)
+           OR LOWER("Artigos do CTB") LIKE LOWER(:texto_search)
+           OR LOWER("Órgão Autuador") LIKE LOWER(:texto_search)
+           OR LOWER("gravidade") LIKE LOWER(:texto_search)
+        ORDER BY "Código de Infração" ASC
+        LIMIT :limit
+        """
         
-        # 5. Retornar resultados paginados
-        total = len(todos_resultados)
-        resultados_paginados = todos_resultados[skip:skip+limit]
+        result_texto = db.execute(
+            text(sql_texto), 
+            {"texto_search": f"%{query_limpa}%", "limit": limit*2}
+        )
         
-        # Se encontrou resultados, retornar com mensagem explicativa
-        if resultados_paginados:
-            if query != termos_para_busca[0] and len(termos_para_busca) > 1:
-                mensagem = f"Resultados expandidos para termos relacionados a '{query}'"
-            else:
-                mensagem = None
-                
+        resultados_texto = _processar_resultados(result_texto)
+        for resultado in resultados_texto:
+            if resultado.codigo not in codigos_existentes:
+                resultados_combinados.append(resultado)
+                codigos_existentes.add(resultado.codigo)
+        
+        logger.info(f"Busca por texto encontrou {len(resultados_texto)} resultados novos")
+        
+        # 3. Busca por palavras individuais se não encontrou resultados ou tem múltiplas palavras
+        if len(resultados_combinados) < 2 and ' ' in query_limpa:
+            palavras = query_limpa.split()
+            for palavra in palavras:
+                if len(palavra) >= 3:  # Ignorar palavras muito curtas
+                    sql_palavra = """
+                    SELECT * FROM bdbautos 
+                    WHERE LOWER("Infração") LIKE LOWER(:palavra_search)
+                    ORDER BY "Código de Infração" ASC
+                    LIMIT :limit
+                    """
+                    
+                    result_palavra = db.execute(
+                        text(sql_palavra), 
+                        {"palavra_search": f"%{palavra}%", "limit": limit*2}
+                    )
+                    
+                    resultados_palavra = _processar_resultados(result_palavra)
+                    for resultado in resultados_palavra:
+                        if resultado.codigo not in codigos_existentes:
+                            resultados_combinados.append(resultado)
+                            codigos_existentes.add(resultado.codigo)
+                    
+                    logger.info(f"Busca por palavra '{palavra}' encontrou {len(resultados_palavra)} resultados novos")
+        
+        # 4. Busca especial para termos conhecidos
+        termos_especiais = {
+            "recusa": ["recusar", "etilometro", "bafometro", "teste", "alcool"],
+            "cinto": ["seguranca", "sinto", "cinto de seguranca"],
+            "velocidade": ["excesso", "rapido", "velocidade permitida", "velocidade maxima"],
+            "celular": ["usar celular", "telefone", "aparelho"],
+            "estacionar": ["estacionamento", "parado"],
+            "transitar": ["transito", "passagem"],
+            "semaforo": ["sinal", "luz vermelha", "vermelho"],
+            "habilitacao": ["habilitado", "inabilitado", "carteira", "cnh"],
+            "alcoolizado": ["alcool", "bebida", "embriagado", "etilico"]
+        }
+        
+        if len(resultados_combinados) < 2:
+            for termo_principal, sinonimos in termos_especiais.items():
+                for sinonimo in sinonimos:
+                    if sinonimo in query_limpa or query_limpa in sinonimo:
+                        # Encontrou um termo especial, fazer busca específica
+                        termos_busca = [termo_principal] + sinonimos
+                        for termo in termos_busca:
+                            sql_especial = """
+                            SELECT * FROM bdbautos 
+                            WHERE LOWER("Infração") LIKE LOWER(:termo_search)
+                            ORDER BY "Código de Infração" ASC
+                            LIMIT :limit
+                            """
+                            
+                            result_especial = db.execute(
+                                text(sql_especial), 
+                                {"termo_search": f"%{termo}%", "limit": limit}
+                            )
+                            
+                            resultados_especial = _processar_resultados(result_especial)
+                            for resultado in resultados_especial:
+                                if resultado.codigo not in codigos_existentes:
+                                    resultados_combinados.append(resultado)
+                                    codigos_existentes.add(resultado.codigo)
+                            
+                            logger.info(f"Busca por termo especial '{termo}' encontrou {len(resultados_especial)} resultados novos")
+                        break
+        
+        # 5. Verificar se temos resultados
+        if resultados_combinados:
+            # Aplicar paginação
+            total = len(resultados_combinados)
+            inicio = min(skip, total)
+            fim = min(skip + limit, total)
+            resultados_paginados = resultados_combinados[inicio:fim]
+            
+            mensagem = None
+            if query != query_limpa:
+                mensagem = f"Mostrando resultados para '{query_limpa}'"
+            
             return {
                 "resultados": resultados_paginados,
                 "total": total,
@@ -184,15 +205,27 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                 "sugestao": None
             }
         
-        # 6. Caso não encontre nada, gerar sugestões inteligentes
-        # Listar os termos mais comuns no banco para sugestão
-        termos_populares = _obter_termos_populares(db)
+        # 6. Se não encontrou nada, buscar sugestões
+        sql_populares = """
+        SELECT DISTINCT "Infração" FROM bdbautos 
+        LIMIT 5
+        """
         
-        # Selecionar 3 termos aleatórios das infrações mais comuns
+        result_populares = db.execute(text(sql_populares))
+        termos_populares = []
+        
+        for row in result_populares:
+            if row[0]:
+                termos_populares.append(row[0])
+        
+        if not termos_populares:
+            termos_populares = ["Estacionar", "Parar", "Velocidade", "Recusar teste", "Habilitação"]
+        
+        # Escolher 3 termos aleatórios
         termos_sugeridos = random.sample(termos_populares, min(3, len(termos_populares)))
         
-        sugestao = f"Tente buscar por: {', '.join(termos_sugeridos)} ou um código como 54870"
-        logger.info(f"Nenhum resultado encontrado. Sugestão: {sugestao}")
+        sugestao = f"Tente buscar por: {', '.join(termos_sugeridos)} ou um número como 7579"
+        logger.info(f"Nenhum resultado encontrado. Sugerindo: {sugestao}")
         
         return {
             "resultados": [],
@@ -200,7 +233,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             "mensagem": "Nenhum resultado encontrado.",
             "sugestao": sugestao
         }
-        
+    
     except Exception as e:
         logger.error(f"Erro ao pesquisar infrações: {e}")
         logger.error(f"Traceback: {traceback.format_exc()}")
@@ -208,7 +241,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             "resultados": [],
             "total": 0,
             "mensagem": f"Erro ao realizar a pesquisa: {str(e)}",
-            "sugestao": "Tente um termo simples como 'Estacionar' ou um código como '54'"
+            "sugestao": "Tente uma palavra como 'recusa' ou 'estacionar', ou um código como '7579'"
         }
 
 def _processar_resultados(result):
@@ -244,6 +277,7 @@ def _processar_resultados(result):
                 resultados.append(infracao)
             except Exception as e:
                 logger.error(f"Erro ao processar linha: {e}")
+                logger.error(f"Detalhes da linha: {row}")
     except Exception as e:
         logger.error(f"Erro ao processar resultados: {e}")
     
@@ -283,30 +317,3 @@ def _buscar_todos(db: Session, limit: int = 10, skip: int = 0):
             "mensagem": f"Erro: {str(e)}",
             "sugestao": None
         }
-
-def _obter_termos_populares(db: Session, num_termos: int = 5):
-    """Obtém os termos mais populares do banco de dados para sugestões"""
-    try:
-        # Buscar as infrações mais comuns
-        sql_query = """
-        SELECT "Infração" FROM bdbautos 
-        GROUP BY "Infração"
-        ORDER BY COUNT(*) DESC
-        LIMIT :num_termos
-        """
-        
-        result = db.execute(text(sql_query), {"num_termos": num_termos})
-        
-        termos = []
-        for row in result:
-            if row[0]:
-                termos.append(row[0])
-        
-        # Se não encontrou termos, usar alguns padrões
-        if not termos:
-            termos = ["Estacionar", "Parar", "Velocidade", "Celular", "Cinto"]
-        
-        return termos
-    except Exception as e:
-        logger.error(f"Erro ao obter termos populares: {e}")
-        return ["Estacionar", "Parar", "Velocidade", "Celular", "Cinto"]
