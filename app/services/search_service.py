@@ -122,17 +122,43 @@ def pesquisar_por_codigo(db: Session, codigo: str, limit: int = 10, skip: int = 
             # Usar uma consulta SQL simples para evitar problemas com tipos de dados
             # Usar text() para evitar problemas de segurança e compatibilidade
             result = db.execute(text("SELECT * FROM bdbautos"))
+            
+            # Obter os nomes das colunas
+            colunas = result.keys()
+            
+            # Processar os resultados
             for row in result:
-                infracao = Infracao()
-                infracao.codigo = row["Código de Infração"]
-                infracao.descricao = row["Infração"]
-                infracao.responsavel = row["Responsável"]
-                infracao.valor_multa = row["Valor da Multa"]
-                infracao.orgao_autuador = row["Órgão Autuador"]
-                infracao.artigos_ctb = row["Artigos do CTB"]
-                infracao.pontos = row["pontos"]
-                infracao.gravidade = row["gravidade"]
-                todas_infracoes.append(infracao)
+                try:
+                    # Tentar acessar como dicionário
+                    infracao = Infracao()
+                    infracao.codigo = row["Código de Infração"]
+                    infracao.descricao = row["Infração"]
+                    infracao.responsavel = row["Responsável"]
+                    infracao.valor_multa = row["Valor da Multa"]
+                    infracao.orgao_autuador = row["Órgão Autuador"]
+                    infracao.artigos_ctb = row["Artigos do CTB"]
+                    infracao.pontos = row["pontos"]
+                    infracao.gravidade = row["gravidade"]
+                    todas_infracoes.append(infracao)
+                except (TypeError, KeyError) as e:
+                    # Se falhar, tentar acessar como tupla
+                    logger.warning(f"Erro ao acessar resultado como dicionário: {e}. Tentando como tupla.")
+                    try:
+                        # Converter a tupla para dicionário
+                        row_dict = dict(zip([col.name for col in colunas], row))
+                        
+                        infracao = Infracao()
+                        infracao.codigo = row_dict["Código de Infração"]
+                        infracao.descricao = row_dict["Infração"]
+                        infracao.responsavel = row_dict["Responsável"]
+                        infracao.valor_multa = row_dict["Valor da Multa"]
+                        infracao.orgao_autuador = row_dict["Órgão Autuador"]
+                        infracao.artigos_ctb = row_dict["Artigos do CTB"]
+                        infracao.pontos = row_dict["pontos"]
+                        infracao.gravidade = row_dict["gravidade"]
+                        todas_infracoes.append(infracao)
+                    except Exception as e2:
+                        logger.error(f"Erro ao processar resultado como tupla: {e2}")
         except Exception as e:
             logger.error(f"Erro ao buscar todas as infrações: {e}")
             # Fallback para a consulta ORM
@@ -201,17 +227,43 @@ def pesquisar_por_descricao_fuzzy(db: Session, descricao: str, limit: int = 10, 
             # Usar uma consulta SQL simples para evitar problemas com tipos de dados
             # Usar text() para evitar problemas de segurança e compatibilidade
             result = db.execute(text("SELECT * FROM bdbautos"))
+            
+            # Obter os nomes das colunas
+            colunas = result.keys()
+            
+            # Processar os resultados
             for row in result:
-                infracao = Infracao()
-                infracao.codigo = row["Código de Infração"]
-                infracao.descricao = row["Infração"]
-                infracao.responsavel = row["Responsável"]
-                infracao.valor_multa = row["Valor da Multa"]
-                infracao.orgao_autuador = row["Órgão Autuador"]
-                infracao.artigos_ctb = row["Artigos do CTB"]
-                infracao.pontos = row["pontos"]
-                infracao.gravidade = row["gravidade"]
-                todas_infracoes.append(infracao)
+                try:
+                    # Tentar acessar como dicionário
+                    infracao = Infracao()
+                    infracao.codigo = row["Código de Infração"]
+                    infracao.descricao = row["Infração"]
+                    infracao.responsavel = row["Responsável"]
+                    infracao.valor_multa = row["Valor da Multa"]
+                    infracao.orgao_autuador = row["Órgão Autuador"]
+                    infracao.artigos_ctb = row["Artigos do CTB"]
+                    infracao.pontos = row["pontos"]
+                    infracao.gravidade = row["gravidade"]
+                    todas_infracoes.append(infracao)
+                except (TypeError, KeyError) as e:
+                    # Se falhar, tentar acessar como tupla
+                    logger.warning(f"Erro ao acessar resultado como dicionário: {e}. Tentando como tupla.")
+                    try:
+                        # Converter a tupla para dicionário
+                        row_dict = dict(zip([col.name for col in colunas], row))
+                        
+                        infracao = Infracao()
+                        infracao.codigo = row_dict["Código de Infração"]
+                        infracao.descricao = row_dict["Infração"]
+                        infracao.responsavel = row_dict["Responsável"]
+                        infracao.valor_multa = row_dict["Valor da Multa"]
+                        infracao.orgao_autuador = row_dict["Órgão Autuador"]
+                        infracao.artigos_ctb = row_dict["Artigos do CTB"]
+                        infracao.pontos = row_dict["pontos"]
+                        infracao.gravidade = row_dict["gravidade"]
+                        todas_infracoes.append(infracao)
+                    except Exception as e2:
+                        logger.error(f"Erro ao processar resultado como tupla: {e2}")
         except Exception as e:
             logger.error(f"Erro ao buscar todas as infrações: {e}")
             # Fallback para a consulta ORM
@@ -282,11 +334,15 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         Dict[str, Any]: Dicionário com resultados e total
     """
     try:
+        logger.info(f"Iniciando pesquisa com termo: '{query}', limit: {limit}, skip: {skip}")
+        
         mensagem = None
         sugestao = None
         
         # Verificar se a consulta pode ser um código (contém apenas dígitos, hífens ou espaços)
         if re.match(r'^[\d\-\s]+$', query):
+            logger.info(f"Termo '{query}' identificado como possível código de infração")
+            
             # Verificar se o formato do código é válido
             codigo_normalizado = normalizar_codigo(query)
             
@@ -299,39 +355,54 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             if query.count('-') > 1 or (len(codigo_normalizado) != 5 and len(codigo_normalizado) != 6):
                 mensagem = "Formato de código inválido. Use o formato XXXXX ou XXXX-X, onde X é um dígito."
                 formato_invalido = True
+                logger.warning(f"Formato de código inválido: '{query}'")
             
             # Pesquisar por código (com ou sem hífen)
-            resultados_codigo = pesquisar_por_codigo(db, query, limit, skip)
-            
-            # Se encontrou resultados por código, retornar
-            if resultados_codigo:
-                # Se encontrou resultados, não mostrar mensagem de erro de formato
-                if formato_invalido and len(resultados_codigo) > 0:
-                    mensagem = None
+            try:
+                resultados_codigo = pesquisar_por_codigo(db, query, limit, skip)
+                logger.info(f"Pesquisa por código '{query}' retornou {len(resultados_codigo)} resultados")
                 
-                return {
-                    "resultados": resultados_codigo,
-                    "total": len(resultados_codigo),
-                    "mensagem": mensagem,
-                    "sugestao": sugestao
-                }
+                # Se encontrou resultados por código, retornar
+                if resultados_codigo:
+                    # Se encontrou resultados, não mostrar mensagem de erro de formato
+                    if formato_invalido and len(resultados_codigo) > 0:
+                        mensagem = None
+                    
+                    return {
+                        "resultados": resultados_codigo,
+                        "total": len(resultados_codigo),
+                        "mensagem": mensagem,
+                        "sugestao": sugestao
+                    }
+            except Exception as e:
+                logger.error(f"Erro ao pesquisar por código: {e}")
+                # Continuar com a pesquisa por descrição
         
         # Se não encontrou por código ou não é um código, pesquisar por descrição
-        resultados_fuzzy = pesquisar_por_descricao_fuzzy(db, query, limit, skip)
-        
-        # Extrair apenas as infrações dos resultados fuzzy
-        resultados = [item["infracao"] for item in resultados_fuzzy]
-        
-        # Se não encontrou resultados, buscar sugestão
-        if not resultados:
-            sugestao = encontrar_sugestao(db, query)
-        
-        return {
-            "resultados": resultados,
-            "total": len(resultados),
-            "mensagem": mensagem,
-            "sugestao": sugestao
-        }
+        logger.info(f"Pesquisando por descrição: '{query}'")
+        try:
+            resultados_fuzzy = pesquisar_por_descricao_fuzzy(db, query, limit, skip)
+            logger.info(f"Pesquisa fuzzy por descrição '{query}' retornou {len(resultados_fuzzy)} resultados")
+            
+            # Extrair apenas as infrações dos resultados fuzzy
+            resultados = [item["infracao"] for item in resultados_fuzzy]
+            
+            # Se não encontrou resultados, buscar sugestão
+            if not resultados:
+                logger.info(f"Nenhum resultado encontrado para '{query}'. Buscando sugestão.")
+                sugestao = encontrar_sugestao(db, query)
+                if sugestao:
+                    logger.info(f"Sugestão encontrada para '{query}': '{sugestao}'")
+            
+            return {
+                "resultados": resultados,
+                "total": len(resultados),
+                "mensagem": mensagem,
+                "sugestao": sugestao
+            }
+        except Exception as e:
+            logger.error(f"Erro ao pesquisar por descrição: {e}")
+            raise
     except Exception as e:
         logger.error(f"Erro ao pesquisar infrações: {e}")
         raise 
