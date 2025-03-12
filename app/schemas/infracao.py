@@ -16,25 +16,18 @@ class InfracaoCreate(InfracaoBase):
     """Esquema para criação de infrações"""
     pass
 
-class InfracaoUpdate(BaseModel):
+class InfracaoUpdate(InfracaoBase):
     """Esquema para atualização de infrações"""
-    codigo: Optional[str] = None
-    descricao: Optional[str] = None
-    responsavel: Optional[str] = None
-    valor_multa: Optional[float] = None
-    orgao_autuador: Optional[str] = None
-    artigos_ctb: Optional[str] = None
-    pontos: Optional[int] = None
-    gravidade: Optional[str] = None
+    pass
 
-class InfracaoInDB(InfracaoBase):
-    """Esquema para infrações armazenadas no banco de dados"""
-    id: int
+class Infracao(InfracaoBase):
+    # Removendo o campo id
+    # id: int
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
-class InfracaoResponse(InfracaoInDB):
+class InfracaoResponse(Infracao):
     """Esquema para resposta da API"""
     pass
 
