@@ -1,14 +1,20 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.dialects import postgresql
 
 from app.core.config import settings
 from app.core.logger import logger
 
-# Criação do engine do SQLAlchemy
+# Criação do engine do SQLAlchemy com configurações específicas para PostgreSQL
 try:
-    # Simplificando a criação do engine
-    engine = create_engine(settings.DATABASE_URL)
+    # Adicionando opções para lidar com tipos específicos do PostgreSQL
+    engine = create_engine(
+        settings.DATABASE_URL,
+        connect_args={"options": "-c timezone=utc"},
+        pool_pre_ping=True,
+        json_serializer=lambda obj: obj
+    )
     logger.info("Conexão com o banco de dados estabelecida com sucesso")
 except Exception as e:
     logger.error(f"Erro ao conectar ao banco de dados: {e}")

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, Text
+from sqlalchemy.dialects.postgresql import TEXT
 from app.db.database import Base
 
 class Infracao(Base):
@@ -9,7 +10,7 @@ class Infracao(Base):
     
     # Usar codigo como chave primária (sem coluna id)
     codigo = Column("Código de Infração", String(10), primary_key=True)
-    descricao = Column("Infração", Text, nullable=False)
+    descricao = Column("Infração", TEXT, nullable=False)
     responsavel = Column("Responsável", String(50), nullable=False)
     valor_multa = Column("Valor da Multa", Float, nullable=False)
     orgao_autuador = Column("Órgão Autuador", String(100), nullable=False)
