@@ -15,7 +15,6 @@ from app.api.api import api_router
 from app.core.config import settings
 from app.core.logger import logger
 from app.db.database import get_db, engine
-from app.routers import infracoes
 
 # Inicializar a aplicação FastAPI
 app = FastAPI(
@@ -72,7 +71,7 @@ app.router.default_response_class = UJSONResponse
 @app.middleware("http")
 async def add_charset_middleware(request: Request, call_next):
     response = await call_next(request)
-    if response.headers.get("content-type") == "application/json":
+    if "content-type" in response.headers and "application/json" in response.headers["content-type"]:
         response.headers["content-type"] = "application/json; charset=utf-8"
     return response
 
@@ -89,8 +88,13 @@ async def startup_event():
     try:
         # Testar conexão com o banco de dados
         db = next(get_db())
-        db.execute(text("SELECT 1"))
-        logger.info("Conexão com o banco de dados verificada com sucesso.")
+        try:
+            # Usar uma consulta SQL simples para verificar a conexão
+            db.execute(text("SELECT 1"))
+            logger.info("Conexão com o banco de dados verificada com sucesso.")
+        except Exception as e:
+            logger.error(f"Erro ao executar consulta de teste: {e}")
+            logger.warning("A aplicação continuará mesmo com erro na consulta de teste.")
     except Exception as e:
         logger.error(f"Erro ao conectar ao banco de dados: {e}")
         logger.warning("A aplicação continuará mesmo com erro na conexão com o banco de dados.")
@@ -174,8 +178,8 @@ def health_check():
 if __name__ == "__main__":
     import uvicorn
     
-    # Obter a porta da variável de ambiente ou usar 8000 como padrão
-    port = int(os.environ.get("PORT", 8000))
+    # Obter a porta da variável de ambiente ou usar 8080 como padrão
+    port = int(os.environ.get("PORT", 8080))
     
     # Iniciar o servidor
     uvicorn.run(

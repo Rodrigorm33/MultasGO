@@ -1,298 +1,256 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, func
-from typing import List, Dict, Any
+from sqlalchemy import text
 from rapidfuzz import fuzz, process
-import re
-from app.models.infracao import Infracao
+from typing import Dict, List, Any
+import logging
+
 from app.core.config import settings
 from app.core.logger import logger
-
-def normalizar_codigo(codigo: str) -> str:
-    """
-    Normaliza o código da infração removendo hífens e espaços.
-    
-    Args:
-        codigo: Código da infração com ou sem hífen
-        
-    Returns:
-        str: Código normalizado
-    """
-    # Remover hífens e espaços
-    return re.sub(r'[-\s]', '', codigo)
-
-def encontrar_sugestao(db: Session, termo: str) -> str:
-    """
-    Encontra uma sugestão para um termo de pesquisa que não retornou resultados.
-    
-    Args:
-        db: Sessão do banco de dados
-        termo: Termo de pesquisa original
-        
-    Returns:
-        str: Termo sugerido ou None se não houver sugestão
-    """
-    try:
-        logger.info(f"Buscando sugestão para o termo: '{termo}'")
-        
-        # Normalizar o termo de pesquisa
-        termo_normalizado = termo.lower().strip()
-        
-        # Mapeamento direto para casos comuns
-        mapeamento_direto = {
-            'xinelo': 'chinelo',
-            'chinelo': 'chinelo',
-            'sinto': 'cinto',
-            'cinto': 'cinto',
-            'velucidade': 'velocidade',
-            'velocidade': 'velocidade',
-            'contranao': 'contramao',
-            'contramao': 'contramao'
-        }
-        
-        # Verificar se o termo está no mapeamento direto
-        if termo_normalizado in mapeamento_direto:
-            sugestao = mapeamento_direto[termo_normalizado]
-            # Se a sugestão for igual ao termo, não sugerir
-            if sugestao != termo_normalizado:
-                logger.info(f"Sugestão direta encontrada para '{termo}': '{sugestao}'")
-                return sugestao
-            return None
-        
-        # Obter todas as infrações
-        todas_infracoes = db.query(Infracao).all()
-        
-        # Criar lista de termos para comparação
-        termos_comparacao = []
-        
-        # Adicionar códigos
-        for infracao in todas_infracoes:
-            termos_comparacao.append(infracao.codigo)
-        
-        # Adicionar palavras-chave das descrições
-        palavras_chave = set()
-        for infracao in todas_infracoes:
-            # Extrair palavras com mais de 3 caracteres
-            palavras = [p.lower() for p in re.findall(r'\b\w{3,}\b', infracao.descricao)]
-            palavras_chave.update(palavras)
-        
-        termos_comparacao.extend(list(palavras_chave))
-        
-        # Encontrar o termo mais similar usando rapidfuzz
-        resultado = process.extractOne(
-            termo_normalizado, 
-            termos_comparacao,
-            scorer=fuzz.token_set_ratio,
-            score_cutoff=75
-        )
-        
-        if resultado:
-            termo_sugerido, score = resultado
-            # Se a sugestão for igual ao termo, não sugerir
-            if termo_sugerido != termo_normalizado:
-                logger.info(f"Sugestão fuzzy encontrada para '{termo}': '{termo_sugerido}' (score: {score})")
-                return termo_sugerido
-        
-        logger.info(f"Nenhuma sugestão encontrada para '{termo}'")
-        return None
-    except Exception as e:
-        logger.error(f"Erro ao buscar sugestão: {e}")
-        return None
-
-def pesquisar_por_codigo(db: Session, codigo: str, limit: int = 10, skip: int = 0) -> List[Infracao]:
-    """
-    Pesquisa infrações por código exato ou parcial, com suporte a códigos com ou sem hífen.
-    
-    Args:
-        db: Sessão do banco de dados
-        codigo: Código da infração (completo ou parcial, com ou sem hífen)
-        limit: Número máximo de resultados
-        skip: Número de resultados para pular (paginação)
-        
-    Returns:
-        List[Infracao]: Lista de infrações encontradas
-    """
-    try:
-        # Normalizar o código (remover hífens e espaços)
-        codigo_normalizado = normalizar_codigo(codigo)
-        
-        # Buscar todas as infrações para aplicar a normalização
-        todas_infracoes = db.query(Infracao).all()
-        
-        # Filtrar manualmente para suportar códigos com ou sem hífen
-        resultados = []
-        for infracao in todas_infracoes:
-            codigo_infracao_normalizado = normalizar_codigo(infracao.codigo)
-            
-            # Verificar se o código normalizado da consulta está contido no código normalizado da infração
-            if codigo_normalizado in codigo_infracao_normalizado:
-                resultados.append(infracao)
-                
-            # Verificar também o formato com hífen (se o código original tiver 5 dígitos)
-            elif len(codigo) == 5 and codigo[:4] == infracao.codigo[:4] and codigo[4:] == infracao.codigo[4:]:
-                resultados.append(infracao)
-                
-            # Verificar formato com hífen (se o código original tiver 6 caracteres com hífen)
-            elif len(codigo) == 6 and codigo[4] == '-' and codigo[:4] == infracao.codigo[:4] and codigo[5:] == infracao.codigo[4:]:
-                resultados.append(infracao)
-        
-        # Aplicar paginação
-        resultados_paginados = resultados[skip:min(skip+limit, len(resultados))]
-        
-        logger.info(f"Pesquisa por código '{codigo}' (normalizado: '{codigo_normalizado}') retornou {len(resultados_paginados)} resultados")
-        return resultados_paginados
-    except Exception as e:
-        logger.error(f"Erro ao pesquisar por código: {e}")
-        raise
-
-def pesquisar_por_descricao_fuzzy(db: Session, descricao: str, limit: int = 10, skip: int = 0) -> List[Dict[str, Any]]:
-    """
-    Pesquisa infrações por descrição utilizando fuzzy search.
-    
-    Args:
-        db: Sessão do banco de dados
-        descricao: Descrição da infração (completa ou parcial)
-        limit: Número máximo de resultados
-        skip: Número de resultados para pular (paginação)
-        
-    Returns:
-        List[Dict[str, Any]]: Lista de infrações encontradas com score de similaridade
-    """
-    try:
-        # Normalizar a descrição para melhorar a busca
-        descricao_normalizada = descricao.lower().strip()
-        
-        # Substituições comuns para erros de português
-        substituicoes = {
-            'ç': 'c', 'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a',
-            'é': 'e', 'ê': 'e', 'í': 'i', 'ó': 'o', 'ô': 'o',
-            'õ': 'o', 'ú': 'u', 'ü': 'u'
-        }
-        
-        # Aplicar substituições
-        for original, substituto in substituicoes.items():
-            descricao_normalizada = descricao_normalizada.replace(original, substituto)
-        
-        # Dividir a consulta em palavras-chave
-        palavras_chave = [p for p in descricao_normalizada.split() if len(p) > 2]
-        
-        # Buscar todas as infrações para aplicar fuzzy search
-        todas_infracoes = db.query(Infracao).all()
-        
-        # Aplicar fuzzy search na descrição
-        resultados_fuzzy = []
-        for infracao in todas_infracoes:
-            # Normalizar a descrição da infração
-            descricao_infracao_normalizada = infracao.descricao.lower()
-            for original, substituto in substituicoes.items():
-                descricao_infracao_normalizada = descricao_infracao_normalizada.replace(original, substituto)
-            
-            # Verificar se pelo menos uma palavra-chave está presente na descrição
-            palavras_encontradas = 0
-            for palavra in palavras_chave:
-                if palavra in descricao_infracao_normalizada:
-                    palavras_encontradas += 1
-            
-            # Se nenhuma palavra-chave foi encontrada e temos mais de uma palavra, pular
-            if len(palavras_chave) > 0 and palavras_encontradas == 0:
-                continue
-                
-            # Calcular a similaridade entre a consulta e a descrição (usando diferentes algoritmos)
-            score_token_set = fuzz.token_set_ratio(descricao_normalizada, descricao_infracao_normalizada)
-            score_token_sort = fuzz.token_sort_ratio(descricao_normalizada, descricao_infracao_normalizada)
-            score_partial = fuzz.partial_ratio(descricao_normalizada, descricao_infracao_normalizada)
-            
-            # Usar o maior score entre os diferentes algoritmos
-            score = max(score_token_set, score_token_sort, score_partial)
-            
-            # Bônus para correspondências exatas de palavras-chave
-            if palavras_encontradas > 0:
-                # Adicionar bônus proporcional ao número de palavras encontradas
-                bonus = min(15, palavras_encontradas * 5)
-                score = min(100, score + bonus)
-            
-            # Adicionar à lista se o score for maior que o limiar
-            if score >= settings.FUZZY_SEARCH_THRESHOLD:
-                resultados_fuzzy.append({
-                    "infracao": infracao,
-                    "score": score
-                })
-        
-        # Ordenar por score (maior para menor)
-        resultados_fuzzy.sort(key=lambda x: x["score"], reverse=True)
-        
-        # Aplicar paginação
-        resultados_paginados = resultados_fuzzy[skip:skip+limit]
-        
-        logger.info(f"Pesquisa fuzzy por descrição '{descricao}' retornou {len(resultados_paginados)} resultados")
-        return resultados_paginados
-    except Exception as e:
-        logger.error(f"Erro ao pesquisar por descrição com fuzzy search: {e}")
-        raise
+from app.models.infracao import Infracao
 
 def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0) -> Dict[str, Any]:
     """
-    Pesquisa infrações por código ou descrição.
+    Pesquisa infrações por código ou descrição com suporte a busca aproximada (fuzzy search).
     
     Args:
         db: Sessão do banco de dados
         query: Termo de pesquisa (código ou descrição)
-        limit: Número máximo de resultados
-        skip: Número de resultados para pular (paginação)
+        limit: Número máximo de resultados a retornar
+        skip: Número de resultados para pular (para paginação)
         
     Returns:
-        Dict[str, Any]: Dicionário com resultados e total
+        Dict com resultados da pesquisa, contagem total e possível sugestão
     """
+    query = query.strip()
+    resultados = []
+    total = 0
+    sugestao = None
+    mensagem = None
+    
     try:
-        mensagem = None
-        sugestao = None
+        # Busca exata por código
+        codigo_search = f"%{query}%"
         
-        # Verificar se a consulta pode ser um código (contém apenas dígitos, hífens ou espaços)
-        if re.match(r'^[\d\-\s]+$', query):
-            # Verificar se o formato do código é válido
-            codigo_normalizado = normalizar_codigo(query)
-            
-            # Formatos válidos para códigos de infração no Brasil:
-            # - 5 dígitos (ex: 51692)
-            # - 4 dígitos + hífen + 1 dígito (ex: 5169-2)
-            
-            # Verificar se o código tem um formato inválido (mais de um hífen ou formato não reconhecido)
-            formato_invalido = False
-            if query.count('-') > 1 or (len(codigo_normalizado) != 5 and len(codigo_normalizado) != 6):
-                mensagem = "Formato de código inválido. Use o formato XXXXX ou XXXX-X, onde X é um dígito."
-                formato_invalido = True
-            
-            # Pesquisar por código (com ou sem hífen)
-            resultados_codigo = pesquisar_por_codigo(db, query, limit, skip)
-            
-            # Se encontrou resultados por código, retornar
-            if resultados_codigo:
-                # Se encontrou resultados, não mostrar mensagem de erro de formato
-                if formato_invalido and len(resultados_codigo) > 0:
-                    mensagem = None
+        # Usar SQL direto com parâmetros para evitar injeção de SQL
+        sql_query = """
+        SELECT * FROM bdbautos 
+        WHERE "Código de Infração" LIKE :codigo_search
+        ORDER BY "Código de Infração" ASC
+        LIMIT :limit OFFSET :skip
+        """
+        
+        result = db.execute(
+            text(sql_query), 
+            {"codigo_search": codigo_search, "limit": limit, "skip": skip}
+        )
+        
+        # Obter os nomes das colunas
+        colunas = result.keys()
+        
+        # Processar resultados
+        resultados_codigo = []
+        for row in result:
+            try:
+                # Criar objeto Infracao
+                infracao = Infracao()
                 
-                return {
-                    "resultados": resultados_codigo,
-                    "total": len(resultados_codigo),
-                    "mensagem": mensagem,
-                    "sugestao": sugestao
-                }
+                # Criar um dicionário mapeando nomes de colunas para valores
+                row_dict = {}
+                for i, col in enumerate(colunas):
+                    col_name = str(col)
+                    if hasattr(col, 'name'):
+                        col_name = col.name
+                    if i < len(row):
+                        row_dict[col_name] = row[i]
+                
+                infracao.codigo = row_dict.get("Código de Infração", "")
+                infracao.descricao = row_dict.get("Infração", "")
+                infracao.responsavel = row_dict.get("Responsável", "")
+                infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
+                infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
+                infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
+                infracao.pontos = row_dict.get("pontos", 0)
+                infracao.gravidade = row_dict.get("gravidade", "")
+                
+                resultados_codigo.append(infracao)
+            except Exception as e:
+                logger.error(f"Erro ao processar resultado: {e}")
         
-        # Se não encontrou por código ou não é um código, pesquisar por descrição
-        resultados_fuzzy = pesquisar_por_descricao_fuzzy(db, query, limit, skip)
+        # Se encontrou resultados pela busca de código, retorna
+        if resultados_codigo:
+            # Contar total de resultados para código
+            count_sql = """
+            SELECT COUNT(*) FROM bdbautos 
+            WHERE "Código de Infração" LIKE :codigo_search
+            """
+            total_result = db.execute(text(count_sql), {"codigo_search": codigo_search})
+            for row in total_result:
+                total = row[0]
+                break
+                
+            return {
+                "resultados": resultados_codigo,
+                "total": total,
+                "mensagem": None,
+                "sugestao": None
+            }
         
-        # Extrair apenas as infrações dos resultados fuzzy
-        resultados = [item["infracao"] for item in resultados_fuzzy]
+        # Se não encontrou por código, busca por descrição
+        descricao_search = f"%{query}%"
+        sql_query = """
+        SELECT * FROM bdbautos 
+        WHERE "Infração" ILIKE :descricao_search
+        ORDER BY "Infração" ASC
+        LIMIT :limit OFFSET :skip
+        """
         
-        # Se não encontrou resultados, buscar sugestão
-        if not resultados:
-            sugestao = encontrar_sugestao(db, query)
+        result = db.execute(
+            text(sql_query), 
+            {"descricao_search": descricao_search, "limit": limit, "skip": skip}
+        )
         
+        # Processar resultados
+        resultados_descricao = []
+        for row in result:
+            try:
+                # Criar objeto Infracao
+                infracao = Infracao()
+                
+                # Criar um dicionário mapeando nomes de colunas para valores
+                row_dict = {}
+                for i, col in enumerate(colunas):
+                    col_name = str(col)
+                    if hasattr(col, 'name'):
+                        col_name = col.name
+                    if i < len(row):
+                        row_dict[col_name] = row[i]
+                
+                infracao.codigo = row_dict.get("Código de Infração", "")
+                infracao.descricao = row_dict.get("Infração", "")
+                infracao.responsavel = row_dict.get("Responsável", "")
+                infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
+                infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
+                infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
+                infracao.pontos = row_dict.get("pontos", 0)
+                infracao.gravidade = row_dict.get("gravidade", "")
+                
+                resultados_descricao.append(infracao)
+            except Exception as e:
+                logger.error(f"Erro ao processar resultado: {e}")
+        
+        if resultados_descricao:
+            # Contar total de resultados para descrição
+            count_sql = """
+            SELECT COUNT(*) FROM bdbautos 
+            WHERE "Infração" ILIKE :descricao_search
+            """
+            total_result = db.execute(text(count_sql), {"descricao_search": descricao_search})
+            for row in total_result:
+                total = row[0]
+                break
+                
+            return {
+                "resultados": resultados_descricao,
+                "total": total,
+                "mensagem": None,
+                "sugestao": None
+            }
+        
+        # Se não encontrou resultados, realizar busca fuzzy
+        # Primeiro, buscar todas as descrições para comparação
+        sql_query = """
+        SELECT "Infração" FROM bdbautos
+        LIMIT 1000
+        """
+        result = db.execute(text(sql_query))
+        
+        descricoes = []
+        for row in result:
+            descricoes.append(row[0])
+        
+        # Realizar busca fuzzy com a biblioteca RapidFuzz
+        if descricoes:
+            fuzzy_threshold = settings.FUZZY_SEARCH_THRESHOLD
+            matches = process.extract(query, descricoes, scorer=fuzz.token_sort_ratio, limit=1)
+            
+            if matches and matches[0][1] >= fuzzy_threshold:
+                sugestao = matches[0][0]
+                
+                # Buscar resultados com a sugestão
+                sugestao_search = f"%{sugestao}%"
+                sql_query = """
+                SELECT * FROM bdbautos 
+                WHERE "Infração" ILIKE :descricao_search
+                ORDER BY "Infração" ASC
+                LIMIT :limit OFFSET :skip
+                """
+                
+                result = db.execute(
+                    text(sql_query), 
+                    {"descricao_search": sugestao_search, "limit": limit, "skip": skip}
+                )
+                
+                # Processar resultados
+                resultados_sugestao = []
+                for row in result:
+                    try:
+                        # Criar objeto Infracao
+                        infracao = Infracao()
+                        
+                        # Criar um dicionário mapeando nomes de colunas para valores
+                        row_dict = {}
+                        for i, col in enumerate(colunas):
+                            col_name = str(col)
+                            if hasattr(col, 'name'):
+                                col_name = col.name
+                            if i < len(row):
+                                row_dict[col_name] = row[i]
+                        
+                        infracao.codigo = row_dict.get("Código de Infração", "")
+                        infracao.descricao = row_dict.get("Infração", "")
+                        infracao.responsavel = row_dict.get("Responsável", "")
+                        infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
+                        infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
+                        infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
+                        infracao.pontos = row_dict.get("pontos", 0)
+                        infracao.gravidade = row_dict.get("gravidade", "")
+                        
+                        resultados_sugestao.append(infracao)
+                    except Exception as e:
+                        logger.error(f"Erro ao processar resultado: {e}")
+                
+                # Retornar resultados encontrados com a sugestão
+                if resultados_sugestao:
+                    # Contar total de resultados para sugestão
+                    count_sql = """
+                    SELECT COUNT(*) FROM bdbautos 
+                    WHERE "Infração" ILIKE :descricao_search
+                    """
+                    total_result = db.execute(text(count_sql), {"descricao_search": sugestao_search})
+                    for row in total_result:
+                        total = row[0]
+                        break
+                        
+                    return {
+                        "resultados": resultados_sugestao,
+                        "total": total,
+                        "mensagem": f"Mostrando resultados para '{sugestao}'.",
+                        "sugestao": sugestao
+                    }
+        
+        # Se chegou aqui, não encontrou nenhum resultado
         return {
-            "resultados": resultados,
-            "total": len(resultados),
-            "mensagem": mensagem,
+            "resultados": [],
+            "total": 0,
+            "mensagem": "Nenhum resultado encontrado.",
             "sugestao": sugestao
         }
+        
     except Exception as e:
         logger.error(f"Erro ao pesquisar infrações: {e}")
-        raise
+        return {
+            "resultados": [],
+            "total": 0,
+            "mensagem": f"Erro ao realizar a pesquisa: {str(e)}",
+            "sugestao": None
+        }

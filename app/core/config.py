@@ -26,10 +26,9 @@ class Settings:
     PGUSER: str = os.getenv("PGUSER", "postgres")
     
     # Configurações de segurança
-    # A SECRET_KEY está configurada no Railway como BMtMB28%
     SECRET_KEY: str = os.getenv("SECRET_KEY", "BMtMB28%")
     
-    # ALLOWED_HOSTS está configurado no Railway e incluindo os domínios específicos da aplicação
+    # ALLOWED_HOSTS configurado para incluir domínios da Railway
     ALLOWED_HOSTS: list = os.getenv(
         "ALLOWED_HOSTS", 
         "localhost,127.0.0.1,*.railway.app,railwayapp.com,web-production-b9a00.up.railway.app,web.railway.internal"
@@ -42,7 +41,7 @@ class Settings:
     # Configuração CORS (Cross-Origin Resource Sharing)
     CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "*").split(",")
     
-    # Configuração de porta - Railway configurado com PORT
+    # Configuração de porta - Railway configurado com PORT 8080
     PORT: int = int(os.getenv("PORT", "8080"))
 
 settings = Settings()

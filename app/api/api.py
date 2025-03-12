@@ -8,4 +8,5 @@ api_router.include_router(
     infracoes.router,
     prefix="/infracoes",
     tags=["infrações"]
+)
 ) 
