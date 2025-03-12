@@ -4,27 +4,18 @@ from app.db.database import Base
 class Infracao(Base):
     """
     Modelo para representar uma infração de trânsito.
-    Baseado nas colunas do arquivo CSV:
-    - Código de infração
-    - Infração
-    - Responsável
-    - Valor da multa
-    - Órgão Autuador
-    - Artigos do CTB
-    - Pontos
-    - Gravidade
     """
     __tablename__ = "bdbautos"
     
-    id = Column(Integer, primary_key=True, index=True)
-    codigo = Column(String(10), index=True, nullable=False, comment="Código da infração")
-    descricao = Column(Text, nullable=False, comment="Descrição da infração")
-    responsavel = Column(String(50), nullable=False, comment="Responsável pela infração")
-    valor_multa = Column(Float, nullable=False, comment="Valor da multa em reais")
-    orgao_autuador = Column(String(100), nullable=False, comment="Órgão responsável pela autuação")
-    artigos_ctb = Column(String(100), nullable=False, comment="Artigos do Código de Trânsito Brasileiro")
-    pontos = Column(Integer, nullable=False, comment="Pontos na carteira")
-    gravidade = Column(String(20), nullable=False, comment="Gravidade da infração")
+    # Não há coluna id, então vamos usar código como chave primária
+    codigo = Column(String(10), primary_key=True, index=True, name="Código de infração")
+    descricao = Column(Text, nullable=False, name="Infração")
+    responsavel = Column(String(50), nullable=False, name="Responsável")
+    valor_multa = Column(Float, nullable=False, name="Valor da Multa")
+    orgao_autuador = Column(String(100), nullable=False, name="Órgão Autuador")
+    artigos_ctb = Column(String(100), nullable=False, name="Artigos do CTB")
+    pontos = Column(Integer, nullable=False, name="pontos")
+    gravidade = Column(String(20), nullable=False, name="gravidade")
     
-    def __repr__(self):
-        return f"<Infracao(codigo='{self.codigo}', descricao='{self.descricao[:30]}...')>" 
+    # Precisamos adicionar um id já que o modelo espera um, mas que seja gerado pelo SQLAlchemy
+    id = Column(Integer, primary_key=False, autoincrement=True, nullable=True)
