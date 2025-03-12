@@ -6,6 +6,7 @@ import re
 from app.models.infracao import Infracao
 from app.core.config import settings
 from app.core.logger import logger
+import traceback
 
 def normalizar_codigo(codigo: str) -> str:
     """
@@ -126,24 +127,32 @@ def encontrar_sugestao(db: Session, termo: str) -> str:
         termos_comparacao.extend(list(palavras_chave))
         
         # Encontrar o termo mais similar usando rapidfuzz
-        resultado = process.extractOne(
-            termo_normalizado, 
-            termos_comparacao,
-            scorer=fuzz.token_set_ratio,
-            score_cutoff=75
-        )
-        
-        if resultado:
-            # Verificar se o resultado é uma tupla com pelo menos 2 elementos
-            if isinstance(resultado, tuple) and len(resultado) >= 2:
-                termo_sugerido, score = resultado
-                # Se a sugestão for igual ao termo, não sugerir
-                if termo_sugerido != termo_normalizado:
-                    logger.info(f"Sugestão fuzzy encontrada para '{termo_str}': '{termo_sugerido}' (score: {score})")
-                    return termo_sugerido
-            else:
-                # Se o formato do resultado for diferente do esperado, registrar e continuar
-                logger.warning(f"Formato inesperado do resultado de fuzzy search: {resultado}")
+        try:
+            resultado = process.extractOne(
+                termo_normalizado, 
+                termos_comparacao,
+                scorer=fuzz.token_set_ratio,
+                score_cutoff=75
+            )
+            
+            logger.debug(f"Resultado da busca fuzzy: {resultado}")
+            
+            if resultado:
+                # Verificar se o resultado é uma tupla com pelo menos 2 elementos
+                if isinstance(resultado, tuple) and len(resultado) >= 2:
+                    termo_sugerido, score = resultado
+                    # Se a sugestão for igual ao termo, não sugerir
+                    if termo_sugerido != termo_normalizado:
+                        logger.info(f"Sugestão fuzzy encontrada para '{termo_str}': '{termo_sugerido}' (score: {score})")
+                        return termo_sugerido
+                else:
+                    # Se o formato do resultado for diferente do esperado, registrar e continuar
+                    logger.warning(f"Formato inesperado do resultado de fuzzy search: {resultado}")
+        except ValueError as e:
+            logger.error(f"Erro ao desempacotar resultado de fuzzy search: {e}")
+            logger.error(f"Resultado que causou o erro: {resultado}")
+        except Exception as e:
+            logger.error(f"Erro inesperado ao processar resultado de fuzzy search: {e}")
         
         logger.info(f"Nenhuma sugestão encontrada para '{termo_str}'")
         return None
@@ -419,6 +428,19 @@ def pesquisar_por_descricao_fuzzy(db: Session, descricao: str, limit: int = 10, 
         logger.error(f"Erro ao pesquisar por descrição com fuzzy search: {e}")
         raise
 
+def validar_codigo(codigo: str) -> bool:
+    """
+    Valida se o código está em um formato aceitável.
+    
+    Args:
+        codigo: Código a ser validado
+        
+    Returns:
+        bool: True se o código é válido, False caso contrário
+    """
+    # Aceita formatos como "7579" ou "7579-0"
+    return bool(re.match(r"^\d+(-\d+)?$", codigo))
+
 def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0) -> Dict[str, Any]:
     """
     Pesquisa infrações por código ou descrição.
@@ -433,33 +455,42 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         Dict[str, Any]: Dicionário com resultados e total
     """
     try:
-        logger.info(f"Iniciando pesquisa com termo: '{query}', limit: {limit}, skip: {skip}")
+        # Validar entrada
+        if not query or len(str(query).strip()) < 2:
+            logger.warning(f"Termo de pesquisa muito curto: '{query}'")
+            return {
+                "resultados": [],
+                "total": 0,
+                "mensagem": "O termo de pesquisa deve ter pelo menos 2 caracteres",
+                "sugestao": None
+            }
+            
+        # Garantir que query seja uma string
+        query_str = str(query) if query is not None else ""
+        
+        logger.info(f"Iniciando pesquisa com termo: '{query_str}', limit: {limit}, skip: {skip}")
         
         mensagem = None
         sugestao = None
         
         # Verificar se a consulta pode ser um código (contém apenas dígitos, hífens ou espaços)
-        if re.match(r'^[\d\-\s]+$', query):
-            logger.info(f"Termo '{query}' identificado como possível código de infração")
+        if re.match(r'^[\d\-\s]+$', query_str):
+            logger.info(f"Termo '{query_str}' identificado como possível código de infração")
             
             # Verificar se o formato do código é válido
-            codigo_normalizado = normalizar_codigo(query)
+            codigo_normalizado = normalizar_codigo(query_str)
             
-            # Formatos válidos para códigos de infração no Brasil:
-            # - 5 dígitos (ex: 51692)
-            # - 4 dígitos + hífen + 1 dígito (ex: 5169-2)
-            
-            # Verificar se o código tem um formato inválido (mais de um hífen ou formato não reconhecido)
+            # Validar o formato do código
             formato_invalido = False
-            if query.count('-') > 1 or (len(codigo_normalizado) != 5 and len(codigo_normalizado) != 6):
+            if not validar_codigo(query_str):
                 mensagem = "Formato de código inválido. Use o formato XXXXX ou XXXX-X, onde X é um dígito."
                 formato_invalido = True
-                logger.warning(f"Formato de código inválido: '{query}'")
+                logger.warning(f"Formato de código inválido: '{query_str}'")
             
             # Pesquisar por código (com ou sem hífen)
             try:
-                resultados_codigo = pesquisar_por_codigo(db, query, limit, skip)
-                logger.info(f"Pesquisa por código '{query}' retornou {len(resultados_codigo)} resultados")
+                resultados_codigo = pesquisar_por_codigo(db, query_str, limit, skip)
+                logger.info(f"Pesquisa por código '{query_str}' retornou {len(resultados_codigo)} resultados")
                 
                 # Se encontrou resultados por código, retornar
                 if resultados_codigo:
@@ -475,23 +506,24 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
                     }
             except Exception as e:
                 logger.error(f"Erro ao pesquisar por código: {e}")
+                logger.error(f"Stack trace: {traceback.format_exc()}")
                 # Continuar com a pesquisa por descrição
         
         # Se não encontrou por código ou não é um código, pesquisar por descrição
-        logger.info(f"Pesquisando por descrição: '{query}'")
+        logger.info(f"Pesquisando por descrição: '{query_str}'")
         try:
-            resultados_fuzzy = pesquisar_por_descricao_fuzzy(db, query, limit, skip)
-            logger.info(f"Pesquisa fuzzy por descrição '{query}' retornou {len(resultados_fuzzy)} resultados")
+            resultados_fuzzy = pesquisar_por_descricao_fuzzy(db, query_str, limit, skip)
+            logger.info(f"Pesquisa fuzzy por descrição '{query_str}' retornou {len(resultados_fuzzy)} resultados")
             
             # Extrair apenas as infrações dos resultados fuzzy
             resultados = [item["infracao"] for item in resultados_fuzzy]
             
             # Se não encontrou resultados, buscar sugestão
             if not resultados:
-                logger.info(f"Nenhum resultado encontrado para '{query}'. Buscando sugestão.")
-                sugestao = encontrar_sugestao(db, query)
+                logger.info(f"Nenhum resultado encontrado para '{query_str}'. Buscando sugestão.")
+                sugestao = encontrar_sugestao(db, query_str)
                 if sugestao:
-                    logger.info(f"Sugestão encontrada para '{query}': '{sugestao}'")
+                    logger.info(f"Sugestão encontrada para '{query_str}': '{sugestao}'")
             
             return {
                 "resultados": resultados,
@@ -501,7 +533,9 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             }
         except Exception as e:
             logger.error(f"Erro ao pesquisar por descrição: {e}")
+            logger.error(f"Stack trace: {traceback.format_exc()}")
             raise
     except Exception as e:
         logger.error(f"Erro ao pesquisar infrações: {e}")
+        logger.error(f"Stack trace: {traceback.format_exc()}")
         raise 
