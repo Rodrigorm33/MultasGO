@@ -25,7 +25,7 @@ class Infracao(InfracaoBase):
     # id: int
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class InfracaoResponse(Infracao):
     """Esquema para resposta da API"""
