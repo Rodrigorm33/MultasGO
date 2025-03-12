@@ -1,8 +1,8 @@
+# Código completo para app/services/search_service.py
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from rapidfuzz import fuzz, process
 from typing import Dict, List, Any
-import logging
 
 from app.core.config import settings
 from app.core.logger import logger

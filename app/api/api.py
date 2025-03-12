@@ -9,4 +9,3 @@ api_router.include_router(
     prefix="/infracoes",
     tags=["infrações"]
 )
-) 

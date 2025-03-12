@@ -1,0 +1,3 @@
+2025-03-12 17:15:38,864 - MultasGO - DEBUG - [logger.py:47] - Logger configurado com nível: DEBUG
+2025-03-12 17:15:38,907 - MultasGO - INFO - [database.py:65] - Conexão com o banco de dados estabelecida com sucesso
+2025-03-12 17:15:39,863 - MultasGO - INFO - [main.py:86] - Iniciando a aplicação MultasGO...
