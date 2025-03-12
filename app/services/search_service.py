@@ -295,4 +295,4 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         }
     except Exception as e:
         logger.error(f"Erro ao pesquisar infrações: {e}")
-        raise 
+        raise
