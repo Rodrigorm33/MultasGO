@@ -1,4 +1,3 @@
-# Código completo para app/services/search_service.py
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from rapidfuzz import fuzz, process
@@ -32,9 +31,10 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
         codigo_search = f"%{query}%"
         
         # Usar SQL direto com parâmetros para evitar injeção de SQL
+        # Converter o campo "Código de Infração" para texto antes de usar LIKE
         sql_query = """
         SELECT * FROM bdbautos 
-        WHERE "Código de Infração" LIKE :codigo_search
+        WHERE CAST("Código de Infração" AS TEXT) LIKE :codigo_search
         ORDER BY "Código de Infração" ASC
         LIMIT :limit OFFSET :skip
         """
@@ -81,7 +81,7 @@ def pesquisar_infracoes(db: Session, query: str, limit: int = 10, skip: int = 0)
             # Contar total de resultados para código
             count_sql = """
             SELECT COUNT(*) FROM bdbautos 
-            WHERE "Código de Infração" LIKE :codigo_search
+            WHERE CAST("Código de Infração" AS TEXT) LIKE :codigo_search
             """
             total_result = db.execute(text(count_sql), {"codigo_search": codigo_search})
             for row in total_result:
