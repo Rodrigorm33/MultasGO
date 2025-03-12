@@ -7,15 +7,18 @@ class Infracao(Base):
     """
     __tablename__ = "bdbautos"
     
-    # Não há coluna id, então vamos usar código como chave primária
-    codigo = Column(String(10), primary_key=True, index=True, name="Código de infração")
-    descricao = Column(Text, nullable=False, name="Infração")
-    responsavel = Column(String(50), nullable=False, name="Responsável")
-    valor_multa = Column(Float, nullable=False, name="Valor da Multa")
-    orgao_autuador = Column(String(100), nullable=False, name="Órgão Autuador")
-    artigos_ctb = Column(String(100), nullable=False, name="Artigos do CTB")
-    pontos = Column(Integer, nullable=False, name="pontos")
-    gravidade = Column(String(20), nullable=False, name="gravidade")
+    # Usar aliases para todas as colunas
+    codigo = Column("Código de Infração", String(10), primary_key=True)
+    descricao = Column("Infração", Text, nullable=False)
+    responsavel = Column("Responsável", String(50), nullable=False)
+    valor_multa = Column("Valor da Multa", Float, nullable=False)
+    orgao_autuador = Column("Órgão Autuador", String(100), nullable=False)
+    artigos_ctb = Column("Artigos do CTB", String(100), nullable=False)
+    pontos = Column("pontos", Integer, nullable=False)
+    gravidade = Column("gravidade", String(20), nullable=False)
     
-    # Precisamos adicionar um id já que o modelo espera um, mas que seja gerado pelo SQLAlchemy
-    id = Column(Integer, primary_key=False, autoincrement=True, nullable=True)
+    # Manter id para compatibilidade, mas como não-primário
+    id = Column(Integer, autoincrement=True, nullable=True)
+    
+    def __repr__(self):
+        return f"<Infracao(codigo='{self.codigo}', descricao='{self.descricao[:30]}...')>"
