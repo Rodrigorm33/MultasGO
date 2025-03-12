@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func, text
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple, Union
 from rapidfuzz import fuzz, process
 import re
 from app.models.infracao import Infracao
@@ -114,6 +114,7 @@ def pesquisar_por_codigo(db: Session, codigo: str, limit: int = 10, skip: int = 
     try:
         # Normalizar o código (remover hífens e espaços)
         codigo_normalizado = normalizar_codigo(codigo)
+        logger.debug(f"Código normalizado: '{codigo_normalizado}'")
         
         # Usar uma abordagem mais simples para evitar problemas com tipos de dados
         # Buscar todas as infrações e filtrar manualmente
@@ -121,47 +122,64 @@ def pesquisar_por_codigo(db: Session, codigo: str, limit: int = 10, skip: int = 
         try:
             # Usar uma consulta SQL simples para evitar problemas com tipos de dados
             # Usar text() para evitar problemas de segurança e compatibilidade
-            result = db.execute(text("SELECT * FROM bdbautos"))
+            consulta_sql = "SELECT * FROM bdbautos"
+            logger.debug(f"Executando consulta SQL: {consulta_sql}")
+            
+            result = db.execute(text(consulta_sql))
             
             # Obter os nomes das colunas
             colunas = result.keys()
+            logger.debug(f"Colunas encontradas: {[col for col in colunas]}")
             
             # Processar os resultados
             for row in result:
+                logger.debug(f"Processando linha: {row}")
+                logger.debug(f"Tipo da linha: {type(row)}")
+                
                 try:
                     # Tentar acessar como dicionário
                     infracao = Infracao()
-                    infracao.codigo = row["Código de Infração"]
-                    infracao.descricao = row["Infração"]
-                    infracao.responsavel = row["Responsável"]
-                    infracao.valor_multa = row["Valor da Multa"]
-                    infracao.orgao_autuador = row["Órgão Autuador"]
-                    infracao.artigos_ctb = row["Artigos do CTB"]
-                    infracao.pontos = row["pontos"]
-                    infracao.gravidade = row["gravidade"]
-                    todas_infracoes.append(infracao)
-                except (TypeError, KeyError) as e:
-                    # Se falhar, tentar acessar como tupla
-                    logger.warning(f"Erro ao acessar resultado como dicionário: {e}. Tentando como tupla.")
-                    try:
-                        # Converter a tupla para dicionário
-                        row_dict = dict(zip([col.name for col in colunas], row))
+                    
+                    # Verificar se row é um dicionário ou uma tupla
+                    if hasattr(row, 'items'):  # É um dicionário ou objeto semelhante
+                        infracao.codigo = row["Código de Infração"]
+                        infracao.descricao = row["Infração"]
+                        infracao.responsavel = row["Responsável"]
+                        infracao.valor_multa = row["Valor da Multa"]
+                        infracao.orgao_autuador = row["Órgão Autuador"]
+                        infracao.artigos_ctb = row["Artigos do CTB"]
+                        infracao.pontos = row["pontos"]
+                        infracao.gravidade = row["gravidade"]
+                    else:  # É uma tupla ou lista
+                        # Criar um dicionário mapeando nomes de colunas para valores
+                        row_dict = {}
+                        for i, col in enumerate(colunas):
+                            col_name = str(col)  # Garantir que o nome da coluna seja uma string
+                            if hasattr(col, 'name'):
+                                col_name = col.name
+                            if i < len(row):
+                                row_dict[col_name] = row[i]
                         
-                        infracao = Infracao()
-                        infracao.codigo = row_dict["Código de Infração"]
-                        infracao.descricao = row_dict["Infração"]
-                        infracao.responsavel = row_dict["Responsável"]
-                        infracao.valor_multa = row_dict["Valor da Multa"]
-                        infracao.orgao_autuador = row_dict["Órgão Autuador"]
-                        infracao.artigos_ctb = row_dict["Artigos do CTB"]
-                        infracao.pontos = row_dict["pontos"]
-                        infracao.gravidade = row_dict["gravidade"]
-                        todas_infracoes.append(infracao)
-                    except Exception as e2:
-                        logger.error(f"Erro ao processar resultado como tupla: {e2}")
+                        logger.debug(f"Row dict: {row_dict}")
+                        
+                        infracao.codigo = row_dict.get("Código de Infração", "")
+                        infracao.descricao = row_dict.get("Infração", "")
+                        infracao.responsavel = row_dict.get("Responsável", "")
+                        infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
+                        infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
+                        infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
+                        infracao.pontos = row_dict.get("pontos", 0)
+                        infracao.gravidade = row_dict.get("gravidade", "")
+                    
+                    todas_infracoes.append(infracao)
+                except Exception as e:
+                    logger.error(f"Erro ao processar resultado: {e}")
+                    logger.error(f"Detalhes da linha: {row}")
+                    # Continuar com a próxima linha
         except Exception as e:
             logger.error(f"Erro ao buscar todas as infrações: {e}")
             # Fallback para a consulta ORM
+            logger.info("Usando fallback para consulta ORM")
             todas_infracoes = db.query(Infracao).all()
         
         # Filtrar manualmente para suportar códigos com ou sem hífen
@@ -226,47 +244,64 @@ def pesquisar_por_descricao_fuzzy(db: Session, descricao: str, limit: int = 10, 
         try:
             # Usar uma consulta SQL simples para evitar problemas com tipos de dados
             # Usar text() para evitar problemas de segurança e compatibilidade
-            result = db.execute(text("SELECT * FROM bdbautos"))
+            consulta_sql = "SELECT * FROM bdbautos"
+            logger.debug(f"Executando consulta SQL: {consulta_sql}")
+            
+            result = db.execute(text(consulta_sql))
             
             # Obter os nomes das colunas
             colunas = result.keys()
+            logger.debug(f"Colunas encontradas: {[col for col in colunas]}")
             
             # Processar os resultados
             for row in result:
+                logger.debug(f"Processando linha: {row}")
+                logger.debug(f"Tipo da linha: {type(row)}")
+                
                 try:
                     # Tentar acessar como dicionário
                     infracao = Infracao()
-                    infracao.codigo = row["Código de Infração"]
-                    infracao.descricao = row["Infração"]
-                    infracao.responsavel = row["Responsável"]
-                    infracao.valor_multa = row["Valor da Multa"]
-                    infracao.orgao_autuador = row["Órgão Autuador"]
-                    infracao.artigos_ctb = row["Artigos do CTB"]
-                    infracao.pontos = row["pontos"]
-                    infracao.gravidade = row["gravidade"]
-                    todas_infracoes.append(infracao)
-                except (TypeError, KeyError) as e:
-                    # Se falhar, tentar acessar como tupla
-                    logger.warning(f"Erro ao acessar resultado como dicionário: {e}. Tentando como tupla.")
-                    try:
-                        # Converter a tupla para dicionário
-                        row_dict = dict(zip([col.name for col in colunas], row))
+                    
+                    # Verificar se row é um dicionário ou uma tupla
+                    if hasattr(row, 'items'):  # É um dicionário ou objeto semelhante
+                        infracao.codigo = row["Código de Infração"]
+                        infracao.descricao = row["Infração"]
+                        infracao.responsavel = row["Responsável"]
+                        infracao.valor_multa = row["Valor da Multa"]
+                        infracao.orgao_autuador = row["Órgão Autuador"]
+                        infracao.artigos_ctb = row["Artigos do CTB"]
+                        infracao.pontos = row["pontos"]
+                        infracao.gravidade = row["gravidade"]
+                    else:  # É uma tupla ou lista
+                        # Criar um dicionário mapeando nomes de colunas para valores
+                        row_dict = {}
+                        for i, col in enumerate(colunas):
+                            col_name = str(col)  # Garantir que o nome da coluna seja uma string
+                            if hasattr(col, 'name'):
+                                col_name = col.name
+                            if i < len(row):
+                                row_dict[col_name] = row[i]
                         
-                        infracao = Infracao()
-                        infracao.codigo = row_dict["Código de Infração"]
-                        infracao.descricao = row_dict["Infração"]
-                        infracao.responsavel = row_dict["Responsável"]
-                        infracao.valor_multa = row_dict["Valor da Multa"]
-                        infracao.orgao_autuador = row_dict["Órgão Autuador"]
-                        infracao.artigos_ctb = row_dict["Artigos do CTB"]
-                        infracao.pontos = row_dict["pontos"]
-                        infracao.gravidade = row_dict["gravidade"]
-                        todas_infracoes.append(infracao)
-                    except Exception as e2:
-                        logger.error(f"Erro ao processar resultado como tupla: {e2}")
+                        logger.debug(f"Row dict: {row_dict}")
+                        
+                        infracao.codigo = row_dict.get("Código de Infração", "")
+                        infracao.descricao = row_dict.get("Infração", "")
+                        infracao.responsavel = row_dict.get("Responsável", "")
+                        infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
+                        infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
+                        infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
+                        infracao.pontos = row_dict.get("pontos", 0)
+                        infracao.gravidade = row_dict.get("gravidade", "")
+                    
+                    todas_infracoes.append(infracao)
+                except Exception as e:
+                    logger.error(f"Erro ao processar resultado: {e}")
+                    logger.error(f"Detalhes da linha: {row}")
+                    # Continuar com a próxima linha
         except Exception as e:
             logger.error(f"Erro ao buscar todas as infrações: {e}")
             # Fallback para a consulta ORM
+            logger.info("Usando fallback para consulta ORM")
             todas_infracoes = db.query(Infracao).all()
         
         # Aplicar fuzzy search na descrição
