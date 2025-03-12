@@ -115,8 +115,27 @@ def pesquisar_por_codigo(db: Session, codigo: str, limit: int = 10, skip: int = 
         # Normalizar o código (remover hífens e espaços)
         codigo_normalizado = normalizar_codigo(codigo)
         
-        # Buscar todas as infrações para aplicar a normalização
-        todas_infracoes = db.query(Infracao).all()
+        # Usar uma abordagem mais simples para evitar problemas com tipos de dados
+        # Buscar todas as infrações e filtrar manualmente
+        todas_infracoes = []
+        try:
+            # Usar uma consulta SQL simples para evitar problemas com tipos de dados
+            result = db.execute("SELECT * FROM bdbautos")
+            for row in result:
+                infracao = Infracao()
+                infracao.codigo = row["Código de Infração"]
+                infracao.descricao = row["Infração"]
+                infracao.responsavel = row["Responsável"]
+                infracao.valor_multa = row["Valor da Multa"]
+                infracao.orgao_autuador = row["Órgão Autuador"]
+                infracao.artigos_ctb = row["Artigos do CTB"]
+                infracao.pontos = row["pontos"]
+                infracao.gravidade = row["gravidade"]
+                todas_infracoes.append(infracao)
+        except Exception as e:
+            logger.error(f"Erro ao buscar todas as infrações: {e}")
+            # Fallback para a consulta ORM
+            todas_infracoes = db.query(Infracao).all()
         
         # Filtrar manualmente para suportar códigos com ou sem hífen
         resultados = []
@@ -176,7 +195,25 @@ def pesquisar_por_descricao_fuzzy(db: Session, descricao: str, limit: int = 10, 
         palavras_chave = [p for p in descricao_normalizada.split() if len(p) > 2]
         
         # Buscar todas as infrações para aplicar fuzzy search
-        todas_infracoes = db.query(Infracao).all()
+        todas_infracoes = []
+        try:
+            # Usar uma consulta SQL simples para evitar problemas com tipos de dados
+            result = db.execute("SELECT * FROM bdbautos")
+            for row in result:
+                infracao = Infracao()
+                infracao.codigo = row["Código de Infração"]
+                infracao.descricao = row["Infração"]
+                infracao.responsavel = row["Responsável"]
+                infracao.valor_multa = row["Valor da Multa"]
+                infracao.orgao_autuador = row["Órgão Autuador"]
+                infracao.artigos_ctb = row["Artigos do CTB"]
+                infracao.pontos = row["pontos"]
+                infracao.gravidade = row["gravidade"]
+                todas_infracoes.append(infracao)
+        except Exception as e:
+            logger.error(f"Erro ao buscar todas as infrações: {e}")
+            # Fallback para a consulta ORM
+            todas_infracoes = db.query(Infracao).all()
         
         # Aplicar fuzzy search na descrição
         resultados_fuzzy = []

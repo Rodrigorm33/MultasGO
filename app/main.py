@@ -89,8 +89,13 @@ async def startup_event():
     try:
         # Testar conexão com o banco de dados
         db = next(get_db())
-        db.execute(text("SELECT 1"))
-        logger.info("Conexão com o banco de dados verificada com sucesso.")
+        try:
+            # Usar uma consulta SQL simples para verificar a conexão
+            db.execute(text("SELECT 1"))
+            logger.info("Conexão com o banco de dados verificada com sucesso.")
+        except Exception as e:
+            logger.error(f"Erro ao executar consulta de teste: {e}")
+            logger.warning("A aplicação continuará mesmo com erro na consulta de teste.")
     except Exception as e:
         logger.error(f"Erro ao conectar ao banco de dados: {e}")
         logger.warning("A aplicação continuará mesmo com erro na conexão com o banco de dados.")
