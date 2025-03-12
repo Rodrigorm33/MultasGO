@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, func
+from sqlalchemy import or_, func, text
 from typing import List, Dict, Any
 from rapidfuzz import fuzz, process
 import re
@@ -120,7 +120,8 @@ def pesquisar_por_codigo(db: Session, codigo: str, limit: int = 10, skip: int = 
         todas_infracoes = []
         try:
             # Usar uma consulta SQL simples para evitar problemas com tipos de dados
-            result = db.execute("SELECT * FROM bdbautos")
+            # Usar text() para evitar problemas de segurança e compatibilidade
+            result = db.execute(text("SELECT * FROM bdbautos"))
             for row in result:
                 infracao = Infracao()
                 infracao.codigo = row["Código de Infração"]
@@ -198,7 +199,8 @@ def pesquisar_por_descricao_fuzzy(db: Session, descricao: str, limit: int = 10, 
         todas_infracoes = []
         try:
             # Usar uma consulta SQL simples para evitar problemas com tipos de dados
-            result = db.execute("SELECT * FROM bdbautos")
+            # Usar text() para evitar problemas de segurança e compatibilidade
+            result = db.execute(text("SELECT * FROM bdbautos"))
             for row in result:
                 infracao = Infracao()
                 infracao.codigo = row["Código de Infração"]
