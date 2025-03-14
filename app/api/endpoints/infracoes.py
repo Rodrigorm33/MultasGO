@@ -7,7 +7,7 @@ import traceback
 from app.db.database import get_db
 from app.models.infracao import Infracao
 from app.schemas.infracao import InfracaoResponse, InfracaoPesquisaResponse
-from app.services.search_service import pesquisar_infracoes
+from app.services.direct_search_service import pesquisar_infracoes
 from app.core.logger import logger
 
 router = APIRouter()
@@ -27,59 +27,24 @@ def listar_infracoes(
     try:
         logger.info(f"Listando infrações com skip={skip}, limit={limit}")
         
-        # Usar SQL direto em vez de ORM para evitar problemas com tipos de dados
-        consulta_sql = f"SELECT * FROM bdbautos LIMIT {limit} OFFSET {skip}"
-        logger.debug(f"Executando consulta SQL: {consulta_sql}")
+        # Usar o novo serviço de busca direta (com string vazia para listar tudo)
+        resultado = pesquisar_infracoes("", limit=limit, skip=skip)
         
-        result = db.execute(text(consulta_sql))
-        
-        # Obter os nomes das colunas
-        colunas = result.keys()
-        logger.debug(f"Colunas encontradas: {[col for col in colunas]}")
-        
-        # Processar os resultados
+        # Converter para objetos Infracao para manter compatibilidade com o response_model
         infracoes = []
-        for row in result:
-            try:
-                # Criar objeto Infracao
-                infracao = Infracao()
-                
-                # Verificar se row é um dicionário ou uma tupla
-                if hasattr(row, 'items'):  # É um dicionário ou objeto semelhante
-                    infracao.codigo = row["Código de Infração"]
-                    infracao.descricao = row["Infração"]
-                    infracao.responsavel = row["Responsável"]
-                    infracao.valor_multa = row["Valor da Multa"]
-                    infracao.orgao_autuador = row["Órgão Autuador"]
-                    infracao.artigos_ctb = row["Artigos do CTB"]
-                    infracao.pontos = row["pontos"]
-                    infracao.gravidade = row["gravidade"]
-                else:  # É uma tupla ou lista
-                    # Criar um dicionário mapeando nomes de colunas para valores
-                    row_dict = {}
-                    for i, col in enumerate(colunas):
-                        col_name = str(col)  # Garantir que o nome da coluna seja uma string
-                        if hasattr(col, 'name'):
-                            col_name = col.name
-                        if i < len(row):
-                            row_dict[col_name] = row[i]
-                    
-                    logger.debug(f"Row dict: {row_dict}")
-                    
-                    infracao.codigo = row_dict.get("Código de Infração", "")
-                    infracao.descricao = row_dict.get("Infração", "")
-                    infracao.responsavel = row_dict.get("Responsável", "")
-                    infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
-                    infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
-                    infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
-                    infracao.pontos = row_dict.get("pontos", 0)
-                    infracao.gravidade = row_dict.get("gravidade", "")
-                
-                infracoes.append(infracao)
-            except Exception as e:
-                logger.error(f"Erro ao processar resultado: {e}")
-                logger.error(f"Detalhes da linha: {row}")
-                # Continuar com a próxima linha
+        for item in resultado["resultados"]:
+            # Passar todos os valores durante a inicialização do objeto
+            infracao = Infracao(
+                codigo=item.get("Código de Infração", ""),
+                descricao=item.get("Infração", ""),
+                responsavel=item.get("Responsável", ""),
+                valor_multa=item.get("Valor da Multa", "0"),
+                orgao_autuador=item.get("Órgão Autuador", ""),
+                artigos_ctb=item.get("Artigos do CTB", ""),
+                pontos=item.get("pontos", "0"),
+                gravidade=item.get("gravidade", "")
+            )
+            infracoes.append(infracao)
         
         logger.info(f"Listagem de infrações: {len(infracoes)} registros retornados")
         
@@ -131,13 +96,42 @@ def pesquisar(
                 "sugestao": None
             }
             
-        resultados = pesquisar_infracoes(db, query, limit, skip)
+        # Usar o novo serviço de busca direta
+        resultado = pesquisar_infracoes(query, limit=limit, skip=skip)
         
-        logger.info(f"Pesquisa concluída. Total de resultados: {resultados.get('total', 0)}")
-        if resultados.get('sugestao'):
-            logger.info(f"Sugestão encontrada: '{resultados['sugestao']}'")
+        # Converter para objetos Infracao para manter compatibilidade com o response_model
+        infracoes = []
+        for item in resultado["resultados"]:
+            # Passar todos os valores durante a inicialização do objeto
+            infracao = Infracao(
+                codigo=item.get("Código de Infração", ""),
+                descricao=item.get("Infração", ""),
+                responsavel=item.get("Responsável", ""),
+                valor_multa=item.get("Valor da Multa", "0"),
+                orgao_autuador=item.get("Órgão Autuador", ""),
+                artigos_ctb=item.get("Artigos do CTB", ""),
+                pontos=item.get("pontos", "0"),
+                gravidade=item.get("gravidade", "")
+            )
+            infracoes.append(infracao)
+        
+        # Preparar resposta no formato esperado pelo schema
+        resposta = {
+            "resultados": infracoes,
+            "total": resultado["total"]
+        }
+        
+        if "sugestao" in resultado:
+            resposta["sugestao"] = resultado["sugestao"]
+        
+        if "mensagem" in resultado:
+            resposta["mensagem"] = resultado["mensagem"]
+        
+        logger.info(f"Pesquisa concluída. Total de resultados: {resposta['total']}")
+        if resultado.get('sugestao'):
+            logger.info(f"Sugestão encontrada: '{resultado['sugestao']}'")
             
-        return resultados
+        return resposta
     except Exception as e:
         error_detail = str(e)
         stack_trace = traceback.format_exc()
@@ -171,67 +165,28 @@ def obter_infracao(codigo: str, db: Session = Depends(get_db)):
                 detail=f"Código de infração inválido: {codigo}. O código deve ter pelo menos 3 caracteres."
             )
         
-        # Usar SQL direto em vez de ORM para evitar problemas com tipos de dados
-        # Usar parâmetros para evitar injeção de SQL
-        consulta_sql = "SELECT * FROM bdbautos WHERE \"Código de Infração\" = :codigo LIMIT 1"
-        logger.debug(f"Executando consulta SQL: {consulta_sql}")
+        # Usar o novo serviço de busca direta
+        resultado = pesquisar_infracoes(codigo, limit=1)
         
-        result = db.execute(text(consulta_sql), {"codigo": codigo})
-        
-        # Obter os nomes das colunas
-        colunas = result.keys()
-        
-        # Processar o resultado
-        infracao = None
-        for row in result:
-            try:
-                # Criar objeto Infracao
-                infracao = Infracao()
-                
-                # Verificar se row é um dicionário ou uma tupla
-                if hasattr(row, 'items'):  # É um dicionário ou objeto semelhante
-                    infracao.codigo = row["Código de Infração"]
-                    infracao.descricao = row["Infração"]
-                    infracao.responsavel = row["Responsável"]
-                    infracao.valor_multa = row["Valor da Multa"]
-                    infracao.orgao_autuador = row["Órgão Autuador"]
-                    infracao.artigos_ctb = row["Artigos do CTB"]
-                    infracao.pontos = row["pontos"]
-                    infracao.gravidade = row["gravidade"]
-                else:  # É uma tupla ou lista
-                    # Criar um dicionário mapeando nomes de colunas para valores
-                    row_dict = {}
-                    for i, col in enumerate(colunas):
-                        col_name = str(col)  # Garantir que o nome da coluna seja uma string
-                        if hasattr(col, 'name'):
-                            col_name = col.name
-                        if i < len(row):
-                            row_dict[col_name] = row[i]
-                    
-                    logger.debug(f"Row dict: {row_dict}")
-                    
-                    infracao.codigo = row_dict.get("Código de Infração", "")
-                    infracao.descricao = row_dict.get("Infração", "")
-                    infracao.responsavel = row_dict.get("Responsável", "")
-                    infracao.valor_multa = row_dict.get("Valor da Multa", 0.0)
-                    infracao.orgao_autuador = row_dict.get("Órgão Autuador", "")
-                    infracao.artigos_ctb = row_dict.get("Artigos do CTB", "")
-                    infracao.pontos = row_dict.get("pontos", 0)
-                    infracao.gravidade = row_dict.get("gravidade", "")
-                
-                # Encontramos a primeira infração, podemos sair do loop
-                break
-            except Exception as e:
-                logger.error(f"Erro ao processar resultado: {e}")
-                logger.error(f"Detalhes da linha: {row}")
-                # Continuar com a próxima linha
-        
-        if not infracao:
+        if resultado["total"] == 0:
             logger.warning(f"Infração com código '{codigo}' não encontrada")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Infração com código {codigo} não encontrada"
             )
+        
+        # Converter para objeto Infracao
+        item = resultado["resultados"][0]
+        infracao = Infracao(
+            codigo=item.get("Código de Infração", ""),
+            descricao=item.get("Infração", ""),
+            responsavel=item.get("Responsável", ""),
+            valor_multa=item.get("Valor da Multa", "0"),
+            orgao_autuador=item.get("Órgão Autuador", ""),
+            artigos_ctb=item.get("Artigos do CTB", ""),
+            pontos=item.get("pontos", "0"),
+            gravidade=item.get("gravidade", "")
+        )
         
         logger.info(f"Infração com código '{codigo}' encontrada")
         return infracao

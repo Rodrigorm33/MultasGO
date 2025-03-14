@@ -12,6 +12,8 @@ import time
 from datetime import datetime
 
 from app.api.api import api_router
+# Adicione esta linha para importar o novo módulo de diagnóstico
+from app.api.endpoints import api_diagnostico
 from app.core.config import settings
 from app.core.logger import logger
 from app.db.database import get_db, engine
@@ -77,6 +79,8 @@ async def add_charset_middleware(request: Request, call_next):
 
 # Incluir as rotas da API
 app.include_router(api_router, prefix="/api/v1")
+# Adicione esta linha para incluir o router de diagnóstico
+app.include_router(api_diagnostico.router, prefix="/api/v1")
 
 @app.on_event("startup")
 async def startup_event():
