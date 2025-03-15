@@ -1,0 +1,27 @@
+# Usando bash/terminal
+cat > .gitignore << 'EOF'
+# Ambiente virtual
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Logs
+logs/
+*.log
+
+# Arquivos de ambiente - IMPORTANTE para proteger credenciais
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Arquivos específicos do IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+EOF

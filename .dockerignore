@@ -1,26 +1,85 @@
-# Git
+# Controle de versão
 .git
 .gitignore
+.gitattributes
+.github/
 
-# Arquivos de ambiente
-.env
-
-# Caches
+# Ambientes virtuais e caches Python
 __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
-
-# Logs
-*.log
-
-# Ambientes virtuais
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.pytest_cache/
 venv/
+.venv/
 ENV/
+env/
+
+# Arquivos de ambiente e configuração
+.env
+.env.*
+*.env
+.flaskenv
+instance/
+.webassets-cache
+
+# Logs e arquivos temporários
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
 
 # Arquivos IDE
 .idea/
 .vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
+*.code-workspace
+
+# Arquivos de pacotes e distribuição
+dist/
+build/
+*.egg-info/
+*.egg
+wheelhouse/
+*.whl
+
+# Documentação e arquivos não essenciais para execução
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+*.rst
+*.md
+Makefile
+tox.ini
+setup.py
+setup.cfg
+pytest.ini
+.editorconfig
+
+# Arquivos Docker
+.dockerignore
+docker-compose*.yml
+docker-compose*.yaml
+Dockerfile*
+
+# Arquivos de banco de dados local
+*.sqlite3
+*.db
 
 # Outros
-README.md
+.DS_Store
+node_modules/
+.sass-cache/
