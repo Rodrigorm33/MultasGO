@@ -1,0 +1,84 @@
+2025-03-14 21:16:30,868 - INFO - 
+========== INICIANDO TESTES DE SINCRONIZAÇÃO ==========
+2025-03-14 21:16:30,869 - INFO - Data e hora: 2025-03-14 21:16:30
+2025-03-14 21:16:30,869 - INFO - URL base: http://localhost:8080
+2025-03-14 21:16:30,870 - INFO - === Testando conexão com o banco de dados ===
+2025-03-14 21:16:31,086 - INFO - Conectando ao banco de dados: ballast.proxy.rlwy.net:40799/railway
+2025-03-14 21:16:34,940 - INFO - Conexão com o banco de dados estabelecida com sucesso!
+2025-03-14 21:16:35,142 - INFO - Tabela bdbautos contém 439 registros
+2025-03-14 21:16:35,364 - INFO - 
+Verificando arquivos estáticos...
+2025-03-14 21:16:35,366 - INFO - 
+=== Verificando arquivos estáticos ===
+2025-03-14 21:16:35,367 - INFO - Verificando arquivo: http://localhost:8080/static/css/style.css
+2025-03-14 21:16:37,449 - INFO - Status: 200, Content-Type: text/css; charset=utf-8, Tamanho: 28291 bytes
+2025-03-14 21:16:37,450 - INFO - Verificando arquivo: http://localhost:8080/static/js/main.js
+2025-03-14 21:16:39,489 - INFO - Status: 200, Content-Type: application/javascript, Tamanho: 27662 bytes
+2025-03-14 21:16:39,490 - INFO - Verificando arquivo: http://localhost:8080/static/img/logo6.png
+2025-03-14 21:16:41,546 - INFO - Status: 200, Content-Type: image/png, Tamanho: 335269 bytes
+2025-03-14 21:16:41,547 - INFO - 
+Testando listagem de infrações...
+2025-03-14 21:16:41,547 - INFO - 
+=== Testando listagem de infrações ===
+2025-03-14 21:16:41,547 - INFO - Fazendo requisição para: http://localhost:8080/api/v1/infracoes/?limit=10
+2025-03-14 21:16:44,612 - INFO - Status da resposta: 500 (tempo: 3.07s)
+2025-03-14 21:16:44,613 - INFO - Número de infrações retornadas: 1
+2025-03-14 21:17:35,300 - INFO - 
+========== INICIANDO TESTES DE SINCRONIZAÇÃO ==========
+2025-03-14 21:17:35,300 - INFO - Data e hora: 2025-03-14 21:17:35
+2025-03-14 21:17:35,300 - INFO - URL base: http://localhost:8080
+2025-03-14 21:17:35,301 - INFO - === Testando conexão com o banco de dados ===
+2025-03-14 21:17:35,536 - INFO - Conectando ao banco de dados: ballast.proxy.rlwy.net:40799/railway
+2025-03-14 21:17:39,442 - INFO - Conexão com o banco de dados estabelecida com sucesso!
+2025-03-14 21:17:39,649 - INFO - Tabela bdbautos contém 439 registros
+2025-03-14 21:17:39,862 - INFO - 
+Verificando arquivos estáticos...
+2025-03-14 21:17:39,863 - INFO - 
+=== Verificando arquivos estáticos ===
+2025-03-14 21:17:39,864 - INFO - Verificando arquivo: http://localhost:8080/static/css/style.css
+2025-03-14 21:17:41,922 - INFO - Status: 200, Content-Type: text/css; charset=utf-8, Tamanho: 28291 bytes
+2025-03-14 21:17:41,922 - INFO - Verificando arquivo: http://localhost:8080/static/js/main.js
+2025-03-14 21:17:43,973 - INFO - Status: 200, Content-Type: application/javascript, Tamanho: 27662 bytes
+2025-03-14 21:17:43,974 - INFO - Verificando arquivo: http://localhost:8080/static/img/logo6.png
+2025-03-14 21:17:46,018 - INFO - Status: 200, Content-Type: image/png, Tamanho: 335269 bytes
+2025-03-14 21:17:46,019 - INFO - 
+Testando listagem de infrações...
+2025-03-14 21:17:46,020 - INFO - 
+=== Testando listagem de infrações ===
+2025-03-14 21:17:46,020 - INFO - Fazendo requisição para: http://localhost:8080/api/v1/infracoes/?limit=10
+2025-03-14 21:18:30,061 - INFO - 
+========== INICIANDO TESTES DE SINCRONIZAÇÃO ==========
+2025-03-14 21:18:30,062 - INFO - Data e hora: 2025-03-14 21:18:30
+2025-03-14 21:18:30,062 - INFO - URL base: http://localhost:8080
+2025-03-14 21:18:30,063 - INFO - === Testando conexão com o banco de dados ===
+2025-03-14 21:18:30,279 - INFO - Conectando ao banco de dados: ballast.proxy.rlwy.net:40799/railway
+2025-03-14 21:18:34,117 - INFO - Conexão com o banco de dados estabelecida com sucesso!
+2025-03-14 21:18:34,358 - INFO - Tabela bdbautos contém 439 registros
+2025-03-14 21:18:34,588 - INFO - 
+Verificando arquivos estáticos...
+2025-03-14 21:18:34,588 - INFO - 
+=== Verificando arquivos estáticos ===
+2025-03-14 21:18:34,589 - INFO - Verificando arquivo: http://localhost:8080/static/css/style.css
+2025-03-14 21:18:36,636 - INFO - Status: 200, Content-Type: text/css; charset=utf-8, Tamanho: 28291 bytes
+2025-03-14 21:18:36,636 - INFO - Verificando arquivo: http://localhost:8080/static/js/main.js
+2025-03-14 21:18:38,693 - INFO - Status: 200, Content-Type: application/javascript, Tamanho: 27662 bytes
+2025-03-14 21:18:38,694 - INFO - Verificando arquivo: http://localhost:8080/static/img/logo6.png
+2025-03-14 21:18:40,749 - INFO - Status: 200, Content-Type: image/png, Tamanho: 335269 bytes
+2025-03-14 21:18:40,749 - INFO - 
+Testando listagem de infrações...
+2025-03-14 21:18:40,750 - INFO - 
+=== Testando listagem de infrações ===
+2025-03-14 21:18:40,750 - INFO - Fazendo requisição para: http://localhost:8080/api/v1/infracoes/?limit=10
+2025-03-14 21:18:43,812 - INFO - Status da resposta: 500 (tempo: 3.06s)
+2025-03-14 21:18:43,812 - WARNING - Resposta não é uma lista: {
+  "detail": {
+    "message": "Erro ao listar infrações",
+    "error": "'Infracao' object has no attribute 'get'",
+    "type": "AttributeError"
+  }
+}
+2025-03-14 21:18:43,813 - INFO - 
+Testando pesquisas...
+2025-03-14 21:18:43,813 - INFO - 
+=== Testando pesquisa para o termo: '7579' ===
+2025-03-14 21:18:43,814 - INFO - Fazendo requisição para: http://localhost:8080/api/v1/infracoes/pesquisa?query=7579

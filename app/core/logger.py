@@ -5,7 +5,7 @@ from .config import settings
 
 # Configuração do logger
 def setup_logger():
-    # Forçar o nível de log para DEBUG durante o desenvolvimento
+    # Determinar o nível de log com base na configuração
     log_level = logging.DEBUG if settings.DEBUG else getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
     
     # Criar diretório de logs se não existir
@@ -31,8 +31,8 @@ def setup_logger():
     )
     
     # Criação do logger da aplicação
-    logger = logging.getLogger(settings.APP_NAME)
-    logger.setLevel(log_level)
+    app_logger = logging.getLogger(settings.APP_NAME)
+    app_logger.setLevel(log_level)
     
     # Configurar níveis de log para bibliotecas externas
     if settings.DEBUG:
@@ -44,8 +44,8 @@ def setup_logger():
         logging.getLogger("uvicorn").setLevel(logging.WARNING)
         logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
     
-    logger.debug(f"Logger configurado com nível: {logging.getLevelName(log_level)}")
-    return logger
+    app_logger.debug(f"Logger configurado com nível: {logging.getLevelName(log_level)}")
+    return app_logger
 
 # Instância do logger para uso em toda a aplicação
-logger = setup_logger() 
+logger = setup_logger()

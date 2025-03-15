@@ -1,0 +1,7 @@
+2025-03-14 21:18:49,840 - INFO - 
+========== INICIANDO TESTES DE FRONTEND ==========
+2025-03-14 21:18:49,840 - INFO - Data e hora: 2025-03-14 21:18:49
+2025-03-14 21:18:49,841 - INFO - 
+=== Testando frontend para o termo: '7579' ===
+2025-03-14 21:18:49,844 - INFO - Servidor de teste iniciado em http://localhost:8000
+2025-03-14 21:18:49,845 - INFO - Abrindo navegador em: http://localhost:8000

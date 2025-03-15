@@ -21,7 +21,7 @@ class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/railway")
     PGDATABASE: str = os.getenv("PGDATABASE", "railway")
     PGHOST: str = os.getenv("PGHOST", "postgres.railway.internal")
-    PGPASSWORD: str = os.getenv("PGPASSWORD", "")
+    PGPASSWORD: str = os.getenv("PGPASSWORD") or os.getenv("POSTGRES_PASSWORD", "")
     PGPORT: str = os.getenv("PGPORT", "5432")
     PGUSER: str = os.getenv("PGUSER", "postgres")
     

@@ -13,7 +13,6 @@ from datetime import datetime
 
 from app.api.api import api_router
 # Adicione esta linha para importar o novo módulo de diagnóstico
-from app.api.endpoints import api_diagnostico
 from app.core.config import settings
 from app.core.logger import logger
 from app.db.database import get_db, engine
@@ -80,7 +79,7 @@ async def add_charset_middleware(request: Request, call_next):
 # Incluir as rotas da API
 app.include_router(api_router, prefix="/api/v1")
 # Adicione esta linha para incluir o router de diagnóstico
-app.include_router(api_diagnostico.router, prefix="/api/v1")
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -90,18 +89,25 @@ async def startup_event():
     logger.info("Iniciando a aplicação MultasGO...")
     
     try:
-        # Testar conexão com o banco de dados
+        # Log detalhado de configuração
+        logger.info(f"Configurações de banco de dados:")
+        logger.info(f"Host: {settings.PGHOST}")
+        logger.info(f"Porta: {settings.PGPORT}")
+        logger.info(f"Usuário: {settings.PGUSER}")
+        logger.info(f"Database: {settings.PGDATABASE}")
+
         db = next(get_db())
         try:
-            # Usar uma consulta SQL simples para verificar a conexão
-            db.execute(text("SELECT 1"))
+            # Testar conexão com log detalhado
+            result = db.execute(text("SELECT 1"))
             logger.info("Conexão com o banco de dados verificada com sucesso.")
         except Exception as e:
-            logger.error(f"Erro ao executar consulta de teste: {e}")
+            logger.error(f"Erro detalhado na conexão: {type(e).__name__}")
+            logger.error(f"Detalhes do erro: {e}")
             logger.warning("A aplicação continuará mesmo com erro na consulta de teste.")
     except Exception as e:
-        logger.error(f"Erro ao conectar ao banco de dados: {e}")
-        logger.warning("A aplicação continuará mesmo com erro na conexão com o banco de dados.")
+        logger.error(f"Erro crítico de conexão: {type(e).__name__}")
+        logger.error(f"Detalhes do erro: {e}")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):

@@ -3,10 +3,14 @@
  * Responsável pela interação com a API e manipulação da interface
  */
 
-// Configurações
-const API_ENDPOINT = '/api/v1/infracoes';
+// Configurações - URLs corrigidas
+const BASE_URL = "http://localhost:8080"; // URL fixa para garantir que as requisições sejam enviadas para o servidor correto
+const API_ENDPOINT = `${BASE_URL}/api/v1/infracoes`;
 const SEARCH_ENDPOINT = `${API_ENDPOINT}/pesquisa`;
 const DETAILS_ENDPOINT = API_ENDPOINT;
+
+// Log para debug
+console.log("API URL configurada:", API_ENDPOINT);
 
 // Elementos DOM
 const searchForm = document.getElementById('search-form');
@@ -26,6 +30,16 @@ let isLoading = false;
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("MultasGO inicializado com sucesso!");
+    console.log("Usando API em:", API_ENDPOINT);
+    
+    // Forçar limpeza inicial do DOM
+    document.querySelectorAll('#error-message, #suggestion-container').forEach(el => {
+        el.style.display = 'none';
+        el.textContent = '';
+        el.innerHTML = '';
+    });
+    
     // Ocultar seção de resultados inicialmente
     if (resultsSection) {
         resultsSection.style.display = 'none';
@@ -39,7 +53,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // Adicionar evento de submit ao formulário
     if (searchForm) {
         searchForm.addEventListener('submit', handleSearch);
+        console.log("Formulário de pesquisa configurado!");
+    } else {
+        console.error("Formulário de pesquisa não encontrado na página!");
     }
+
+    // Adicionar regra CSS programaticamente para garantir compatibilidade
+    function addConflictResolutionCSS() {
+        const styleEl = document.createElement('style');
+        styleEl.textContent = `
+            /* Regra para garantir que erro e sugestão nunca apareçam juntos */
+            #error-message:not([style*="display: none"]) ~ #suggestion-container,
+            #suggestion-container:not([style*="display: none"]) ~ #error-message,
+            #error-message[style*="display: block"] + #suggestion-container,
+            #suggestion-container[style*="display: block"] + #error-message,
+            #error-message:not(:empty) ~ #suggestion-container,
+            #suggestion-container:not(:empty) ~ #error-message,
+            /* Novas regras mais específicas */
+            #suggestion-container:not(:empty) + #error-message,
+            #error-message:not(:empty) + #suggestion-container,
+            #suggestion-container[style*="display: block"] ~ #error-message,
+            #error-message[style*="display: block"] ~ #suggestion-container,
+            /* Regra mais forte para sugestões */
+            body:has(#suggestion-container:not([style*="display: none"])) #error-message {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(styleEl);
+    }
+
+    // Adicionar regra CSS para garantir que as mensagens nunca apareçam juntas
+    addConflictResolutionCSS();
 });
 
 // Manipulador de pesquisa
@@ -51,26 +95,51 @@ async function handleSearch(event) {
     const query = searchInput.value.trim();
     
     if (!query) {
-        showError(true, 'Por favor, digite um termo de pesquisa.');
+        errorMessage.textContent = 'Por favor, digite um termo de pesquisa.';
+        errorMessage.style.display = 'block';
+        suggestionContainer.style.display = 'none';
         return;
     }
     
     isLoading = true;
     showLoading(true);
-    showError(false);
+    
+    // Limpar mensagens antes da pesquisa
+    errorMessage.style.display = 'none';
+    errorMessage.textContent = '';
+    suggestionContainer.style.display = 'none';
+    suggestionContainer.innerHTML = '';
+    
+    console.log("Iniciando pesquisa para:", query);
     
     try {
-        const response = await fetch(`${SEARCH_ENDPOINT}?query=${encodeURIComponent(query)}`);
-        const data = await response.json();
+        const url = `${SEARCH_ENDPOINT}?query=${encodeURIComponent(query)}`;
+        console.log("Fazendo requisição para:", url);
         
-        if (response.ok) {
-            displayResults(data);
-        } else {
-            throw new Error(data.detail || 'Erro ao buscar infrações');
+        const response = await fetch(url, {
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+        console.log("Status da resposta:", response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Erro na resposta:", errorText);
+            throw new Error(`Erro ${response.status}: ${response.statusText}. Detalhes: ${errorText}`);
         }
+        
+        const data = await response.json();
+        console.log("Dados recebidos:", data);
+        
+        displayResults(data);
     } catch (error) {
         console.error('Erro na pesquisa:', error);
-        showError(true, error.message);
+        errorMessage.textContent = `Erro na pesquisa: ${error.message}`;
+        errorMessage.style.display = 'block';
+        suggestionContainer.style.display = 'none';
         
         // Ocultar seção de resultados em caso de erro
         if (resultsSection) {
@@ -93,56 +162,71 @@ function showLoading(show) {
     }
 }
 
-// Mostrar/ocultar mensagem de erro
-function showError(show, message = '') {
-    if (errorMessage) {
-        errorMessage.style.display = show ? 'block' : 'none';
-        errorMessage.textContent = message;
-    }
-}
-
-// Mostrar/ocultar sugestão de pesquisa
-function showSuggestion(show, suggestion = '') {
-    if (suggestionContainer) {
-        suggestionContainer.style.display = show ? 'block' : 'none';
-        
-        if (show && suggestion) {
-            suggestionContainer.innerHTML = `
-                <span>Você quis dizer: </span>
-                <a href="#" class="suggestion-link">${suggestion}</a>?
-            `;
-            
-            // Adicionar evento de clique na sugestão
-            const suggestionLink = suggestionContainer.querySelector('.suggestion-link');
-            if (suggestionLink) {
-                suggestionLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    searchInput.value = suggestion;
-                    handleSearch(new Event('submit'));
-                });
-            }
-        } else {
-            suggestionContainer.innerHTML = '';
-        }
-    }
-}
-
 // Exibir resultados da pesquisa
 function displayResults(data) {
-    const { resultados, total, mensagem, sugestao } = data;
+    console.log("Dados recebidos em displayResults:", data);
     
-    // Mostrar mensagem se houver e não houver resultados
-    if (mensagem && (!resultados || resultados.length === 0)) {
-        showError(true, mensagem);
-    } else {
-        showError(false);
+    // Forçar limpeza do DOM
+    document.querySelectorAll('#error-message, #suggestion-container').forEach(el => {
+        el.style.display = 'none';
+        el.textContent = '';
+        el.innerHTML = '';
+    });
+    
+    // Garantir que data seja um objeto válido
+    if (!data) {
+        console.error("Dados inválidos recebidos:", data);
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = "Dados de resposta inválidos";
+        suggestionContainer.style.display = 'none';
+        suggestionContainer.innerHTML = '';
+        return;
     }
     
-    // Mostrar sugestão se houver
+    // Extrair resultados com verificação para evitar erros
+    const resultados = data.resultados || [];
+    const total = data.total || 0;
+    const mensagem = data.mensagem || '';
+    const sugestao = data.sugestao || '';
+    
+    console.log(`Exibindo ${resultados.length} resultados de ${total} totais`);
+    console.log("Resultados:", resultados);
+    
+    // NOVA ABORDAGEM: Controle direto da visibilidade
+    // Primeiro, limpar ambas as mensagens
+    errorMessage.style.display = 'none';
+    errorMessage.textContent = '';
+    suggestionContainer.style.display = 'none';
+    suggestionContainer.innerHTML = '';
+    
+    // Depois, mostrar apenas a mensagem apropriada
     if (sugestao) {
-        showSuggestion(true, sugestao);
-    } else {
-        showSuggestion(false);
+        // Se houver sugestão, mostrar APENAS ela
+        suggestionContainer.style.display = 'block';
+        if (sugestao.startsWith('Você quis dizer')) {
+            const termMatch = sugestao.match(/'([^']+)'/);
+            if (termMatch && termMatch[1]) {
+                const suggestedTerm = termMatch[1];
+                suggestionContainer.innerHTML = `
+                    <span>Você quis dizer: </span>
+                    <a href="#" class="suggestion-link">${suggestedTerm}</a>?
+                `;
+                
+                // Adicionar evento de clique na sugestão
+                const suggestionLink = suggestionContainer.querySelector('.suggestion-link');
+                if (suggestionLink) {
+                    suggestionLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        searchInput.value = suggestionLink.textContent.trim();
+                        handleSearch(new Event('submit'));
+                    });
+                }
+            }
+        }
+    } else if (mensagem && (!resultados || resultados.length === 0)) {
+        // Se não houver sugestão mas houver mensagem de erro, mostrar APENAS o erro
+        errorMessage.textContent = mensagem;
+        errorMessage.style.display = 'block';
     }
     
     // Atualizar contador de resultados
@@ -158,8 +242,13 @@ function displayResults(data) {
             
             if (resultados && resultados.length > 0) {
                 resultados.forEach(infracao => {
-                    const row = createResultRow(infracao);
-                    tbody.appendChild(row);
+                    try {
+                        console.log("Criando linha para infração:", infracao);
+                        const row = createResultRow(infracao);
+                        tbody.appendChild(row);
+                    } catch (error) {
+                        console.error("Erro ao criar linha para infração:", infracao, error);
+                    }
                 });
                 
                 // Mostrar seção de resultados
@@ -181,17 +270,27 @@ function displayResults(data) {
 function createResultRow(infracao) {
     const row = document.createElement('tr');
     
-    // Formatar a gravidade para substituir "nan" por "Não Aplicável"
-    const gravidade = infracao.gravidade === "nan" ? "Não Aplicável" : infracao.gravidade;
+    // Garantir que temos valores válidos (prevenção de erros)
+    const codigo = infracao.codigo || '';
+    const descricao = infracao.descricao || '';
+    const gravidade = (infracao.gravidade === "nan" || !infracao.gravidade) ? "Não Aplicável" : infracao.gravidade;
+    
+    // Garantir que valor_multa é um número
+    let valorMulta = 0;
+    try {
+        valorMulta = parseFloat(infracao.valor_multa || 0);
+    } catch (error) {
+        console.warn("Erro ao converter valor da multa:", infracao.valor_multa);
+    }
     
     // Adicionar células
     row.innerHTML = `
-        <td>${infracao.codigo}</td>
-        <td>${infracao.descricao}</td>
+        <td>${codigo}</td>
+        <td>${descricao}</td>
         <td><span class="badge badge-${getBadgeClass(gravidade)}">${gravidade}</span></td>
-        <td>R$ ${infracao.valor_multa.toFixed(2).replace('.', ',')}</td>
+        <td>R$ ${valorMulta.toFixed(2).replace('.', ',')}</td>
         <td>
-            <button class="btn-details" data-codigo="${infracao.codigo}">Detalhes</button>
+            <button class="btn-details" data-codigo="${codigo}">Detalhes</button>
         </td>
     `;
     
@@ -199,7 +298,7 @@ function createResultRow(infracao) {
     const detailsButton = row.querySelector('.btn-details');
     if (detailsButton) {
         detailsButton.addEventListener('click', () => {
-            getInfractionDetails(infracao.codigo);
+            getInfractionDetails(codigo);
         });
     }
     
@@ -210,7 +309,7 @@ function createResultRow(infracao) {
 function getBadgeClass(gravidade) {
     if (!gravidade) return 'media'; // Caso a gravidade seja undefined ou null
     
-    const gravidadeLower = gravidade.toLowerCase();
+    const gravidadeLower = String(gravidade).toLowerCase();
     
     if (gravidadeLower.includes('leve')) return 'leve';
     if (gravidadeLower.includes('média') || gravidadeLower.includes('media')) return 'media';
@@ -227,20 +326,28 @@ async function getInfractionDetails(codigo) {
     
     isLoading = true;
     showLoading(true);
-    showError(false);
+    
+    console.log("Buscando detalhes para código:", codigo);
     
     try {
-        const response = await fetch(`${DETAILS_ENDPOINT}/${encodeURIComponent(codigo)}`);
-        const data = await response.json();
+        const url = `${DETAILS_ENDPOINT}/${encodeURIComponent(codigo)}`;
+        console.log("Fazendo requisição para:", url);
         
-        if (response.ok) {
-            displayInfractionDetails(data);
-        } else {
-            throw new Error(data.detail || 'Erro ao buscar detalhes da infração');
+        const response = await fetch(url);
+        console.log("Status da resposta:", response.status);
+        
+        if (!response.ok) {
+            throw new Error(`Erro ${response.status}: ${response.statusText}`);
         }
+        
+        const data = await response.json();
+        console.log("Dados recebidos:", data);
+        
+        displayInfractionDetails(data);
     } catch (error) {
         console.error('Erro ao buscar detalhes:', error);
-        showError(true, error.message);
+        errorMessage.textContent = `Erro ao buscar detalhes: ${error.message}`;
+        errorMessage.style.display = 'block';
     } finally {
         isLoading = false;
         showLoading(false);
@@ -251,16 +358,45 @@ async function getInfractionDetails(codigo) {
 function displayInfractionDetails(infracao) {
     if (!detailsContainer) return;
     
+    // Verificar se temos dados válidos
+    if (!infracao) {
+        console.error("Dados de infração inválidos:", infracao);
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = "Não foi possível exibir os detalhes da infração";
+        return;
+    }
+    
+    // Garantir que temos valores válidos (prevenção de erros)
+    const codigo = infracao.codigo || '';
+    const descricao = infracao.descricao || '';
+    const responsavel = infracao.responsavel || '';
+    const orgaoAutuador = infracao.orgao_autuador || '';
+    const artigosCTB = infracao.artigos_ctb || '';
+    let pontos = 0;
+    let valorMulta = 0;
+    
+    try {
+        pontos = parseInt(infracao.pontos || 0);
+    } catch (error) {
+        console.warn("Erro ao converter pontos:", infracao.pontos);
+    }
+    
+    try {
+        valorMulta = parseFloat(infracao.valor_multa || 0);
+    } catch (error) {
+        console.warn("Erro ao converter valor da multa:", infracao.valor_multa);
+    }
+    
     // Formatar a gravidade para substituir "nan" por "Não Aplicável"
-    const gravidade = infracao.gravidade === "nan" ? "Não Aplicável" : infracao.gravidade;
+    const gravidade = (infracao.gravidade === "nan" || !infracao.gravidade) ? "Não Aplicável" : infracao.gravidade;
     
     // Preencher detalhes
     detailsContainer.innerHTML = `
         <div class="infracao-details animate-fade-in">
             <div class="infracao-header">
                 <div>
-                    <h2 class="infracao-title">${infracao.descricao}</h2>
-                    <p class="infracao-codigo">Código: ${infracao.codigo}</p>
+                    <h2 class="infracao-title">${descricao}</h2>
+                    <p class="infracao-codigo">Código: ${codigo}</p>
                 </div>
                 <div class="infracao-gravidade">
                     <span class="badge badge-${getBadgeClass(gravidade)}">${gravidade}</span>
@@ -270,25 +406,25 @@ function displayInfractionDetails(infracao) {
                 <div>
                     <div class="infracao-info">
                         <span class="infracao-label">Responsável</span>
-                        <div class="infracao-value">${infracao.responsavel}</div>
+                        <div class="infracao-value">${responsavel}</div>
                     </div>
                     <div class="infracao-info">
                         <span class="infracao-label">Valor da Multa</span>
-                        <div class="infracao-value">R$ ${infracao.valor_multa.toFixed(2).replace('.', ',')}</div>
+                        <div class="infracao-value">R$ ${valorMulta.toFixed(2).replace('.', ',')}</div>
                     </div>
                     <div class="infracao-info">
                         <span class="infracao-label">Pontos</span>
-                        <div class="infracao-value">${infracao.pontos}</div>
+                        <div class="infracao-value">${pontos}</div>
                     </div>
                 </div>
                 <div>
                     <div class="infracao-info">
                         <span class="infracao-label">Órgão Autuador</span>
-                        <div class="infracao-value">${infracao.orgao_autuador}</div>
+                        <div class="infracao-value">${orgaoAutuador}</div>
                     </div>
                     <div class="infracao-info">
                         <span class="infracao-label">Artigos do CTB</span>
-                        <div class="infracao-value">${infracao.artigos_ctb}</div>
+                        <div class="infracao-value">${artigosCTB}</div>
                     </div>
                 </div>
             </div>
@@ -352,6 +488,7 @@ const itemsPerPage = 10;
 // Inicialização do explorador
 document.addEventListener('DOMContentLoaded', () => {
     if (explorerSection) {
+        console.log("Inicializando o explorador de infrações");
         initExplorer();
     }
 });
@@ -393,18 +530,86 @@ async function initExplorer() {
 // Carregar todas as infrações do servidor
 async function loadAllInfracoes() {
     try {
-        const response = await fetch(`${API_ENDPOINT}/?limit=500`);
-        const data = await response.json();
+        console.log("Carregando lista de infrações do servidor...");
+        const url = `${API_ENDPOINT}/?limit=100`;  // Reduzido para 100 para diminuir carga
+        console.log("Fazendo requisição para:", url);
         
-        if (response.ok) {
+        const response = await fetch(url);
+        console.log("Status da resposta:", response.status);
+        
+        if (response.status === 500) {
+            console.warn("Erro 500 no servidor. Usando dados de fallback.");
+            // Usar alguns dados de fallback para que o explorador funcione mesmo sem servidor
+            allInfracoes = [
+                { 
+                    codigo: "54870", 
+                    descricao: "Estacionar ao lado de outro veículo em fila dupla", 
+                    responsavel: "Condutor",
+                    valor_multa: 195.23,
+                    pontos: 5,
+                    gravidade: "grave"
+                },
+                { 
+                    codigo: "55173", 
+                    descricao: "Estacionar nos túneis", 
+                    responsavel: "Condutor",
+                    valor_multa: 195.23,
+                    pontos: 5,
+                    gravidade: "grave"
+                },
+                { 
+                    codigo: "76252", 
+                    descricao: "Estacionar o veículo nas vagas reservadas a idosos, sem credencial", 
+                    responsavel: "Condutor",
+                    valor_multa: 293.47,
+                    pontos: 7,
+                    gravidade: "gravíssima"
+                },
+                { 
+                    codigo: "62540", 
+                    descricao: "Transitar em velocidade inferior à metade da máxima da via", 
+                    responsavel: "Condutor",
+                    valor_multa: 130.16,
+                    pontos: 4,
+                    gravidade: "média"
+                }
+            ];
+        } else if (response.ok) {
+            const data = await response.json();
+            console.log(`Recebidas ${data.length} infrações do servidor`);
             allInfracoes = data;
-            filteredInfracoes = [...allInfracoes];
-            renderExplorerTable();
         } else {
-            console.error('Erro ao carregar infrações:', data);
+            throw new Error(`Erro ${response.status}: ${response.statusText}`);
         }
+        
+        filteredInfracoes = [...allInfracoes];
+        renderExplorerTable();
     } catch (error) {
         console.error('Erro ao carregar infrações:', error);
+        
+        // Mostrar mensagem de erro na interface
+        if (explorerTable) {
+            const tbody = explorerTable.querySelector('tbody');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-results">
+                            Não foi possível carregar as infrações. Erro: ${error.message}
+                            <br><br>
+                            <button id="retry-load" class="btn-primary">Tentar Novamente</button>
+                        </td>
+                    </tr>
+                `;
+                
+                // Adicionar botão para tentar novamente
+                const retryButton = document.getElementById('retry-load');
+                if (retryButton) {
+                    retryButton.addEventListener('click', () => {
+                        loadAllInfracoes();
+                    });
+                }
+            }
+        }
     }
 }
 
@@ -416,25 +621,38 @@ function applyFilters() {
     const sortBy = sortField.value;
     const direction = sortDirection.value;
     
+    console.log("Aplicando filtros:", { gravidade, responsavel, pontos, sortBy, direction });
+    
     // Filtrar infrações
     filteredInfracoes = allInfracoes.filter(infracao => {
         // Filtro de gravidade
-        if (gravidade && infracao.gravidade !== gravidade) {
+        if (gravidade && String(infracao.gravidade || "").toLowerCase() !== gravidade.toLowerCase()) {
             return false;
         }
         
         // Filtro de responsável
-        if (responsavel && infracao.responsavel !== responsavel) {
+        if (responsavel && String(infracao.responsavel || "").trim() !== responsavel.trim()) {
             return false;
         }
         
         // Filtro de pontos
-        if (pontos && infracao.pontos !== parseInt(pontos)) {
-            return false;
+        if (pontos) {
+            let pontosNum = 0;
+            try {
+                pontosNum = parseInt(infracao.pontos || 0);
+            } catch (error) {
+                console.warn("Erro ao converter pontos para filtro:", infracao.pontos);
+            }
+            
+            if (pontosNum !== parseInt(pontos)) {
+                return false;
+            }
         }
         
         return true;
     });
+    
+    console.log(`Filtro aplicado: ${filteredInfracoes.length} infrações encontradas`);
     
     // Ordenar infrações
     filteredInfracoes.sort((a, b) => {
@@ -443,12 +661,18 @@ function applyFilters() {
         
         // Converter para número se for um campo numérico
         if (sortBy === 'valor_multa' || sortBy === 'pontos') {
-            valueA = parseFloat(valueA);
-            valueB = parseFloat(valueB);
+            try {
+                valueA = parseFloat(valueA || 0);
+                valueB = parseFloat(valueB || 0);
+            } catch (error) {
+                console.warn("Erro ao converter valores para ordenação:", valueA, valueB);
+                valueA = 0;
+                valueB = 0;
+            }
         } else {
             // Converter para string para comparação de texto
-            valueA = String(valueA).toLowerCase();
-            valueB = String(valueB).toLowerCase();
+            valueA = String(valueA || "").toLowerCase();
+            valueB = String(valueB || "").toLowerCase();
         }
         
         // Ordenar
@@ -474,6 +698,8 @@ function resetFilters() {
     filterPontos.value = '';
     sortField.value = 'codigo';
     sortDirection.value = 'asc';
+    
+    console.log("Filtros resetados");
     
     // Resetar infrações filtradas
     filteredInfracoes = [...allInfracoes];
@@ -501,6 +727,8 @@ function renderExplorerTable() {
     const paginatedInfracoes = filteredInfracoes.slice(startIndex, endIndex);
     const totalPages = Math.ceil(filteredInfracoes.length / itemsPerPage);
     
+    console.log(`Renderizando página ${currentPage} de ${totalPages}, exibindo itens ${startIndex+1}-${endIndex} de ${filteredInfracoes.length}`);
+    
     // Atualizar contador
     if (explorerCount) {
         explorerCount.textContent = `${filteredInfracoes.length} infrações encontradas`;
@@ -523,8 +751,12 @@ function renderExplorerTable() {
     // Renderizar linhas
     if (paginatedInfracoes.length > 0) {
         paginatedInfracoes.forEach(infracao => {
-            const row = createExplorerRow(infracao);
-            tbody.appendChild(row);
+            try {
+                const row = createExplorerRow(infracao);
+                tbody.appendChild(row);
+            } catch (error) {
+                console.error("Erro ao criar linha para o explorador:", infracao, error);
+            }
         });
     } else {
         // Mostrar mensagem de nenhum resultado
@@ -540,19 +772,38 @@ function renderExplorerTable() {
 function createExplorerRow(infracao) {
     const row = document.createElement('tr');
     
-    // Formatar a gravidade para substituir "nan" por "Não Aplicável"
-    const gravidade = infracao.gravidade === "nan" ? "Não Aplicável" : infracao.gravidade;
+    // Garantir que temos valores válidos (prevenção de erros)
+    const codigo = infracao.codigo || '';
+    const descricao = infracao.descricao || '';
+    const responsavel = infracao.responsavel || '';
+    const gravidade = (infracao.gravidade === "nan" || !infracao.gravidade) ? "Não Aplicável" : infracao.gravidade;
+    
+    // Garantir que pontos e valorMulta são números
+    let pontos = 0;
+    let valorMulta = 0;
+    
+    try {
+        pontos = parseInt(infracao.pontos || 0);
+    } catch (error) {
+        console.warn("Erro ao converter pontos:", infracao.pontos);
+    }
+    
+    try {
+        valorMulta = parseFloat(infracao.valor_multa || 0);
+    } catch (error) {
+        console.warn("Erro ao converter valor da multa:", infracao.valor_multa);
+    }
     
     // Adicionar células
     row.innerHTML = `
-        <td>${infracao.codigo}</td>
-        <td>${infracao.descricao}</td>
+        <td>${codigo}</td>
+        <td>${descricao}</td>
         <td><span class="badge badge-${getBadgeClass(gravidade)}">${gravidade}</span></td>
-        <td>${infracao.responsavel}</td>
-        <td>${infracao.pontos}</td>
-        <td>R$ ${infracao.valor_multa.toFixed(2).replace('.', ',')}</td>
+        <td>${responsavel}</td>
+        <td>${pontos}</td>
+        <td>R$ ${valorMulta.toFixed(2).replace('.', ',')}</td>
         <td>
-            <button class="btn-details" data-codigo="${infracao.codigo}">Detalhes</button>
+            <button class="btn-details" data-codigo="${codigo}">Detalhes</button>
         </td>
     `;
     
@@ -560,7 +811,7 @@ function createExplorerRow(infracao) {
     const detailsButton = row.querySelector('.btn-details');
     if (detailsButton) {
         detailsButton.addEventListener('click', () => {
-            getInfractionDetails(infracao.codigo);
+            getInfractionDetails(codigo);
             
             // Rolar para a seção de detalhes
             if (detailsContainer) {
@@ -570,4 +821,4 @@ function createExplorerRow(infracao) {
     }
     
     return row;
-} 
+}

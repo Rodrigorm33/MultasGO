@@ -1,0 +1,11 @@
+/* Oculta a mensagem de erro quando a sugestão está visível */
+#suggestion-container:not(:empty) ~ #error-message,
+#suggestion-container[style*="block"] ~ #error-message,
+#suggestion-container:not([style*="none"]) ~ #error-message {
+    display: none !important;
+}
+
+/* Verificação adicional - quando a classe está presente, esconde a mensagem */
+.has-suggestion #error-message {
+    display: none !important;
+}

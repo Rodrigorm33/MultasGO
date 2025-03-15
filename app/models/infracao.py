@@ -31,5 +31,18 @@ class Infracao(BaseModel):
     pontos: int
     gravidade: str
     
+    def get(self, key, default=None):
+        """Método para compatibilidade com dicionários."""
+        if hasattr(self, key):
+            return getattr(self, key)
+        return default
+
+    def __getitem__(self, key):
+        """
+        Permite acessar propriedades do objeto usando a notação de dicionário.
+        Por exemplo: infracao['codigo'] retornará o mesmo que infracao.codigo
+        """
+        return getattr(self, key)
+
     class Config:
         from_attributes = True
