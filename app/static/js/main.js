@@ -84,6 +84,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Adicionar regra CSS para garantir que as mensagens nunca apareçam juntas
     addConflictResolutionCSS();
+
+    // Adicionar HTML do modal ao carregar a página
+    const modalHTML = `
+        <div id="modal-erro" class="modal-erro">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-icon">⚠️</div>
+                    <h2 class="modal-title">Atenção</h2>
+                </div>
+                <p class="modal-message">Por favor, digite um código de infração válido ou uma descrição da infração.</p>
+                <button class="modal-button" onclick="closeErrorModal()">Entendi</button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Adicionar limite de caracteres e validação ao input
+    if (searchInput) {
+        // Definir o atributo maxlength
+        searchInput.setAttribute('maxlength', '50');
+        
+        // Adicionar contador de caracteres
+        const counterDiv = document.createElement('div');
+        counterDiv.className = 'character-counter';
+        counterDiv.style.textAlign = 'right';
+        counterDiv.style.fontSize = '12px';
+        counterDiv.style.color = '#666';
+        counterDiv.style.marginTop = '5px';
+        searchInput.parentNode.insertBefore(counterDiv, searchInput.nextSibling);
+        
+        // Atualizar contador ao digitar
+        searchInput.addEventListener('input', function(e) {
+            const remaining = 50 - this.value.length;
+            counterDiv.textContent = `${remaining} caracteres restantes`;
+            
+            // Mudar cor quando estiver próximo do limite
+            if (remaining < 10) {
+                counterDiv.style.color = '#c62828';
+            } else {
+                counterDiv.style.color = '#666';
+            }
+            
+            // Validar caracteres especiais
+            const invalidChars = /[<>{}[\]\\\/]|javascript:|script:|alert\(|select\s+|union\s+|drop\s+|delete\s+/i;
+            if (invalidChars.test(this.value)) {
+                showErrorModal("Por favor, não use caracteres especiais ou comandos não permitidos.");
+                this.value = this.value.replace(invalidChars, '');
+            }
+        });
+    }
 });
 
 // Manipulador de pesquisa
@@ -94,11 +144,31 @@ async function handleSearch(event) {
     
     const query = searchInput.value.trim();
     
+    // Validações
     if (!query) {
-        errorMessage.textContent = 'Por favor, digite um termo de pesquisa.';
-        errorMessage.style.display = 'block';
-        suggestionContainer.style.display = 'none';
+        showErrorModal('Por favor, digite um termo de pesquisa.');
         return;
+    }
+    
+    if (query.length > 50) {
+        showErrorModal('A pesquisa deve ter no máximo 50 caracteres.');
+        return;
+    }
+    
+    // Validar padrões suspeitos
+    const suspiciousPatterns = [
+        /select\s+|insert\s+|update\s+|delete\s+|drop\s+|alter\s+/i,  // SQL
+        /<script|javascript:|alert\(|onclick|onerror/i,               // XSS
+        /\.\.\/|\.\.\\/i,                                            // Path Traversal
+        /\x00|\x1a|\x0d|\x0a/,                                       // Null bytes
+        /^[!@#$%^&*(),.?":{}|<>]{3,}$/                              // Muitos caracteres especiais
+    ];
+    
+    for (const pattern of suspiciousPatterns) {
+        if (pattern.test(query)) {
+            showErrorModal('Por favor, use apenas letras, números e caracteres simples.');
+            return;
+        }
     }
     
     isLoading = true;
@@ -116,13 +186,20 @@ async function handleSearch(event) {
         const url = `${SEARCH_ENDPOINT}?query=${encodeURIComponent(query)}`;
         console.log("Fazendo requisição para:", url);
         
+        // Adicionar timeout de 10 segundos
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const response = await fetch(url, {
             headers: {
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0'
-            }
+            },
+            signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         console.log("Status da resposta:", response.status);
         
         if (!response.ok) {
@@ -137,7 +214,21 @@ async function handleSearch(event) {
         displayResults(data);
     } catch (error) {
         console.error('Erro na pesquisa:', error);
-        errorMessage.textContent = `Erro na pesquisa: ${error.message}`;
+        
+        // Tratamento específico para diferentes tipos de erro
+        let errorMessageText = '';
+        
+        if (error.name === 'AbortError') {
+            errorMessageText = 'Ops! A pesquisa demorou muito tempo. Por favor, tente novamente.';
+        } else if (!navigator.onLine) {
+            errorMessageText = 'Ops! Parece que você está offline. Verifique sua conexão e tente novamente.';
+        } else if (error.message.includes('Failed to fetch')) {
+            errorMessageText = 'Ops! Não foi possível conectar ao servidor. Por favor, tente novamente em alguns instantes.';
+        } else {
+            errorMessageText = `Ops! Algo deu errado: ${error.message}`;
+        }
+        
+        errorMessage.textContent = errorMessageText;
         errorMessage.style.display = 'block';
         suggestionContainer.style.display = 'none';
         
@@ -162,108 +253,110 @@ function showLoading(show) {
     }
 }
 
-// Exibir resultados da pesquisa
+// Função para mostrar o modal de erro (simplificada)
+function showErrorModal() {
+    const modal = document.getElementById('modal-erro');
+    if (modal) {
+        modal.classList.add('visible');
+        
+        // Adicionar listener para fechar com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeErrorModal();
+            }
+        });
+        
+        // Adicionar listener para fechar ao clicar fora
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeErrorModal();
+            }
+        });
+    }
+}
+
+// Função para fechar o modal de erro
+function closeErrorModal() {
+    const modal = document.getElementById('modal-erro');
+    if (modal) {
+        modal.classList.remove('visible');
+        // Limpar o campo de busca
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+    }
+}
+
+// Modificar a função displayResults para usar o modal simplificado
 function displayResults(data) {
     console.log("Dados recebidos em displayResults:", data);
-    
-    // Forçar limpeza do DOM
-    document.querySelectorAll('#error-message, #suggestion-container').forEach(el => {
-        el.style.display = 'none';
-        el.textContent = '';
-        el.innerHTML = '';
-    });
     
     // Garantir que data seja um objeto válido
     if (!data) {
         console.error("Dados inválidos recebidos:", data);
-        errorMessage.style.display = 'block';
-        errorMessage.textContent = "Dados de resposta inválidos";
-        suggestionContainer.style.display = 'none';
-        suggestionContainer.innerHTML = '';
+        showErrorModal();
         return;
     }
     
     // Extrair resultados com verificação para evitar erros
     const resultados = data.resultados || [];
     const total = data.total || 0;
-    const mensagem = data.mensagem || '';
-    const sugestao = data.sugestao || '';
     
-    console.log(`Exibindo ${resultados.length} resultados de ${total} totais`);
-    console.log("Resultados:", resultados);
-    
-    // NOVA ABORDAGEM: Controle direto da visibilidade
-    // Primeiro, limpar ambas as mensagens
-    errorMessage.style.display = 'none';
-    errorMessage.textContent = '';
-    suggestionContainer.style.display = 'none';
-    suggestionContainer.innerHTML = '';
-    
-    // Depois, mostrar apenas a mensagem apropriada
-    if (sugestao) {
-        // Se houver sugestão, mostrar APENAS ela
-        suggestionContainer.style.display = 'block';
-        if (sugestao.startsWith('Você quis dizer')) {
-            const termMatch = sugestao.match(/'([^']+)'/);
-            if (termMatch && termMatch[1]) {
-                const suggestedTerm = termMatch[1];
-                suggestionContainer.innerHTML = `
-                    <span>Você quis dizer: </span>
-                    <a href="#" class="suggestion-link">${suggestedTerm}</a>?
-                `;
-                
-                // Adicionar evento de clique na sugestão
-                const suggestionLink = suggestionContainer.querySelector('.suggestion-link');
-                if (suggestionLink) {
-                    suggestionLink.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        searchInput.value = suggestionLink.textContent.trim();
-                        handleSearch(new Event('submit'));
-                    });
-                }
-            }
+    // SEMPRE mostrar modal quando não houver resultados
+    if (!resultados || resultados.length === 0) {
+        // Ocultar seção de resultados
+        if (resultsSection) {
+            resultsSection.style.display = 'none';
         }
-    } else if (mensagem && (!resultados || resultados.length === 0)) {
-        // Se não houver sugestão mas houver mensagem de erro, mostrar APENAS o erro
-        errorMessage.textContent = mensagem;
-        errorMessage.style.display = 'block';
+        showErrorModal();
+        return;
+    }
+    
+    // Se chegou aqui, temos resultados
+    // Limpar mensagens de erro e sugestão
+    errorMessage.style.display = 'none';
+    suggestionContainer.style.display = 'none';
+    
+    // Mostrar seção de resultados
+    if (resultsSection) {
+        resultsSection.style.display = 'block';
     }
     
     // Atualizar contador de resultados
     if (resultsCount) {
-        resultsCount.textContent = `${total} ${total === 1 ? 'resultado encontrado' : 'resultados encontrados'}`;
+        resultsCount.textContent = `Encontrados ${total} resultados`;
     }
     
-    // Limpar tabela de resultados
+    // Limpar e preencher tabela de resultados
     if (resultsTable) {
         const tbody = resultsTable.querySelector('tbody');
         if (tbody) {
             tbody.innerHTML = '';
-            
-            if (resultados && resultados.length > 0) {
-                resultados.forEach(infracao => {
-                    try {
-                        console.log("Criando linha para infração:", infracao);
-                        const row = createResultRow(infracao);
-                        tbody.appendChild(row);
-                    } catch (error) {
-                        console.error("Erro ao criar linha para infração:", infracao, error);
-                    }
-                });
-                
-                // Mostrar seção de resultados
-                resultsSection.style.display = 'block';
-            } else {
-                // Ocultar seção de resultados se não houver resultados
-                resultsSection.style.display = 'none';
-            }
+            resultados.forEach(infracao => {
+                try {
+                    const row = createResultRow(infracao);
+                    tbody.appendChild(row);
+                } catch (error) {
+                    console.error("Erro ao criar linha para infração:", error);
+                }
+            });
         }
     }
-    
-    // Ocultar detalhes se estiverem visíveis
-    if (detailsContainer) {
-        detailsContainer.style.display = 'none';
-    }
+}
+
+// Função auxiliar para mostrar mensagem de erro
+function showErrorMessage(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+    errorMessage.style.backgroundColor = '#ffebee';
+    errorMessage.style.color = '#c62828';
+    errorMessage.style.padding = '15px';
+    errorMessage.style.borderRadius = '4px';
+    errorMessage.style.marginBottom = '20px';
+    errorMessage.style.textAlign = 'center';
+    errorMessage.style.fontWeight = 'bold';
+    errorMessage.style.border = '1px solid #ef9a9a';
 }
 
 // Criar linha de resultado
