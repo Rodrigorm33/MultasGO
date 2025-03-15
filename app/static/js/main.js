@@ -4,7 +4,7 @@
  */
 
 // Configurações - URLs corrigidas
-const BASE_URL = "http://localhost:8080"; // URL fixa para garantir que as requisições sejam enviadas para o servidor correto
+const BASE_URL = ""; // URL fixa para garantir que as requisições sejam enviadas para o servidor correto
 const API_ENDPOINT = `${BASE_URL}/api/v1/infracoes`;
 const SEARCH_ENDPOINT = `${API_ENDPOINT}/pesquisa`;
 const DETAILS_ENDPOINT = API_ENDPOINT;
