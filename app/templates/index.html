@@ -1,295 +1,580 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MultasGO | Consulta de Infrações de Trânsito</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/fix-error.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <meta name="description" content="MultasGO - Sistema de consulta rápida de infrações de trânsito">
-    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
-</head>
-<body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="container header-container">
-                <div class="logo-container">
-                    <h1 class="logo">
-                        <a href="/" class="logo-link">
-                            <span class="logo-text">Multas<span class="logo-highlight">GO</span></span>
-                        </a>
-                    </h1>
-                </div>
-                <nav class="nav">
-                    <ul class="nav-list">
-                        <li class="nav-item"><a href="/" class="nav-link active">Início</a></li>
-                        <li class="nav-item"><a href="/sobre" class="nav-link">Sobre</a></li>
-                        <li class="nav-item"><a href="/contato" class="nav-link">Contato</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MultasGO - Consulta de Infrações</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <style>
+      /* Estilos específicos para o cabeçalho */
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="container">
-                <div class="hero-content animate-fade-in">
-                    <div class="hero-flex-container">
-                        <div class="hero-image-container">
-                            <img src="/static/img/logo6.png" alt="MultasGO" class="hero-logo-image">
-                        </div>
-                        <div class="hero-text-container">
-                            <h2 class="hero-title">Consulta de <span class="text-highlight">Infrações</span> de <span class="text-highlight">Trânsito</span></h2>
-                            <p class="hero-subtitle">Pesquise pelo código da infração ou descrição e obtenha informações detalhadas sobre multas, pontuação e valores.</p>
-                            
-                            <!-- Search Form -->
-                            <form id="search-form" class="search-form">
-                                <div class="search-container">
-                                    <input 
-                                        type="text" 
-                                        id="search-input" 
-                                        class="search-input" 
-                                        placeholder="Digite o código ou uma palavra-chave"
-                                        autocomplete="off"
-                                        required
-                                    >
-                                    <button type="submit" id="search-btn" class="search-button">GO!</button>
-                                </div>
-                                <div id="error-message" class="error-message"></div>
-                                <div id="suggestion-container" class="suggestion-container"></div>
-                                <div id="loading-indicator" class="loading-indicator">
-                                    <div class="spinner-container">
-                                        <div class="spinner"></div>
-                                        <span>Buscando...</span>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+      .logo {
+        margin-right: auto;
+      }
 
-        <!-- Results Section -->
-        <section id="results-section" class="results-section">
-            <div class="container">
-                <div id="results-container" class="results-container animate-fade-in">
-                    <div class="results-header">
-                        <h3 class="results-title">Resultados da Pesquisa</h3>
-                        <p id="results-count" class="results-count">0 resultados encontrados</p>
-                    </div>
-                    <div class="results-table-container">
-                        <table id="results-table" class="results-table">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Descrição</th>
-                                    <th>Gravidade</th>
-                                    <th>Valor</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Resultados serão inseridos aqui via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
+      .nav-buttons {
+        display: flex;
+        gap: 20px;
+        margin-left: auto;
+      }
 
-        <!-- Details Section -->
-        <section id="details-container" class="details-section">
-            <div class="container">
-                <!-- Detalhes serão inseridos aqui via JavaScript -->
-            </div>
-        </section>
+      .btn-destacado {
+        background-color: #000;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
 
-        <!-- Features Section -->
-        <section class="features-section">
-            <div class="container">
-                <h3 class="section-title">Recursos do MultasGO</h3>
-                <div class="features-grid">
-                    <div class="feature-card animate-fade-in">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                        </div>
-                        <h4 class="feature-title">Busca Rápida</h4>
-                        <p class="feature-description">Encontre infrações pelo código ou descrição em segundos, com resultados precisos e detalhados.</p>
-                    </div>
-                    <div class="feature-card animate-fade-in">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                        </div>
-                        <h4 class="feature-title">Informações Completas</h4>
-                        <p class="feature-description">Acesse todos os detalhes sobre a infração, incluindo valor, pontuação e base legal.</p>
-                    </div>
-                    <div class="feature-card animate-fade-in">
-                        <div class="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                <line x1="8" y1="21" x2="16" y2="21"></line>
-                                <line x1="12" y1="17" x2="12" y2="21"></line>
-                            </svg>
-                        </div>
-                        <h4 class="feature-title">Design Responsivo</h4>
-                        <p class="feature-description">Interface adaptada para todos os dispositivos, ideal para uso em campo por agentes de trânsito.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+      .btn-destacado:hover {
+        background-color: #333;
+        transform: translateY(-2px);
+      }
 
-        <!-- Explorador de Infrações Section -->
-        <section id="explorer-section" class="explorer-section">
-            <div class="container">
-                <h3 class="section-title">Explorador de Infrações</h3>
-                <p class="section-description">Explore todas as infrações de trânsito com filtros e ordenação personalizados.</p>
-                
-                <div class="explorer-controls">
-                    <div class="filter-container">
-                        <h4 class="filter-title">Filtros</h4>
-                        <div class="filter-group">
-                            <label for="filter-gravidade">Gravidade:</label>
-                            <select id="filter-gravidade" class="filter-select">
-                                <option value="">Todas</option>
-                                <option value="Leve">Leve</option>
-                                <option value="Média">Média</option>
-                                <option value="Grave">Grave</option>
-                                <option value="Gravíssima">Gravíssima</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="filter-responsavel">Responsável:</label>
-                            <select id="filter-responsavel" class="filter-select">
-                                <option value="">Todos</option>
-                                <option value="Condutor">Condutor</option>
-                                <option value="Proprietário">Proprietário</option>
-                                <option value="Embarcador">Embarcador</option>
-                                <option value="Transportador">Transportador</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="filter-pontos">Pontos:</label>
-                            <select id="filter-pontos" class="filter-select">
-                                <option value="">Todos</option>
-                                <option value="3">3 pontos</option>
-                                <option value="4">4 pontos</option>
-                                <option value="5">5 pontos</option>
-                                <option value="7">7 pontos</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="sort-container">
-                        <h4 class="sort-title">Ordenação</h4>
-                        <div class="sort-group">
-                            <label for="sort-field">Ordenar por:</label>
-                            <select id="sort-field" class="sort-select">
-                                <option value="codigo">Código</option>
-                                <option value="descricao">Descrição</option>
-                                <option value="valor_multa">Valor da Multa</option>
-                                <option value="pontos">Pontos</option>
-                            </select>
-                        </div>
-                        <div class="sort-group">
-                            <label for="sort-direction">Direção:</label>
-                            <select id="sort-direction" class="sort-select">
-                                <option value="asc">Crescente</option>
-                                <option value="desc">Decrescente</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="explorer-actions">
-                        <button id="apply-filters" class="btn-primary">Aplicar Filtros</button>
-                        <button id="reset-filters" class="btn-secondary">Limpar Filtros</button>
-                    </div>
-                </div>
-                
-                <div id="explorer-results" class="explorer-results">
-                    <div class="explorer-header">
-                        <h4 class="explorer-title">Infrações</h4>
-                        <p id="explorer-count" class="explorer-count">0 infrações encontradas</p>
-                    </div>
-                    <div class="explorer-table-container">
-                        <table id="explorer-table" class="explorer-table">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Descrição</th>
-                                    <th>Gravidade</th>
-                                    <th>Responsável</th>
-                                    <th>Pontos</th>
-                                    <th>Valor</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Resultados serão inseridos aqui via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="pagination-container">
-                        <button id="prev-page" class="pagination-btn" disabled>Anterior</button>
-                        <span id="page-info" class="page-info">Página 1 de 1</span>
-                        <button id="next-page" class="pagination-btn" disabled>Próxima</button>
-                    </div>
-                </div>
-            </div>
-        </section>
+      /* Estilos para o modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
 
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="container">
-                <div class="footer-content">
-                    <div>
-                        <div class="footer-logo">
-                            <a href="/" class="footer-logo-link">
-                                <span class="footer-logo-text">Multas<span class="footer-logo-highlight">GO</span></span>
-                            </a>
-                            <p class="footer-tagline">Consulta rápida de infrações de trânsito</p>
-                        </div>
-                    </div>
-                    <div class="footer-links">
-                        <div class="footer-links-column">
-                            <h4 class="footer-links-title">Navegação</h4>
-                            <ul class="footer-links-list">
-                                <li><a href="/">Início</a></li>
-                                <li><a href="/sobre">Sobre</a></li>
-                                <li><a href="/contato">Contato</a></li>
-                            </ul>
-                        </div>
-                        <div class="footer-links-column">
-                            <h4 class="footer-links-title">Recursos</h4>
-                            <ul class="footer-links-list">
-                                <li><a href="#">API</a></li>
-                                <li><a href="#">Documentação</a></li>
-                                <li><a href="/suporte">Suporte</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="footer-bottom">
-                    <p class="copyright">&copy; 2023 MultasGO. Todos os direitos reservados.</p>
-                </div>
+      .modal.show {
+        display: block;
+      }
+
+      .modal-content {
+        background-color: #fff;
+        margin: 5% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .close-modal {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+      }
+
+      .close-modal:hover {
+        color: #000;
+      }
+
+      .modal-header {
+        margin-bottom: 20px;
+        padding-right: 40px;
+      }
+
+      .modal-title {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .modal-body {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #444;
+      }
+
+      .modal-body p {
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Cabeçalho -->
+    <header class="header">
+      <div class="container header-container">
+        <div class="logo">
+          <h1>MULTAS<span>GO</span></h1>
+        </div>
+        <div class="nav-buttons">
+          <a href="/explorador" class="btn-destacado">EXPLORADOR</a>
+          <a href="/noticias" class="btn-destacado">NOTÍCIAS</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Seção Hero -->
+    <section class="hero">
+      <div class="container">
+        <h2 class="hero-title">
+          PESQUISE POR QUALQUER TERMO,<br />
+          <span class="hero-emphasis">DE QUALQUER JEITO, E SEMPRE ACHE</span>
+        </h2>
+
+        <!-- Logo pequena -->
+        <img
+          src="/static/img/phone-mockup1.png"
+          alt="Logo MultasGO!"
+          class="logo-pequena"
+        />
+
+        <p class="hero-description highlight-phrase">
+          Segurança nas informações e prática para o dia a dia.
+        </p>
+
+        <!-- Seção de Pesquisa (Substituindo o vídeo) -->
+        <div class="search-container">
+          <form id="search-form">
+            <input
+              type="text"
+              id="search-input"
+              class="search-input"
+              placeholder="Digite o código ou palavra-chave..."
+              required
+            />
+            <button type="submit" class="search-button" id="search-btn">
+              GO
+            </button>
+          </form>
+        </div>
+
+        <div class="error-message" id="error-message">
+          Ocorreu um erro na pesquisa. Por favor, tente novamente.
+        </div>
+
+        <div class="loading" id="loading">Carregando resultados...</div>
+
+        <div class="results-container">
+          <div class="no-results" id="no-results">
+            Nenhuma infração encontrada. Tente outro termo de pesquisa.
+          </div>
+
+          <div id="total-results" class="total-results"></div>
+
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descrição</th>
+                <th>Responsável</th>
+                <th>Pontos</th>
+                <th>Valor</th>
+                <th>Órgão Autuador</th>
+                <th>Artigos CTB</th>
+                <th>Gravidade</th>
+              </tr>
+            </thead>
+            <tbody id="results-body">
+              <!-- Resultados serão inseridos aqui via JavaScript -->
+            </tbody>
+          </table>
+
+          <!-- Novo elemento para as frases engraçadas -->
+          <div class="placeholder-quotes">
+            <!-- Será preenchido via JavaScript -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Benefícios -->
+    <section class="benefits">
+      <div class="container">
+        <h3 class="section-title text-center">
+          APP RÁPIDO E EFICIENTE, PRA QUEM REALMENTE PRECISA
+        </h3>
+
+        <div class="benefits-grid">
+          <div class="benefit-item">
+            <div class="benefit-icon icon-exclusive"></div>
+            <h3 class="benefit-title"><strong>Conteúdo Exclusivo</strong></h3>
+            <p class="benefit-desc">
+              Aqui você conta com os especialistas MultasGO para ter materiais
+              únicos e informações unificadas.
+            </p>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-icon icon-updates"></div>
+            <h3 class="benefit-title">
+              <strong>Informações Atualizadas</strong>
+            </h3>
+            <p class="benefit-desc">
+              Não fique mais inseguro(a)! Deixe que o App te informe as mudanças
+              na lei e te mantenha atualizado.
+            </p>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-icon icon-benefit"></div>
+            <h3 class="benefit-title">
+              <strong>De agente para Agente</strong>
+            </h3>
+            <p class="benefit-desc">
+              App feito e mantido por agentes de trânsito, simples e fácil de
+              usar.
+            </p>
+          </div>
+        </div>
+
+        <div class="action-button-container">
+          <a href="/explorador" class="action-button">COMEÇAR A CONSULTAR</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Informações Completas Unificada -->
+    <section class="complete-info">
+      <div class="container">
+        <h3 class="section-title text-center">
+          Informações Completas e Ferramentas Práticas
+        </h3>
+
+        <div class="complete-info-content">
+          <div class="complete-info-info">
+            <div class="traffic-light-icon">
+              <div class="light red"></div>
+              <div class="light amber"></div>
+              <div class="light green"></div>
             </div>
-        </footer>
+            <h4 class="title-yellow">Pesquisa Inteligente de Infrações</h4>
+            <p>
+              Localize infrações através de situações práticas do dia a dia.
+              Pesquise por termos simples como:
+            </p>
+
+            <ul class="feature-list traffic-light">
+              <li class="item-red">
+                Motorista se recusou a fazer o teste do etilômetro
+              </li>
+              <li class="item-amber">Motociclista sem uso de viseira</li>
+              <li class="item-green">
+                Condutor sem utilizar o cinto de segurança
+              </li>
+              <li class="item-red">
+                Veículo com pneu em mau estado de conservação
+              </li>
+              <li class="item-amber">
+                Habilitação com prazo de validade vencido
+              </li>
+            </ul>
+
+            <p class="highlight-text">
+              Otimize seu trabalho utilizando filtros avançados para agrupar
+              infrações semelhantes e adicione-as aos seus favoritos para acesso
+              rápido!
+            </p>
+
+            <h4 class="title-green">Futuros Recursos Exclusivos</h4>
+            <ul class="feature-list resources-list">
+              <li class="item-updates">
+                Legislação atualizada: Resoluções, Portarias, Deliberações e
+                conteúdo complementar
+              </li>
+              <li class="item-ctb">
+                CTB completo e comentado por especialistas
+              </li>
+              <li class="item-manual">
+                Manual Brasileiro de Fiscalização e Sinalização com referências
+                normativas
+              </li>
+              <li class="item-tools">
+                Ferramentas práticas: calculadora de velocidade considerando
+                margem de erro, tabela de medição do etilômetro e muito mais!
+              </li>
+            </ul>
+          </div>
+          <div class="complete-info-image">
+            <img
+              src="/static/img/phone-mockup2.png"
+              alt="MultasGO App"
+              class="info-logo"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção FAQ -->
+    <section class="faq">
+      <div class="container">
+        <h3 class="section-title text-center">PERGUNTAS FREQUENTES</h3>
+
+        <div class="faq-container">
+          <div class="faq-item">
+            <div class="faq-question">
+              <span class="faq-arrow"></span>
+              <span class="faq-question-text"
+                >O app também serve para consultar multas de veículos e pontos
+                na CNH?</span
+              >
+            </div>
+            <div class="faq-answer">
+              Não. O MultasGO é uma ferramenta para profissionais de
+              fiscalização, que ajuda na consulta rápida de infrações e
+              legislações. O aplicativo fornece informações técnicas, códigos,
+              valores e orientações específicas para o trabalho diário dos
+              agentes.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question">
+              <span class="faq-arrow"></span>
+              <span class="faq-question-text">Termos de Uso</span>
+            </div>
+            <div class="faq-answer">
+              <p><strong>1. Aceitação dos Termos</strong></p>
+              <p>
+                Ao acessar e usar o aplicativo MultasGO, você concorda em
+                cumprir estes Termos de Uso. Se você não concordar com estes
+                termos, não deverá usar o aplicativo.
+              </p>
+
+              <p><strong>2. Descrição do Serviço</strong></p>
+              <p>
+                O MultasGO é um aplicativo de consulta de infrações de trânsito
+                que permite aos usuários pesquisar informações sobre códigos de
+                infração, valores de multas e legislação relacionada.
+              </p>
+
+              <p><strong>3. Uso do Serviço</strong></p>
+              <p>
+                Você concorda em usar o serviço apenas para fins legais e de
+                acordo com estes termos. Você não pode usar o serviço de maneira
+                que possa danificar, desabilitar ou sobrecarregar os servidores
+                ou redes do MultasGO.
+              </p>
+
+              <p><strong>4. Propriedade Intelectual</strong></p>
+              <p>
+                Todo o conteúdo apresentado no aplicativo MultasGO, incluindo
+                textos, gráficos, logos, ícones e software, é propriedade do
+                MultasGO e está protegido por leis de direitos autorais.
+              </p>
+
+              <p><strong>5. Limitação de Responsabilidade</strong></p>
+              <p>
+                O MultasGO não se responsabiliza por quaisquer danos diretos,
+                indiretos, incidentais, consequenciais ou punitivos resultantes
+                do uso ou incapacidade de uso do serviço.
+              </p>
+
+              <p><strong>6. Alterações nos Termos</strong></p>
+              <p>
+                O MultasGO reserva-se o direito de modificar estes termos a
+                qualquer momento. As alterações entrarão em vigor imediatamente
+                após a publicação dos termos revisados.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question">
+              <span class="faq-arrow"></span>
+              <span class="faq-question-text">Política de Privacidade</span>
+            </div>
+            <div class="faq-answer">
+              <p><strong>1. Coleta de Informações</strong></p>
+              <p>
+                O MultasGO coleta informações que você fornece diretamente, como
+                dados de registro e informações de pesquisa. Também coletamos
+                dados de uso, incluindo informações sobre como você interage com
+                o aplicativo.
+              </p>
+
+              <p><strong>2. Uso das Informações</strong></p>
+              <p>
+                Utilizamos suas informações para fornecer, manter e melhorar
+                nossos serviços, desenvolver novos serviços, e proteger o
+                MultasGO e nossos usuários.
+              </p>
+
+              <p><strong>3. Compartilhamento de Informações</strong></p>
+              <p>
+                Não compartilhamos suas informações pessoais com empresas,
+                organizações ou indivíduos externos ao MultasGO, exceto nas
+                seguintes circunstâncias: com seu consentimento, para
+                processamento externo, ou por motivos legais.
+              </p>
+
+              <p><strong>4. Segurança</strong></p>
+              <p>
+                Trabalhamos arduamente para proteger o MultasGO e nossos
+                usuários contra acesso não autorizado ou alteração, divulgação
+                ou destruição de informações que detemos.
+              </p>
+
+              <p><strong>5. Acesso e Controle</strong></p>
+              <p>
+                Você pode acessar, atualizar ou excluir suas informações
+                pessoais a qualquer momento através das configurações da sua
+                conta no aplicativo.
+              </p>
+
+              <p><strong>6. Alterações nesta Política</strong></p>
+              <p>
+                Nossa Política de Privacidade pode mudar de tempos em tempos.
+                Não reduziremos seus direitos sob esta Política de Privacidade
+                sem seu consentimento explícito.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logo e Mensagem Final -->
+    <section class="final-message">
+      <div class="container">
+        <img
+          src="/static/img/phone-mockup1.png"
+          alt="MultasGO App Icon"
+          class="app-mockup-icon"
+        />
+        <p class="thanks-message">Go Go! Vamos juntos nessa missão!</p>
+        <p class="slogan">Embasados pela Lei protegidos por Deus</p>
+        <p class="tagline">Autue com confiança</p>
+      </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="footer" id="footer">
+      <div class="container">
+        <div class="footer-sections">
+          <div class="footer-section">
+            <h4>CONTATO</h4>
+            <p>rodrigo.moura@yahoo.com.br</p>
+          </div>
+
+          <div class="footer-section">
+            <h4>PORTAL DE NOTÍCIAS</h4>
+            <p>https://multasgo.com.br/noticias</p>
+          </div>
+
+          <div class="footer-section">
+            <h4>TERMOS E POLÍTICAS</h4>
+            <p>Termos de Uso</p>
+            <p>Política de Privacidade</p>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <div class="footer-logo">
+            <h2>MULTAS<span>GO</span></h2>
+            <p>AUTUE COM CONFIANÇA</p>
+          </div>
+          <p class="copyright">2025 © Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modal para Notícias -->
+    <div id="news-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="modal-header">
+          <h2 class="modal-title">
+            Ajude a Manter e Melhorar Este Aplicativo – Feito por Nós, para Nós
+          </h2>
+        </div>
+        <div class="modal-body">
+          <p>Prezados agentes de trânsito,</p>
+
+          <p>
+            Este aplicativo foi desenvolvido com dedicação e esforço para
+            auxiliar nosso dia a dia nas ruas. Sabemos dos desafios que
+            enfrentamos e entendemos a importância de uma ferramenta ágil e
+            eficiente para a consulta de infrações e aplicação correta da
+            legislação.
+          </p>
+
+          <p>
+            Este projeto nasceu da vontade de contribuir com a categoria,
+            oferecendo um recurso gratuito e acessível. No entanto, sua
+            manutenção e aprimoramento dependem de esforços contínuos, e toda
+            colaboração é essencial para que ele continue ativo e cada vez mais
+            útil para todos.
+          </p>
+
+          <p>
+            Se esse aplicativo contribuiu de alguma forma, entre em contato
+            conosco e saiba como contribuir. Toda ajuda é bem-vinda e fará a
+            diferença para que possamos seguir aprimorando esta ferramenta com
+            novos recursos e atualizações.
+          </p>
+
+          <p>
+            O trânsito mata mais vidas do que muitas doenças e tragédias que
+            ganham mais atenção. A cada acidente fatal, uma família é destruída,
+            sonhos são interrompidos e vidas são marcadas para sempre. Quem
+            trabalha na fiscalização sabe que cada infração evitada pode
+            significar uma vida salva. Nosso trabalho não é apenas uma função –
+            é uma missão de proteção à sociedade.
+          </p>
+
+          <p>
+            Juntos, podemos tornar este aplicativo ainda melhor para quem
+            trabalha diariamente para manter a ordem no trânsito e, acima de
+            tudo, salvar vidas.
+          </p>
+
+          <p>Agradecemos imensamente seu apoio!</p>
+
+          <a href="mailto:rodrigo.moura@yahoo.com.br" class="contact-btn"
+            >Entrar em Contato</a
+          >
+        </div>
+      </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="/static/js/main.js"></script>
-</body>
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/quotes.js"></script>
+    <script src="/static/js/modal.js"></script>
+
+    <script>
+      // FAQ Toggle - Implementação correta
+      document.addEventListener("DOMContentLoaded", function () {
+        const faqItems = document.querySelectorAll(".faq-item");
+
+        // Definir o primeiro item como ativo inicialmente
+        if (faqItems.length > 0) {
+          faqItems[0].classList.add("active");
+        }
+
+        // Adicionar evento de clique para cada pergunta
+        faqItems.forEach((item) => {
+          const question = item.querySelector(".faq-question");
+
+          question.addEventListener("click", function () {
+            // Verificar se o item clicado já está ativo
+            const isActive = item.classList.contains("active");
+
+            // Fechar todos os itens
+            faqItems.forEach((otherItem) => {
+              otherItem.classList.remove("active");
+            });
+
+            // Se o item não estava ativo, torná-lo ativo
+            if (!isActive) {
+              item.classList.add("active");
+            }
+          });
+        });
+      });
+    </script>
+  </body>
 </html>

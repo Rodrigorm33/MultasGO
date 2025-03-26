@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -26,7 +27,7 @@ class Settings:
     PGUSER: str = os.getenv("PGUSER", "postgres")
     
     # Configurações de segurança
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "BMtMB28%")
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
     
     # ALLOWED_HOSTS configurado para incluir domínios da Railway
     ALLOWED_HOSTS: list = os.getenv(
@@ -43,5 +44,23 @@ class Settings:
     
     # Configuração de porta - Railway configurado com PORT 8080
     PORT: int = int(os.getenv("PORT", "8080"))
+    
+    def __init__(self):
+        # Verificar se SECRET_KEY está definida
+        if not self.SECRET_KEY:
+            if self.DEBUG:
+                # Em ambiente de desenvolvimento, usar uma chave temporária
+                self.SECRET_KEY = "dev_temp_key_apenas_para_desenvolvimento"
+                import warnings
+                warnings.warn(
+                    "AVISO: Usando uma SECRET_KEY temporária para desenvolvimento. "
+                    "Defina SECRET_KEY nas variáveis de ambiente para um ambiente seguro.",
+                    UserWarning
+                )
+            else:
+                # Em ambiente de produção, exigir uma SECRET_KEY
+                print("ERRO CRÍTICO: SECRET_KEY não está definida nas variáveis de ambiente!")
+                print("Por motivos de segurança, a aplicação não pode iniciar sem uma SECRET_KEY em ambiente de produção.")
+                sys.exit(1)
 
 settings = Settings()

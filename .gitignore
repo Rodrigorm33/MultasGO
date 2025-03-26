@@ -1,4 +1,4 @@
-# Usando bash/terminal
+# Crie um arquivo .gitignore
 cat > .gitignore << 'EOF'
 # Ambiente virtual
 __pycache__/
@@ -19,9 +19,31 @@ logs/
 .env.test
 .env.production
 
+# Bancos de dados locais
+*.sqlite3
+*.db
+
 # Arquivos específicos do IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# Arquivos de cache
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# Arquivos de distribuição
+dist/
+build/
+*.egg-info/
+
+# Outros
+.DS_Store
+node_modules/
+__pycache__/
 EOF

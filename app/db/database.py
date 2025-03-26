@@ -6,6 +6,7 @@ import psycopg2
 import psycopg2.extensions
 from psycopg2.extras import register_default_json, register_default_jsonb
 from urllib.parse import urlparse
+import traceback  # Adicione esta importação no topo do arquivo
 
 from app.core.config import settings
 from app.core.logger import logger
@@ -69,28 +70,41 @@ try:
     # Criar engine com opções otimizadas
     engine = create_engine(
         processed_url,
-        echo=settings.DEBUG,  # Mostrar SQL no console se DEBUG for True
-        future=True,  # Usar recursos futuros do SQLAlchemy
-        pool_pre_ping=True,  # Verificar conexão antes de usar
-        pool_recycle=3600,  # Reciclar conexões após 1 hora
-        pool_size=10,  # Tamanho do pool de conexões
-        max_overflow=20,  # Número máximo de conexões extras
+        echo=settings.DEBUG,
+        future=True,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        pool_size=10,
+        max_overflow=20,
         connect_args={
-            'options': '-c timezone=UTC',  # Definir timezone para UTC
-            'client_encoding': 'utf8'  # Usar UTF-8 para codificação
+            'options': '-c timezone=UTC',
+            'client_encoding': 'utf8'
         }
     )
+    
+    # Testar a conexão imediatamente
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
+        
     logger.info("Conexão com o banco de dados estabelecida com sucesso")
 
 except Exception as e:
-    logger.error(f"Erro crítico ao configurar banco de dados: {e}")
+    # Registrar erro detalhado
+    logger.critical(f"Erro crítico ao configurar banco de dados: {e}")
+    logger.critical(f"Detalhes: {traceback.format_exc()}")
     
-    # Fallback para SQLite em memória
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False}
-    )
-    logger.warning("Usando banco de dados SQLite em memória como fallback")
+    if settings.DEBUG:
+        # Em modo de desenvolvimento, usar SQLite em memória
+        logger.warning("Modo DEBUG ativado: usando banco de dados SQLite em memória como fallback")
+        engine = create_engine(
+            "sqlite:///:memory:",
+            connect_args={"check_same_thread": False}
+        )
+    else:
+        # Em produção, encerrar a aplicação
+        logger.critical("Aplicação encerrada devido a erro de banco de dados")
+        import sys
+        sys.exit(1)
 
 # Configuração da sessão
 SessionLocal = sessionmaker(

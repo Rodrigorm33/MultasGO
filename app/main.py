@@ -1,33 +1,64 @@
 import os
-from fastapi import FastAPI, Depends, HTTPException, Request
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-import json
-from typing import Any, Dict
-import time
 from datetime import datetime
+from sqlalchemy import text
 
 from app.api.api import api_router
-# Adicione esta linha para importar o novo módulo de diagnóstico
 from app.core.config import settings
 from app.core.logger import logger
-from app.db.database import get_db, engine
+from app.db.database import get_db
 
-# Inicializar a aplicação FastAPI
+# Determinar o caminho correto para as pastas static e templates
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+
+# Definir o lifespan da aplicação
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Código de inicialização - executado antes da aplicação receber requisições
+    logger.info("Iniciando a API MultasGO...")
+    try:
+        db = next(get_db())
+        db.execute(text("SELECT 1"))
+        logger.info("Conexão com o banco de dados verificada com sucesso.")
+    except Exception as e:
+        logger.error(f"Erro na conexão: {str(e)}")
+    
+    yield  # A aplicação executa aqui
+    
+    # Código de encerramento - executado quando a aplicação está sendo desligada
+    logger.info("Encerrando a API MultasGO...")
+
+# Inicializar aplicação FastAPI com o novo parâmetro lifespan
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description=settings.PROJECT_DESCRIPTION,
     version=settings.PROJECT_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
-# Configurar CORS
-origins = settings.ALLOWED_HOSTS if hasattr(settings, "ALLOWED_HOSTS") else ["*"]
+# Configuração para servir arquivos estáticos com caminho correto
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Configuração para templates HTML com caminho correto
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
+
+# Configurar CORS para o frontend
+origins = [
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "https://multasgo.up.railway.app",  # Altere conforme necessário quando tiver o domínio do Railway
+    *settings.ALLOWED_HOSTS
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -36,162 +67,104 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configurar templates e arquivos estáticos
-templates_dir = "app/templates"
-static_dir = "app/static"
-
-# Verificar se os diretórios existem
-if os.path.exists(templates_dir):
-    templates = Jinja2Templates(directory=templates_dir)
-else:
-    logger.warning(f"Diretório de templates não encontrado: {templates_dir}")
-    templates = None
-
-if os.path.exists(static_dir):
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
-else:
-    logger.warning(f"Diretório de arquivos estáticos não encontrado: {static_dir}")
-
-# Classe personalizada para lidar com codificação UTF-8
-class UJSONResponse(JSONResponse):
-    media_type = "application/json"
-    
-    def render(self, content: Any) -> bytes:
-        return json.dumps(
-            content,
-            ensure_ascii=False,
-            allow_nan=False,
-            indent=2,
-            separators=(",", ":"),
-        ).encode("utf-8")
-
-# Sobrescrever o manipulador de respostas padrão
-app.router.default_response_class = UJSONResponse
-
-# Configurar cabeçalhos CORS para UTF-8
-@app.middleware("http")
-async def add_charset_middleware(request: Request, call_next):
-    response = await call_next(request)
-    if "content-type" in response.headers and "application/json" in response.headers["content-type"]:
-        response.headers["content-type"] = "application/json; charset=utf-8"
-    return response
-
-# Incluir as rotas da API
+# Incluir rotas da API
 app.include_router(api_router, prefix="/api/v1")
-# Adicione esta linha para incluir o router de diagnóstico
 
-
-@app.on_event("startup")
-async def startup_event():
-    """
-    Evento executado na inicialização da aplicação.
-    """
-    logger.info("Iniciando a aplicação MultasGO...")
-    
-    try:
-        # Log detalhado de configuração
-        logger.info(f"Configurações de banco de dados:")
-        logger.info(f"Host: {settings.PGHOST}")
-        logger.info(f"Porta: {settings.PGPORT}")
-        logger.info(f"Usuário: {settings.PGUSER}")
-        logger.info(f"Database: {settings.PGDATABASE}")
-
-        db = next(get_db())
-        try:
-            # Testar conexão com log detalhado
-            result = db.execute(text("SELECT 1"))
-            logger.info("Conexão com o banco de dados verificada com sucesso.")
-        except Exception as e:
-            logger.error(f"Erro detalhado na conexão: {type(e).__name__}")
-            logger.error(f"Detalhes do erro: {e}")
-            logger.warning("A aplicação continuará mesmo com erro na consulta de teste.")
-    except Exception as e:
-        logger.error(f"Erro crítico de conexão: {type(e).__name__}")
-        logger.error(f"Detalhes do erro: {e}")
-
+# Rota para servir a página principal HTML
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """
-    Página inicial do MultasGO.
+    Endpoint para a página principal da aplicação.
+    
+    Retorna a interface web da aplicação MultasGO.
     """
-    if templates:
-        return templates.TemplateResponse("index.html", {"request": request})
-    return HTMLResponse(content="<html><body><h1>MultasGO API</h1><p>Acesse /docs para a documentação da API.</p></body></html>")
+    return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/sobre", response_class=HTMLResponse)
-async def sobre(request: Request):
+@app.get("/explorador", response_class=HTMLResponse)
+async def explorador_page(request: Request):
     """
-    Página Sobre do MultasGO.
+    Endpoint para a página do explorador de infrações.
+    
+    Retorna a interface web para explorar as infrações com filtros avançados.
     """
-    if templates:
-        return templates.TemplateResponse("sobre.html", {"request": request})
-    return HTMLResponse(content="<html><body><h1>Sobre o MultasGO</h1><p>API para pesquisa de autos de infração de trânsito.</p></body></html>")
+    return templates.TemplateResponse("explorador.html", {"request": request})
 
-@app.get("/contato", response_class=HTMLResponse)
-async def contato(request: Request):
+@app.get("/noticias", response_class=HTMLResponse)
+async def noticias_page(request: Request):
     """
-    Página de Contato do MultasGO.
+    Endpoint para a página de notícias.
+    
+    Retorna a interface web com as notícias do MultasGO.
     """
-    if templates:
-        return templates.TemplateResponse("contato.html", {"request": request})
-    return HTMLResponse(content="<html><body><h1>Contato MultasGO</h1><p>Página de contato.</p></body></html>")
+    return templates.TemplateResponse("noticias.html", {"request": request})
 
-@app.get("/suporte", response_class=HTMLResponse)
-async def suporte(request: Request):
-    """
-    Página de Suporte do MultasGO (mesmo conteúdo da página de Contato).
-    """
-    if templates:
-        return templates.TemplateResponse("suporte.html", {"request": request})
-    return HTMLResponse(content="<html><body><h1>Suporte MultasGO</h1><p>Página de suporte.</p></body></html>")
-
-@app.get("/api")
+# Rota API para informações básicas (acesso via JSON)
+@app.get("/api", 
+    tags=["recursos-api"],
+    summary="Raiz da API MultasGO",
+    description="Ponto de entrada principal da API MultasGO com links para recursos importantes.",
+    response_description="Informações básicas da API e links para recursos")
 def api_root():
-    return {"message": "Bem-vindo à API MultasGO. Acesse /docs para a documentação."}
+    """
+    Endpoint raiz da API.
+    
+    Fornece informações básicas sobre a API MultasGO e links para outros recursos,
+    incluindo documentação e base da API v1.
+    """
+    return {
+        "app": settings.PROJECT_NAME,
+        "version": settings.PROJECT_VERSION,
+        "descricao": "API para pesquisa de autos de infração de trânsito",
+        "api_docs": "/docs",
+        "api_v1": "/api/v1",
+        "health": "/health"
+    }
 
-@app.get("/health")
+@app.get("/health", 
+    tags=["recursos-api"],
+    summary="Verificação de saúde do sistema",
+    description="Verifica o estado de saúde da API, incluindo conectividade com o banco de dados.",
+    responses={
+        200: {"description": "Sistema operacional com banco de dados conectado"},
+        503: {"description": "Sistema com problemas de conectividade ao banco de dados"}
+    })
 def health_check():
     """
-    Endpoint para verificação de saúde da aplicação.
-    """
-    start_time = time.time()
+    Verifica a saúde do sistema.
     
+    Este endpoint fornece informações sobre:
+    - Estado geral do sistema
+    - Conectividade com o banco de dados
+    - Versão atual da aplicação
+    - Timestamp da verificação
+    
+    É útil para monitoramento e diagnóstico do serviço.
+    """
     try:
-        # Verificar a conexão com o banco de dados
         db = next(get_db())
         db.execute(text("SELECT 1"))
-        db_status = "conectado"
-        db_error = None
+        return {
+            "status": "ok",
+            "database": "conectado",
+            "version": settings.PROJECT_VERSION,
+            "timestamp": datetime.now().isoformat()
+        }
     except Exception as e:
         logger.error(f"Erro na verificação de saúde: {e}")
-        db_status = "erro"
-        db_error = str(e)
-    
-    end_time = time.time()
-    response_time = round((end_time - start_time) * 1000, 2)  # em milissegundos
-    
-    health_info = {
-        "status": "ok" if db_status == "conectado" else "erro",
-        "database": db_status,
-        "version": settings.PROJECT_VERSION,
-        "timestamp": datetime.now().isoformat(),
-        "response_time_ms": response_time
-    }
-    
-    if db_error:
-        health_info["database_error"] = db_error
-        # Retornar status 503 Service Unavailable se o banco de dados não estiver disponível
-        return JSONResponse(content=health_info, status_code=503)
-    
-    return health_info
+        return JSONResponse(
+            content={
+                "status": "erro",
+                "database": "desconectado",
+                "error": str(e),
+                "version": settings.PROJECT_VERSION,
+                "timestamp": datetime.now().isoformat()
+            }, 
+            status_code=503
+        )
 
 if __name__ == "__main__":
     import uvicorn
-    
-    # Obter a porta da variável de ambiente ou usar 8080 como padrão
     port = int(os.environ.get("PORT", 8080))
-    
-    # Iniciar o servidor
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
