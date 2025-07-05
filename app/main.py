@@ -52,12 +52,26 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 # Configurar CORS para o frontend
-origins = [
-    "http://localhost:8080",
-    "http://localhost:3000",
-    "https://multasgo.up.railway.app",  # Altere conforme necessário quando tiver o domínio do Railway
-    *settings.ALLOWED_HOSTS
-]
+origins = []
+
+# Adicionar origins de desenvolvimento
+if settings.DEBUG:
+    origins.extend([
+        "http://localhost:8080",
+        "http://localhost:3000",
+        "http://127.0.0.1:8080",
+        "http://127.0.0.1:3000"
+    ])
+
+# Adicionar hosts permitidos do settings
+for host in settings.ALLOWED_HOSTS:
+    if host not in ["*", "localhost", "127.0.0.1"]:
+        origins.append(f"https://{host}")
+        origins.append(f"http://{host}")  # Para desenvolvimento
+
+# Fallback para desenvolvimento
+if not origins or settings.DEBUG:
+    origins.append("*")
 
 app.add_middleware(
     CORSMiddleware,

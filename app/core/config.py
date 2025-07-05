@@ -14,25 +14,20 @@ class Settings:
     PROJECT_DESCRIPTION: str = os.getenv("PROJECT_DESCRIPTION", "API para pesquisa de autos de infração de trânsito")
     PROJECT_VERSION: str = os.getenv("PROJECT_VERSION", "1.0.0")
     
-    # Configuração de DEBUG - Railway configurado como False para produção
-    DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
+    # Configuração de DEBUG
+    DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     
-    # Configurações do banco de dados
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/railway")
-    PGDATABASE: str = os.getenv("PGDATABASE", "railway")
-    PGHOST: str = os.getenv("PGHOST", "postgres.railway.internal")
-    PGPASSWORD: str = os.getenv("PGPASSWORD") or os.getenv("POSTGRES_PASSWORD", "")
-    PGPORT: str = os.getenv("PGPORT", "5432")
-    PGUSER: str = os.getenv("PGUSER", "postgres")
+    # Configurações do banco de dados (padrão SQLite local)
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./multasgo.db")
     
     # Configurações de segurança
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     
-    # ALLOWED_HOSTS configurado para incluir domínios da Railway
+    # ALLOWED_HOSTS configurado para desenvolvimento local e Cloudflare
     ALLOWED_HOSTS: list = os.getenv(
         "ALLOWED_HOSTS", 
-        "localhost,127.0.0.1,*.railway.app,railwayapp.com,web-production-b9a00.up.railway.app,web.railway.internal"
+        "localhost,127.0.0.1,*.cfargotunnel.com"
     ).split(",")
     
     # Configurações de busca fuzzy
@@ -42,7 +37,7 @@ class Settings:
     # Configuração CORS (Cross-Origin Resource Sharing)
     CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "*").split(",")
     
-    # Configuração de porta - Railway configurado com PORT 8080
+    # Configuração de porta
     PORT: int = int(os.getenv("PORT", "8080"))
     
     def __init__(self):

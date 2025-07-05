@@ -225,9 +225,10 @@ ul {
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    max-width: 90%;
+    max-width: 100%;
     margin: 0 auto;
-    overflow-x: auto;
+    overflow-x: hidden; /* Sem scroll horizontal */
+    width: 100%;
 }
 
 #results-table {
@@ -1020,6 +1021,160 @@ tr:hover {
         margin-right: auto;
         text-align: left;
     }
+
+    .results-container {
+        padding: 15px 8px;
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
+    #results-table {
+        width: 100%;
+        font-size: 0.9rem;
+        display: table;
+        table-layout: fixed; /* Força a tabela a respeitar as larguras definidas */
+        border-collapse: collapse;
+    }
+    
+    /* Ocultar colunas menos importantes no mobile */
+    #results-table th:nth-child(3), /* Responsável */
+    #results-table td:nth-child(3),
+    #results-table th:nth-child(6), /* Órgão Autuador */
+    #results-table td:nth-child(6),
+    #results-table th:nth-child(7), /* Artigos CTB */
+    #results-table td:nth-child(7) {
+        display: none;
+    }
+    
+    /* Ajustar larguras para mobile - totalizando 100% */
+    #results-table th:nth-child(1), /* Código */
+    #results-table td:nth-child(1) {
+        width: 12%;
+        max-width: 12%;
+        font-weight: bold;
+        background-color: rgba(255, 215, 0, 0.1);
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #results-table th:nth-child(2), /* Descrição */
+    #results-table td:nth-child(2) {
+        width: 50%;
+        max-width: 50%;
+        font-size: 0.85rem;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+    
+    #results-table th:nth-child(4), /* Pontos */
+    #results-table td:nth-child(4) {
+        width: 10%;
+        max-width: 10%;
+        text-align: center;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #results-table th:nth-child(5), /* Valor */
+    #results-table td:nth-child(5) {
+        width: 18%;
+        max-width: 18%;
+        text-align: right;
+        font-weight: bold;
+        font-size: 0.85rem;
+        color: var(--red);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #results-table th:nth-child(8), /* Gravidade */
+    #results-table td:nth-child(8) {
+        width: 10%;
+        max-width: 10%;
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #results-table th,
+    #results-table td {
+        padding: 8px 4px;
+        vertical-align: top;
+        box-sizing: border-box;
+    }
+    
+    #results-table th {
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    /* Melhorar visualização da gravidade em mobile */
+    .gravidade-gravissima {
+        background-color: var(--color-gravissima) !important;
+        color: white !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .gravidade-grave {
+        background-color: var(--color-grave) !important;
+        color: white !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .gravidade-media {
+        background-color: var(--color-media) !important;
+        color: var(--dark-blue) !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .gravidade-leve {
+        background-color: var(--color-leve) !important;
+        color: white !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 /* Ícone de semáforo decorativo */
@@ -1382,10 +1537,179 @@ tr:hover {
 .highlight-phrase::after {
     right: 8px;
 }
-/* Melhorar a responsividade da tabela com mais colunas */
-@media (max-width: 992px) {
+/* LAYOUT MOBILE-FIRST - SEM SCROLL HORIZONTAL */
+/* Mobile: Apenas informações essenciais */
+@media (max-width: 768px) {
+    .results-container {
+        padding: 15px 8px;
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
+    #results-table {
+        width: 100%;
+        font-size: 0.9rem;
+        display: table;
+        table-layout: fixed; /* Força a tabela a respeitar as larguras definidas */
+        border-collapse: collapse;
+    }
+    
+    /* Ocultar colunas menos importantes no mobile */
+    #results-table th:nth-child(3), /* Responsável */
+    #results-table td:nth-child(3),
+    #results-table th:nth-child(6), /* Órgão Autuador */
+    #results-table td:nth-child(6),
+    #results-table th:nth-child(7), /* Artigos CTB */
+    #results-table td:nth-child(7) {
+        display: none;
+    }
+    
+    /* Ajustar larguras para mobile - totalizando 100% */
+    #results-table th:nth-child(1), /* Código */
+    #results-table td:nth-child(1) {
+        width: 12%;
+        max-width: 12%;
+        font-weight: bold;
+        background-color: rgba(255, 215, 0, 0.1);
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #results-table th:nth-child(2), /* Descrição */
+    #results-table td:nth-child(2) {
+        width: 50%;
+        max-width: 50%;
+        font-size: 0.85rem;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+    
+    #results-table th:nth-child(4), /* Pontos */
+    #results-table td:nth-child(4) {
+        width: 10%;
+        max-width: 10%;
+        text-align: center;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #results-table th:nth-child(5), /* Valor */
+    #results-table td:nth-child(5) {
+        width: 18%;
+        max-width: 18%;
+        text-align: right;
+        font-weight: bold;
+        font-size: 0.85rem;
+        color: var(--red);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #results-table th:nth-child(8), /* Gravidade */
+    #results-table td:nth-child(8) {
+        width: 10%;
+        max-width: 10%;
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    #results-table th,
+    #results-table td {
+        padding: 8px 4px;
+        vertical-align: top;
+        box-sizing: border-box;
+    }
+    
+    #results-table th {
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    /* Melhorar visualização da gravidade em mobile */
+    .gravidade-gravissima {
+        background-color: var(--color-gravissima) !important;
+        color: white !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .gravidade-grave {
+        background-color: var(--color-grave) !important;
+        color: white !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .gravidade-media {
+        background-color: var(--color-media) !important;
+        color: var(--dark-blue) !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .gravidade-leve {
+        background-color: var(--color-leve) !important;
+        color: white !important;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* Tablet: Informações importantes */
+@media (min-width: 769px) and (max-width: 992px) {
+    .results-container {
+        padding: 20px 15px;
+    }
+    
     #results-table {
         font-size: 0.9rem;
+        width: 100%;
+    }
+    
+    /* Ocultar apenas artigos CTB no tablet */
+    #results-table th:nth-child(7), /* Artigos CTB */
+    #results-table td:nth-child(7) {
+        display: none;
     }
     
     #results-table th,
@@ -1394,74 +1718,64 @@ tr:hover {
     }
 }
 
-@media (max-width: 768px) {
-    #results-table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-        width: 100%;
-        font-size: 0.85rem;
+/* Desktop: Todas as informações */
+@media (min-width: 993px) {
+    .results-container {
+        padding: 25px 20px;
     }
     
-    .results-container {
-        padding: 20px 10px;
+    #results-table {
+        font-size: 1rem;
+        width: 100%;
     }
     
     #results-table th,
     #results-table td {
-        padding: 6px 8px;
+        padding: 12px 15px;
     }
 }
 
-/* Larguras otimizadas para as colunas */
+/* Larguras otimizadas para as colunas - sem min-width para evitar overflow */
 #results-table th:nth-child(1), /* Código */
 #results-table td:nth-child(1) {
     width: 8%;
-    min-width: 80px;
 }
 
 #results-table th:nth-child(2), /* Descrição */
 #results-table td:nth-child(2) {
     width: 30%;
-    min-width: 200px;
 }
 
 #results-table th:nth-child(3), /* Responsável */
 #results-table td:nth-child(3) {
     width: 10%;
-    min-width: 100px;
 }
 
 #results-table th:nth-child(4), /* Pontos */
 #results-table td:nth-child(4) {
     width: 6%;
-    min-width: 60px;
     text-align: center;
 }
 
 #results-table th:nth-child(5), /* Valor */
 #results-table td:nth-child(5) {
     width: 10%;
-    min-width: 100px;
     text-align: right;
 }
 
 #results-table th:nth-child(6), /* Órgão Autuador */
 #results-table td:nth-child(6) {
     width: 10%;
-    min-width: 100px;
 }
 
 #results-table th:nth-child(7), /* Artigos CTB */
 #results-table td:nth-child(7) {
     width: 10%;
-    min-width: 100px;
 }
 
 #results-table th:nth-child(8), /* Gravidade */
 #results-table td:nth-child(8) {
     width: 10%;
-    min-width: 100px;
     text-align: center;
 }
 

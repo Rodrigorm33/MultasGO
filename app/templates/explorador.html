@@ -11,6 +11,12 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     
+    <!-- CSS Responsivo para Tabela -->
+    <link rel="stylesheet" href="/static/css/responsive-table.css">
+    
+    <!-- CSS para Cards Expandíveis -->
+    <link rel="stylesheet" href="/static/css/expandable-cards.css">
+    
     <!-- Estilos personalizados -->
     <style>
         :root {
@@ -193,24 +199,7 @@
             display: table !important;
         }
         
-        .table-responsive {
-            display: block;
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        tbody, thead {
-            display: table-row-group !important;
-        }
-        
-        tr {
-            display: table-row !important;
-        }
-        
-        th, td {
-            display: table-cell !important;
-        }
+        /* Estilos de tabela movidos para responsive-table.css */
     </style>
 </head>
 <body>
@@ -230,6 +219,13 @@
             <h1>Explorador de Infrações</h1>
             <hr>
             <p class="text-muted">Explore todas as infrações de trânsito com filtros e ordenação personalizados.</p>
+            
+            <!-- Aviso sobre responsividade -->
+            <div class="alert alert-info d-md-none" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Visualização Otimizada:</strong> Algumas colunas foram ocultadas para melhor visualização em dispositivos móveis. 
+                Use o botão "Detalhes" para ver informações completas.
+            </div>
         </div>
         
         <div class="card mb-4">
@@ -242,9 +238,10 @@
                             <select class="form-select" id="gravidade" name="gravidade">
                                 <option value="Todas" selected>Todas</option>
                                 <option value="Leve">Leve</option>
-                                <option value="Média">Média</option>
+                                <option value="Media">Média</option>
                                 <option value="Grave">Grave</option>
-                                <option value="Gravíssima">Gravíssima</option>
+                                <option value="Gravissima">Gravíssima</option>
+                                <option value="Nao ha">Não há</option>
                             </select>
                         </div>
                         
@@ -282,12 +279,19 @@
                         
                         <div class="mb-3">
                             <label for="orgao_autuador" class="form-label">Órgão Autuador:</label>
-                            <input type="text" class="form-control" id="orgao_autuador" name="orgao_autuador" placeholder="Ex: Municipal/Estadual/Rodoviário">
+                            <select class="form-select" id="orgao_autuador" name="orgao_autuador">
+                                <option value="Todos" selected>Todos</option>
+                                <option value="Municipal/Rodoviario">Municipal/Rodoviário</option>
+                                <option value="Estadual/Rodoviario">Estadual/Rodoviário</option>
+                                <option value="Estadual/Municipal/Rodoviario">Estadual/Municipal/Rodoviário</option>
+                                <option value="Estadual">Estadual</option>
+                                <option value="Rodoviario">Rodoviário</option>
+                            </select>
                         </div>
                     </div>
                     
                     <div class="row mt-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="card">
                                 <div class="card-header">Ordenação</div>
                                 <div class="card-body">
@@ -314,7 +318,22 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 d-flex align-items-end justify-content-end mt-3 mt-md-0">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">Exibição</div>
+                                <div class="card-body">
+                                    <label for="items_per_page" class="form-label">Resultados por página:</label>
+                                    <select class="form-select" id="items_per_page" name="items_per_page">
+                                        <option value="10" selected>10 resultados</option>
+                                        <option value="25">25 resultados</option>
+                                        <option value="50">50 resultados</option>
+                                        <option value="100">100 resultados</option>
+                                        <option value="all">Todos os resultados</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end justify-content-end mt-3 mt-md-0">
                             <button type="button" class="btn btn-secondary me-2" id="limpar-filtros">
                                 <i class="fas fa-eraser me-1"></i> Limpar Filtros
                             </button>
@@ -339,10 +358,29 @@
             <p class="mt-2">Carregando dados...</p>
         </div>
         
-        <div class="card" id="results-container">
+        <!-- Header dos Resultados -->
+        <div class="results-header" id="results-header" style="display: none;">
+            <div class="results-count" id="results-count">0 infrações encontradas</div>
+            <div class="view-toggle">
+                <button class="toggle-btn active" id="toggle-cards">
+                    <i class="fas fa-th-large"></i> Cards
+                </button>
+                <button class="toggle-btn" id="toggle-table">
+                    <i class="fas fa-table"></i> Tabela
+                </button>
+            </div>
+        </div>
+
+        <!-- Container de Cards Expandíveis -->
+        <div class="infractions-container" id="infractions-container" style="display: block;">
+            <!-- Os cards serão inseridos aqui via JavaScript -->
+        </div>
+
+        <!-- Tabela Tradicional (oculta por padrão) -->
+        <div class="card" id="results-container" style="display: none !important;">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Infrações</span>
-                <span class="results-info" id="results-count">0 infrações encontradas</span>
+                <span class="results-info" id="results-count-table">0 infrações encontradas</span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -372,6 +410,15 @@
                 </nav>
             </div>
         </div>
+
+        <!-- Paginação para Cards -->
+        <div class="pagination-container" id="pagination-cards" style="display: none;">
+            <nav aria-label="Navegação de página">
+                <ul class="pagination justify-content-center mb-0" id="pagination-cards-list">
+                    <!-- Paginação será inserida aqui via JavaScript -->
+                </ul>
+            </nav>
+        </div>
     </div>
     
     <!-- Modal de Detalhes -->
@@ -398,7 +445,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Variáveis globais
             let currentPage = 1;
-            const itemsPerPage = 10;
+            let itemsPerPage = 10;
             let totalItems = 0;
             let currentFilters = {};
             
@@ -406,11 +453,24 @@
             const form = document.getElementById('explorador-form');
             const resultsTable = document.getElementById('results-tbody');
             const resultsCount = document.getElementById('results-count');
+            const resultsCountTable = document.getElementById('results-count-table');
             const pagination = document.getElementById('pagination');
+            const paginationCards = document.getElementById('pagination-cards-list');
             const loadingContainer = document.getElementById('loading-container');
             const errorContainer = document.getElementById('error-container');
             const errorMessage = document.getElementById('error-message');
             const limparFiltrosBtn = document.getElementById('limpar-filtros');
+            
+            // Elementos para cards expandíveis
+            const infractionsContainer = document.getElementById('infractions-container');
+            const resultsHeader = document.getElementById('results-header');
+            const toggleCards = document.getElementById('toggle-cards');
+            const toggleTable = document.getElementById('toggle-table');
+            const resultsContainer = document.getElementById('results-container');
+            const paginationCardsContainer = document.getElementById('pagination-cards');
+            
+            // Estado da visualização (cards ou tabela)
+            let viewMode = 'cards'; // 'cards' ou 'table'
             
             // Modal de detalhes
             const detalheModal = new bootstrap.Modal(document.getElementById('detalheModal'));
@@ -434,6 +494,69 @@
                     return 'gravidade-gravissima';
                 }
                 return '';
+            }
+            
+            // Função para aplicar classe de estilo baseada na gravidade (para cards)
+            function getGravidadeCardClass(gravidade) {
+                const gravidadeLower = gravidade.toLowerCase();
+                if (gravidadeLower.includes('leve')) {
+                    return 'gravidade-leve';
+                } else if (gravidadeLower.includes('méd') || gravidadeLower.includes('med')) {
+                    return 'gravidade-media';
+                } else if (gravidadeLower.includes('grav') && !gravidadeLower.includes('gravíss')) {
+                    return 'gravidade-grave';
+                } else if (gravidadeLower.includes('gravíss')) {
+                    return 'gravidade-gravissima';
+                }
+                return 'gravidade-leve';
+            }
+            
+            // Função para alternar entre visualizações
+            function toggleView(mode) {
+                viewMode = mode;
+                
+                if (mode === 'cards') {
+                    // Mostrar cards
+                    infractionsContainer.style.display = 'block';
+                    paginationCardsContainer.style.display = 'block';
+                    // Ocultar tabela
+                    resultsContainer.style.display = 'none';
+                    
+                    // Atualizar botões
+                    toggleCards.classList.add('active');
+                    toggleTable.classList.remove('active');
+                } else {
+                    // Mostrar tabela
+                    infractionsContainer.style.display = 'none';
+                    paginationCardsContainer.style.display = 'none';
+                    // Mostrar tabela
+                    resultsContainer.style.display = 'block';
+                    
+                    // Atualizar botões
+                    toggleCards.classList.remove('active');
+                    toggleTable.classList.add('active');
+                }
+            }
+            
+            // Função para expandir/recolher card
+            function toggleCard(cardElement) {
+                const isExpanded = cardElement.classList.contains('expanded');
+                const detailsSection = cardElement.querySelector('.card-details');
+                const expandButton = cardElement.querySelector('.expand-button');
+                
+                if (isExpanded) {
+                    // Recolher
+                    cardElement.classList.remove('expanded');
+                    detailsSection.classList.remove('expanded');
+                    expandButton.classList.remove('expanded');
+                    expandButton.innerHTML = '<i class="fas fa-chevron-down expand-icon"></i> Ver mais detalhes';
+                } else {
+                    // Expandir
+                    cardElement.classList.add('expanded');
+                    detailsSection.classList.add('expanded');
+                    expandButton.classList.add('expanded');
+                    expandButton.innerHTML = '<i class="fas fa-chevron-up expand-icon"></i> Ocultar detalhes';
+                }
             }
             
             // Função para mostrar os detalhes de uma infração
@@ -520,6 +643,16 @@
                 loadingContainer.style.display = 'block';
                 errorContainer.style.display = 'none';
                 
+                // Atualizar itemsPerPage baseado no seletor
+                const itemsPerPageSelect = document.getElementById('items_per_page');
+                const selectedValue = itemsPerPageSelect.value;
+                
+                if (selectedValue === 'all') {
+                    itemsPerPage = 1000; // Limite alto para "todos"
+                } else {
+                    itemsPerPage = parseInt(selectedValue);
+                }
+                
                 // Calcular skip para paginação
                 const skip = (page - 1) * itemsPerPage;
                 
@@ -550,13 +683,29 @@
                     currentPage = page;
                     
                     // Atualizar contagem de resultados
-                    resultsCount.textContent = `${totalItems} infrações encontradas`;
+                    const resultadosExibidos = data.resultados.length;
+                    const textoResultados = selectedValue === 'all' 
+                        ? `${totalItems} infrações encontradas (todas exibidas)`
+                        : `${totalItems} infrações encontradas (exibindo ${resultadosExibidos})`;
+                    
+                    resultsCount.textContent = textoResultados;
+                    resultsCountTable.textContent = textoResultados;
+                    
+                    // Mostrar header dos resultados
+                    resultsHeader.style.display = 'flex';
                     
                     // Processar e exibir resultados
                     exibirResultados(data.resultados);
                     
-                    // Atualizar paginação
-                    atualizarPaginacao();
+                    // Atualizar paginação (ocultar se "todos" selecionado)
+                    if (selectedValue === 'all') {
+                        pagination.innerHTML = '';
+                        paginationCards.innerHTML = '';
+                        paginationCardsContainer.style.display = 'none';
+                    } else {
+                        atualizarPaginacao();
+                        paginationCardsContainer.style.display = viewMode === 'cards' ? 'block' : 'none';
+                    }
                     
                     // Esconder indicador de carregamento
                     loadingContainer.style.display = 'none';
@@ -572,8 +721,93 @@
                 });
             }
             
+            // Função para exibir os resultados como cards
+            function exibirResultadosCards(resultados) {
+                if (resultados.length === 0) {
+                    infractionsContainer.innerHTML = `
+                        <div class="no-results-card">
+                            <i class="fas fa-search"></i>
+                            <h4>Nenhuma infração encontrada</h4>
+                            <p>Tente ajustar os filtros ou usar termos diferentes na busca.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                
+                resultados.forEach((infracao, index) => {
+                    const gravidadeCardClass = getGravidadeCardClass(infracao.gravidade);
+                    
+                    html += `
+                        <div class="infraction-card" data-codigo="${infracao.codigo}">
+                            <div class="info-indicator">${index + 1}</div>
+                            
+                            <!-- Seção Principal (sempre visível) -->
+                            <div class="card-main">
+                                <div class="card-codigo">${infracao.codigo}</div>
+                                
+                                <div class="card-descricao" title="${infracao.descricao}">
+                                    ${infracao.descricao}
+                                </div>
+                                
+                                <div class="card-pontos">
+                                    <div class="pontos-badge">${infracao.pontos} pts</div>
+                                </div>
+                                
+                                <div class="card-valor">
+                                    <div class="valor-badge">${formatarMoeda(infracao.valor_multa)}</div>
+                                </div>
+                                
+                                <div class="card-gravidade">
+                                    <div class="gravidade-badge ${gravidadeCardClass}">${infracao.gravidade}</div>
+                                </div>
+                                
+                                <div class="expand-button" onclick="toggleCard(this.closest('.infraction-card'))">
+                                    <i class="fas fa-chevron-down expand-icon"></i>
+                                    Ver mais detalhes
+                                </div>
+                            </div>
+                            
+                            <!-- Seção Expandida (detalhes adicionais) -->
+                            <div class="card-details">
+                                <div class="details-grid">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Responsável</div>
+                                        <div class="detail-value">${infracao.responsavel}</div>
+                                    </div>
+                                    
+                                    <div class="detail-item">
+                                        <div class="detail-label">Órgão Autuador</div>
+                                        <div class="detail-value">${infracao.orgao_autuador}</div>
+                                    </div>
+                                    
+                                    <div class="detail-item">
+                                        <div class="detail-label">Artigos do CTB</div>
+                                        <div class="detail-value">${infracao.artigos_ctb || 'Não informado'}</div>
+                                    </div>
+                                    
+                                    <div class="detail-item">
+                                        <div class="detail-label">Detalhes Completos</div>
+                                        <div class="detail-value">
+                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                    onclick="mostrarDetalhes('${infracao.codigo}')">
+                                                <i class="fas fa-info-circle"></i> Ver Modal Completo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                infractionsContainer.innerHTML = html;
+                console.log('Cards criados:', resultados.length);
+            }
+            
             // Função para exibir os resultados na tabela
-            function exibirResultados(resultados) {
+            function exibirResultadosTabela(resultados) {
                 if (resultados.length === 0) {
                     resultsTable.innerHTML = `
                         <tr>
@@ -591,20 +825,23 @@
                 resultados.forEach(infracao => {
                     const gravidadeClass = getGravidadeClass(infracao.gravidade);
                     
+                    // Criar string com informações ocultas para tooltip
+                    const hiddenInfo = `Resp: ${infracao.responsavel} | Pts: ${infracao.pontos} | ${formatarMoeda(infracao.valor_multa)}`;
+                    
                     html += `
-                        <tr style="display: table-row !important;">
-                            <td style="display: table-cell !important;">${infracao.codigo}</td>
-                            <td style="display: table-cell !important;">${infracao.descricao.length > 50 
+                        <tr data-hidden-info="${hiddenInfo}">
+                            <td title="Código: ${infracao.codigo}">${infracao.codigo}</td>
+                            <td title="${infracao.descricao}">${infracao.descricao.length > 50 
                                 ? infracao.descricao.substring(0, 50) + '...' 
                                 : infracao.descricao}</td>
-                            <td style="display: table-cell !important;"><span class="badge ${gravidadeClass}">${infracao.gravidade}</span></td>
-                            <td style="display: table-cell !important;">${infracao.responsavel}</td>
-                            <td style="display: table-cell !important;">${infracao.pontos}</td>
-                            <td style="display: table-cell !important;">${formatarMoeda(infracao.valor_multa)}</td>
-                            <td style="display: table-cell !important;">
+                            <td><span class="badge ${gravidadeClass}" title="Gravidade: ${infracao.gravidade}">${infracao.gravidade}</span></td>
+                            <td title="Responsável: ${infracao.responsavel}">${infracao.responsavel}</td>
+                            <td title="Pontos na CNH: ${infracao.pontos}">${infracao.pontos}</td>
+                            <td title="Valor da multa: ${formatarMoeda(infracao.valor_multa)}">${formatarMoeda(infracao.valor_multa)}</td>
+                            <td>
                                 <button type="button" class="btn btn-sm btn-primary btn-details" 
-                                        onclick="mostrarDetalhes('${infracao.codigo}')">
-                                    <i class="fas fa-info-circle"></i> Detalhes
+                                        onclick="mostrarDetalhes('${infracao.codigo}')" title="Ver detalhes completos">
+                                    <i class="fas fa-info-circle"></i> <span class="d-none d-md-inline">Detalhes</span>
                                 </button>
                             </td>
                         </tr>
@@ -612,10 +849,16 @@
                 });
                 
                 resultsTable.innerHTML = html;
-
-                // Adiciona log para depuração
-                console.log('Resultados carregados:', resultados.length);
-                console.log('HTML da tabela:', html);
+                console.log('Tabela atualizada:', resultados.length);
+            }
+            
+            // Função unificada para exibir resultados
+            function exibirResultados(resultados) {
+                if (viewMode === 'cards') {
+                    exibirResultadosCards(resultados);
+                } else {
+                    exibirResultadosTabela(resultados);
+                }
             }
             
             // Função para atualizar a paginação
@@ -624,11 +867,27 @@
                 
                 // Limpar paginação atual
                 pagination.innerHTML = '';
+                paginationCards.innerHTML = '';
                 
                 // Se não houver páginas, não exibir paginação
                 if (totalPages <= 1) {
                     return;
                 }
+                
+                // Criar HTML da paginação
+                const paginationHTML = criarHTMLPaginacao(totalPages);
+                
+                // Aplicar a ambas as paginações
+                pagination.innerHTML = paginationHTML;
+                paginationCards.innerHTML = paginationHTML;
+                
+                // Adicionar eventos para ambas
+                adicionarEventosPaginacao(pagination);
+                adicionarEventosPaginacao(paginationCards);
+            }
+            
+            // Função para criar HTML da paginação
+            function criarHTMLPaginacao(totalPages) {
                 
                 // Botão Anterior
                 let html = `
@@ -700,13 +959,16 @@
                     </li>
                 `;
                 
-                pagination.innerHTML = html;
-                
-                // Adicionar eventos aos links de paginação
-                document.querySelectorAll('#pagination .page-link').forEach(link => {
+                return html;
+            }
+            
+            // Função para adicionar eventos de paginação
+            function adicionarEventosPaginacao(container) {
+                container.querySelectorAll('.page-link').forEach(link => {
                     link.addEventListener('click', function(e) {
                         e.preventDefault();
                         const page = parseInt(this.getAttribute('data-page'));
+                        const totalPages = Math.ceil(totalItems / itemsPerPage);
                         
                         if (!isNaN(page) && page !== currentPage && page > 0 && page <= totalPages) {
                             buscarDados(page);
@@ -733,6 +995,8 @@
                             // Ignorar filtro padrão
                         } else if (key === 'responsavel' && value === 'Todos') {
                             // Ignorar filtro padrão
+                        } else if (key === 'orgao_autuador' && value === 'Todos') {
+                            // Ignorar filtro padrão
                         } else {
                             filters[key] = value;
                         }
@@ -758,14 +1022,19 @@
                 document.getElementById('gravidade').value = 'Todas';
                 document.getElementById('responsavel').value = 'Todos';
                 document.getElementById('pontos').value = '0';
+                document.getElementById('orgao_autuador').value = 'Todos';
                 document.getElementById('orderby').value = 'codigo';
                 document.getElementById('direction').value = 'asc';
+                document.getElementById('items_per_page').value = '10';
                 
                 // Redefinir filtros atuais
                 currentFilters = {
                     orderby: 'codigo',
                     direction: 'asc'
                 };
+                
+                // Redefinir itemsPerPage para padrão
+                itemsPerPage = 10;
                 
                 // Buscar dados sem filtros
                 buscarDados(1);
@@ -777,6 +1046,22 @@
             // Adicionar eventos
             form.addEventListener('submit', processarFormulario);
             limparFiltrosBtn.addEventListener('click', limparFiltros);
+            
+            // Evento para mudança no seletor de items por página
+            document.getElementById('items_per_page').addEventListener('change', function() {
+                // Resetar para primeira página quando mudar items per page
+                currentPage = 1;
+                buscarDados(1);
+            });
+            
+            // Toggle entre cards e tabela
+            toggleCards.addEventListener('click', function() {
+                toggleView('cards');
+            });
+            
+            toggleTable.addEventListener('click', function() {
+                toggleView('table');
+            });
             
             // Carregar dados iniciais
             buscarDados(1);

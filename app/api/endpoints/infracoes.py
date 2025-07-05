@@ -54,15 +54,15 @@ router = APIRouter(
 
 # Queries SQL otimizadas com hints de índice
 SQL_SELECT_INFRACOES = """
-    SELECT /*+ INDEX(bdbautos idx_codigo_infracao) */
+    SELECT
         "Código de Infração" as codigo,
         "Infração" as descricao,
         "Responsável" as responsavel,
-        "Valor da Multa" as valor_multa,
+        "Valor da multa" as valor_multa,
         "Órgão Autuador" as orgao_autuador,
         "Artigos do CTB" as artigos_ctb,
-        pontos,
-        gravidade
+        "Pontos" as pontos,
+        "Gravidade" as gravidade
     FROM bdbautos
 """
 
@@ -493,7 +493,7 @@ class ExplorarParams(BaseModel):
     orderby: Optional[str] = Field("codigo", description="Campo para ordenação")
     direction: Optional[str] = Field("asc", description="Direção da ordenação (asc ou desc)")
     skip: Optional[int] = Field(0, ge=0, description="Número de registros para pular")
-    limit: Optional[int] = Field(100, gt=0, le=500, description="Número máximo de registros")
+    limit: Optional[int] = Field(100, gt=0, le=1000, description="Número máximo de registros")
 
 @router.post(
     "/explorador",
@@ -547,39 +547,57 @@ async def explorar_infracoes(
             query_params["codigo"] = f"%{params.codigo}%"
             
         if params.descricao:
-            where_clauses.append("\"Infração\" ILIKE :descricao")
+            where_clauses.append("UPPER(\"Infração\") LIKE UPPER(:descricao)")
             query_params["descricao"] = f"%{params.descricao}%"
             
         if params.responsavel:
             if params.responsavel != "Todos":
-                where_clauses.append("\"Responsável\" ILIKE :responsavel")
+                where_clauses.append("UPPER(\"Responsável\") LIKE UPPER(:responsavel)")
                 query_params["responsavel"] = f"%{params.responsavel}%"
                 
         if params.valor_multa_min is not None:
-            where_clauses.append("\"Valor da Multa\" >= :valor_multa_min")
+            where_clauses.append("\"Valor da multa\" >= :valor_multa_min")
             query_params["valor_multa_min"] = params.valor_multa_min
             
         if params.valor_multa_max is not None:
-            where_clauses.append("\"Valor da Multa\" <= :valor_multa_max")
+            where_clauses.append("\"Valor da multa\" <= :valor_multa_max")
             query_params["valor_multa_max"] = params.valor_multa_max
             
         if params.orgao_autuador:
-            where_clauses.append("\"Órgão Autuador\" ILIKE :orgao_autuador")
-            query_params["orgao_autuador"] = f"%{params.orgao_autuador}%"
+            if params.orgao_autuador != "Todos":
+                # Para valores específicos do seletor, usar igualdade exata
+                predefined_values = ["Municipal/Rodoviario", "Estadual/Rodoviario", "Estadual/Municipal/Rodoviario", "Estadual", "Rodoviario"]
+                if params.orgao_autuador in predefined_values:
+                    where_clauses.append("\"Órgão Autuador\" = :orgao_autuador")
+                    query_params["orgao_autuador"] = params.orgao_autuador
+                else:
+                    # Para busca livre (caso futuro), usar LIKE
+                    where_clauses.append("UPPER(\"Órgão Autuador\") LIKE UPPER(:orgao_autuador)")
+                    query_params["orgao_autuador"] = f"%{params.orgao_autuador}%"
             
         if params.artigos_ctb:
-            where_clauses.append("\"Artigos do CTB\" ILIKE :artigos_ctb")
+            where_clauses.append("UPPER(\"Artigos do CTB\") LIKE UPPER(:artigos_ctb)")
             query_params["artigos_ctb"] = f"%{params.artigos_ctb}%"
             
         if params.pontos is not None:
             if params.pontos != 0:  # Se 0, considere como "Todos"
-                where_clauses.append("pontos = :pontos")
+                where_clauses.append("\"Pontos\" = :pontos")
                 query_params["pontos"] = params.pontos
                 
         if params.gravidade:
             if params.gravidade != "Todas":
-                where_clauses.append("gravidade ILIKE :gravidade")
-                query_params["gravidade"] = f"%{params.gravidade}%"
+                # Tratamento especial para Gravíssima (capturar todas as variações)
+                if params.gravidade == "Gravissima":
+                    where_clauses.append("UPPER(\"Gravidade\") LIKE UPPER(:gravidade)")
+                    query_params["gravidade"] = "Gravissima%"  # Captura Gravissima, Gravissima2X, etc.
+                # Tratamento especial para Leve (capturar todas as variações)
+                elif params.gravidade == "Leve":
+                    where_clauses.append("UPPER(\"Gravidade\") LIKE UPPER(:gravidade)")
+                    query_params["gravidade"] = "Leve%"  # Captura Leve, Leve50%, etc.
+                # Para outros valores, busca exata
+                else:
+                    where_clauses.append("UPPER(\"Gravidade\") = UPPER(:gravidade)")
+                    query_params["gravidade"] = params.gravidade
         
         # Construir a cláusula WHERE completa
         where_clause = " AND ".join(where_clauses) if where_clauses else "1=1"
@@ -589,11 +607,11 @@ async def explorar_infracoes(
             "codigo": "\"Código de Infração\"",
             "descricao": "\"Infração\"",
             "responsavel": "\"Responsável\"",
-            "valor_multa": "\"Valor da Multa\"",
+            "valor_multa": "\"Valor da multa\"",
             "orgao_autuador": "\"Órgão Autuador\"",
             "artigos_ctb": "\"Artigos do CTB\"",
-            "pontos": "pontos",
-            "gravidade": "gravidade"
+            "pontos": "\"Pontos\"",
+            "gravidade": "\"Gravidade\""
         }
         
         # Definir ordenação
@@ -606,11 +624,11 @@ async def explorar_infracoes(
             "Código de Infração" as codigo,
             "Infração" as descricao,
             "Responsável" as responsavel,
-            "Valor da Multa" as valor_multa,
+            "Valor da multa" as valor_multa,
             "Órgão Autuador" as orgao_autuador,
             "Artigos do CTB" as artigos_ctb,
-            pontos,
-            gravidade
+            "Pontos" as pontos,
+            "Gravidade" as gravidade
         FROM bdbautos 
         WHERE {where_clause}
         ORDER BY {order_column} {order_direction}

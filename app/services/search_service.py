@@ -6,6 +6,119 @@ from unidecode import unidecode
 
 from app.core.logger import logger
 
+# Sistema de Sinônimos para Busca Inteligente
+SINONIMOS_BUSCA = {
+    # Infrações de sinal/semáforo
+    "furar sinal": ["furar_sinal_especial"],
+    "queimar sinal": ["furar_sinal_especial"],
+    "passar sinal": ["furar_sinal_especial"],
+    "avançar sinal": ["furar_sinal_especial"],
+    
+    # Infrações relacionadas a álcool (ajustado para termos reais do banco)
+    "bafômetro": ["bafometro_especial"],
+    "bafometro": ["bafometro_especial"],
+    "teste bafômetro": ["bafometro_especial"],
+    "teste do bafômetro": ["bafometro_especial"],
+    "recusar bafômetro": ["bafometro_especial"],
+    "recusar bafometro": ["bafometro_especial"],
+    "beber dirigir": ["alcool", "influencia", "teste", "recusar", "submetido", "substancia"],
+    "bebida álcool": ["alcool", "influencia", "teste", "recusar", "submetido", "substancia"],
+    "embriagado": ["alcool", "influencia", "teste", "recusar", "submetido", "substancia"],
+    "alcoolizado": ["alcool", "influencia", "teste", "recusar", "submetido", "substancia"],
+    "dirigir bebado": ["alcool", "influencia", "teste", "recusar", "submetido", "substancia"],
+    "beber álcool": ["alcool", "influencia", "teste", "recusar", "submetido", "substancia"],
+    
+    # Infrações de celular
+    "usar celular": ["celular"],
+    "celular dirigindo": ["celular"],
+    "dirigir falando": ["celular"],
+    "whatsapp": ["celular"],
+    "telefone celular": ["celular"],
+    
+    # Infrações de estacionamento
+    "estacionar errado": ["estacionamento", "parar", "local", "proibido"],
+    "parar lugar proibido": ["estacionamento", "parar", "local", "proibido"],
+    "área carga": ["estacionamento", "parar", "local", "proibido"],
+    "vaga deficiente": ["estacionamento", "parar", "local", "proibido"],
+    
+    # Infrações de velocidade
+    "excesso velocidade": ["velocidade", "limite", "radar", "máxima", "permitida"],
+    "muito rápido": ["velocidade", "limite", "radar", "máxima", "permitida"],
+    "correr demais": ["velocidade", "limite", "radar", "máxima", "permitida"],
+    "radar": ["velocidade", "limite", "radar", "máxima", "permitida"],
+    
+    # Infrações de documentação
+    "carteira vencida": ["habilitação", "documento", "carteira", "vencida", "válida"],
+    "documento vencido": ["habilitação", "documento", "carteira", "vencida", "válida"],
+    "cnh vencida": ["habilitação", "documento", "carteira", "vencida", "válida"],
+    "sem carteira": ["habilitação", "documento", "carteira", "vencida", "válida"],
+    "dirigir sem habilitação": ["habilitação", "documento", "carteira", "vencida", "válida"],
+    
+    # Infrações de cinto de segurança
+    "sem cinto": ["cinto", "segurança", "proteção", "individual"],
+    "cinto segurança": ["cinto", "segurança", "proteção", "individual"],
+    "não usar cinto": ["cinto", "segurança", "proteção", "individual"],
+    
+    # Infrações de conversão
+    "conversão proibida": ["conversão", "retorno", "curva", "manobra"],
+    "retorno proibido": ["conversão", "retorno", "curva", "manobra"],
+    "curva proibida": ["conversão", "retorno", "curva", "manobra"],
+    
+    # Infrações de ultrapassagem
+    "ultrapassar errado": ["ultrapassagem", "ultrapassar", "faixa", "contramão"],
+    "ultrapassagem proibida": ["ultrapassagem", "ultrapassar", "faixa", "contramão"],
+    "passar carro": ["ultrapassagem", "ultrapassar", "faixa", "contramão"],
+    
+    # Infrações de capacete
+    "sem capacete": ["capacete", "proteção", "motocicleta", "moto"],
+    "capacete": ["capacete", "proteção", "motocicleta", "moto"],
+    "não usar capacete": ["capacete", "proteção", "motocicleta", "moto"],
+    
+    # Infrações de placa
+    "placa ilegível": ["placa", "identificação", "número", "caracteres"],
+    "placa suja": ["placa", "identificação", "número", "caracteres"],
+    "sem placa": ["placa", "identificação", "número", "caracteres"],
+    
+    # Infrações de farol
+    "farol apagado": ["farol", "luz", "iluminação", "aceso"],
+    "sem farol": ["farol", "luz", "iluminação", "aceso"],
+    "luz apagada": ["farol", "luz", "iluminação", "aceso"],
+    
+    # Infrações de transporte
+    "transporte passageiro": ["transporte", "passageiro", "pessoa", "lotação"],
+    "muita gente": ["transporte", "passageiro", "pessoa", "lotação"],
+    "excesso passageiro": ["transporte", "passageiro", "pessoa", "lotação"],
+    
+    # Infrações de rodízio
+    "rodízio": ["rodízio", "circulação", "placa", "restrição"],
+    "circular rodízio": ["rodízio", "circulação", "placa", "restrição"],
+    
+    # Infrações de faixa
+    "faixa errada": ["faixa", "pista", "circulação", "preferencial"],
+    "mudar faixa": ["faixa", "pista", "circulação", "preferencial"],
+    "faixa ônibus": ["faixa", "pista", "circulação", "preferencial"],
+    
+    # Infrações de pedestres
+    "atropelamento": ["pedestre", "pessoa", "atravessar", "faixa"],
+    "não dar preferência": ["pedestre", "pessoa", "atravessar", "faixa"],
+    "pedestre": ["pedestre", "pessoa", "atravessar", "faixa"],
+    
+    # Infrações de ruído
+    "barulho": ["ruído", "som", "perturbação", "poluição"],
+    "som alto": ["ruído", "som", "perturbação", "poluição"],
+    "poluição sonora": ["ruído", "som", "perturbação", "poluição"],
+    
+    # Infrações de equipamentos
+    "equipamento obrigatório": ["equipamento", "obrigatório", "portátil", "triângulo"],
+    "triângulo": ["equipamento", "obrigatório", "portátil", "triângulo"],
+    "extintor": ["equipamento", "obrigatório", "portátil", "triângulo"],
+    
+    # Infrações de peso
+    "excesso peso": ["peso", "carga", "limite", "máximo"],
+    "muito peso": ["peso", "carga", "limite", "máximo"],
+    "sobrepeso": ["peso", "carga", "limite", "máximo"],
+}
+
 def normalizar_texto(texto: str) -> str:
     """Normaliza o texto removendo acentos e caracteres especiais."""
     if not texto:
@@ -52,6 +165,7 @@ def executar_consulta_infracoes(
 ) -> Any:
     """
     Função base para executar consultas de infrações com colunas padronizadas.
+    Ordena por relevância: Gravíssimas primeiro, depois Graves, Médias e Leves.
     
     Args:
         db: Sessão do banco de dados
@@ -68,14 +182,23 @@ def executar_consulta_infracoes(
         "Código de Infração" as codigo,
         "Infração" as descricao,
         "Responsável" as responsavel,
-        "Valor da Multa" as valor_multa,
+        "Valor da multa" as valor_multa,
         "Órgão Autuador" as orgao_autuador,
         "Artigos do CTB" as artigos_ctb,
-        pontos,
-        gravidade
+        "Pontos" as pontos,
+        "Gravidade" as gravidade
     FROM bdbautos 
     WHERE {where_clause}
-    ORDER BY "Código de Infração"
+    ORDER BY 
+        CASE 
+            WHEN "Gravidade" LIKE '%Gravissima%' THEN 1
+            WHEN "Gravidade" LIKE '%Grave%' THEN 2 
+            WHEN "Gravidade" LIKE '%Media%' THEN 3
+            WHEN "Gravidade" LIKE '%Leve%' THEN 4
+            ELSE 5
+        END,
+        "Pontos" DESC,
+        "Código de Infração"
     LIMIT :limit OFFSET :skip
     """
     
@@ -153,65 +276,314 @@ def validar_consulta(query: str) -> Optional[Dict[str, Any]]:
     
     return None
 
+def expandir_termo_busca(termo_original: str) -> List[str]:
+    """
+    Expande um termo de busca incluindo sinônimos relevantes.
+    
+    Args:
+        termo_original: Termo de busca original do usuário
+        
+    Returns:
+        Lista de termos para busca (incluindo o original e sinônimos)
+    """
+    termo_normalizado = normalizar_texto(termo_original)
+    termos_busca = [termo_original]  # Sempre incluir o termo original
+    encontrou_sinonimo_exato = False
+    
+    # Buscar sinônimos exatos
+    for termo_sinonimo, sinonimos in SINONIMOS_BUSCA.items():
+        if termo_normalizado == normalizar_texto(termo_sinonimo):
+            termos_busca.extend(sinonimos)
+            logger.info(f"Sinônimos encontrados para '{termo_original}': {sinonimos}")
+            encontrou_sinonimo_exato = True
+            break
+    
+    # Só buscar sinônimos parciais se não encontrou sinônimo exato
+    if not encontrou_sinonimo_exato:
+        palavras_termo = termo_normalizado.split()
+        for palavra in palavras_termo:
+            if len(palavra) >= 3:  # Apenas palavras com 3+ caracteres
+                for termo_sinonimo, sinonimos in SINONIMOS_BUSCA.items():
+                    if palavra in normalizar_texto(termo_sinonimo):
+                        termos_busca.extend(sinonimos)
+                        logger.info(f"Sinônimos parciais encontrados para '{palavra}': {sinonimos}")
+    
+    # Tratamento especial para álcool (com e sem acento)
+    if "alcool" in termo_normalizado or "álcool" in termo_normalizado:
+        termos_busca.extend(["alcool", "influencia", "teste", "recusar", "submetido", "substancia"])
+        logger.info(f"Sinônimos de álcool adicionados: ['alcool', 'influencia', 'teste', 'recusar', 'submetido', 'substancia']")
+    
+    # Remover duplicatas preservando ordem
+    termos_unicos = []
+    for termo in termos_busca:
+        if termo not in termos_unicos:
+            termos_unicos.append(termo)
+    
+    return termos_unicos
+
+def buscar_bafometro_especial(db: Session, limit: int, skip: int) -> Any:
+    """
+    Busca específica para bafômetro que retorna apenas os códigos específicos de álcool,
+    ordenados por relevância (principais primeiro).
+    
+    Args:
+        db: Sessão do banco de dados
+        limit: Limite de resultados
+        skip: Offset para paginação
+        
+    Returns:
+        Resultado da consulta SQL
+    """
+    # Query customizada com ORDER BY por prioridade
+    sql = f"""
+    SELECT 
+        "Código de Infração" as codigo,
+        "Infração" as descricao,
+        "Responsável" as responsavel,
+        "Valor da multa" as valor_multa,
+        "Órgão Autuador" as orgao_autuador,
+        "Artigos do CTB" as artigos_ctb,
+        "Pontos" as pontos,
+        "Gravidade" as gravidade
+    FROM bdbautos 
+    WHERE "Código de Infração" IN (:codigo1, :codigo2, :codigo3)
+    ORDER BY 
+        CASE "Código de Infração"
+            WHEN '51691' THEN 1  -- Dirigir sob influência de álcool (PRINCIPAL)
+            WHEN '75790' THEN 2  -- Recusar teste bafômetro
+            WHEN '51692' THEN 3  -- Dirigir sob influência de outras substâncias
+            ELSE 4
+        END
+    LIMIT :limit OFFSET :skip
+    """
+    
+    params = {
+        "codigo1": "51691",  # Dirigir sob a influência de álcool (PRINCIPAL)
+        "codigo2": "75790",  # Recusar-se a ser submetido a teste
+        "codigo3": "51692",  # Dirigir sob influência de qualquer outra substância
+        "limit": limit,
+        "skip": skip
+    }
+    
+    return db.execute(text(sql), params)
+
+def buscar_furar_sinal_especial(db: Session, limit: int, skip: int) -> Any:
+    """
+    Busca específica para furar sinal que retorna apenas infrações de avanço de semáforo,
+    ordenadas por relevância (principais primeiro).
+    
+    Args:
+        db: Sessão do banco de dados
+        limit: Limite de resultados
+        skip: Offset para paginação
+        
+    Returns:
+        Resultado da consulta SQL
+    """
+    # Query customizada com ORDER BY por prioridade
+    sql = f"""
+    SELECT 
+        "Código de Infração" as codigo,
+        "Infração" as descricao,
+        "Responsável" as responsavel,
+        "Valor da multa" as valor_multa,
+        "Órgão Autuador" as orgao_autuador,
+        "Artigos do CTB" as artigos_ctb,
+        "Pontos" as pontos,
+        "Gravidade" as gravidade
+    FROM bdbautos 
+    WHERE "Código de Infração" IN (:codigo1, :codigo2, :codigo3, :codigo4, :codigo5, :codigo6, :codigo7)
+    ORDER BY 
+        CASE "Código de Infração"
+            WHEN '60501' THEN 1  -- Avançar sinal vermelho (principal)
+            WHEN '60502' THEN 2  -- Avançar sinal de parada obrigatória
+            WHEN '60503' THEN 3  -- Avançar sinal vermelho eletrônico
+            WHEN '59591' THEN 4  -- Ultrapassar contramão junto sinal
+            WHEN '60841' THEN 5  -- Ultrapassar fila sinal luminoso
+            WHEN '56731' THEN 6  -- Parar sobre faixa pedestre
+            WHEN '56732' THEN 7  -- Parar sobre faixa pedestre eletrônico
+            ELSE 8
+        END
+    LIMIT :limit OFFSET :skip
+    """
+    
+    params = {
+        "codigo1": "60501",  # Avançar o sinal vermelho do semáforo (PRINCIPAL)
+        "codigo2": "60502",  # Avançar o sinal de parada obrigatória (PRINCIPAL)
+        "codigo3": "60503",  # Avançar o sinal vermelho do semáforo sob fiscalização eletrônica (PRINCIPAL)
+        "codigo4": "59591",  # Ultrapassar pela contramão veículo parado em fila junto sinal luminoso
+        "codigo5": "60841",  # Ultrapassar veículos motorizados em fila, parados em razão de sinal luminoso
+        "codigo6": "56731",  # Parar sobre faixa de pedestres na mudança de sinal luminoso
+        "codigo7": "56732",  # Parar sobre faixa de pedestres na mudança de sinal luminoso (fiscalização eletrônica)
+        "limit": limit,
+        "skip": skip
+    }
+    
+    return db.execute(text(sql), params)
+
+def buscar_com_sinonimos(db: Session, termos_busca: List[str], limit: int, skip: int) -> Any:
+    """
+    Executa busca usando múltiplos termos (original + sinônimos).
+    
+    Args:
+        db: Sessão do banco de dados
+        termos_busca: Lista de termos para buscar
+        limit: Limite de resultados
+        skip: Offset para paginação
+        
+    Returns:
+        Resultado da consulta SQL
+    """
+    # Verificar se é busca especial de bafômetro
+    if "bafometro_especial" in termos_busca:
+        return buscar_bafometro_especial(db, limit, skip)
+    
+    # Verificar se é busca especial de furar sinal
+    if "furar_sinal_especial" in termos_busca:
+        return buscar_furar_sinal_especial(db, limit, skip)
+    
+    # Construir a cláusula WHERE com OR para todos os termos
+    where_clauses = []
+    params = {}
+    
+    for i, termo in enumerate(termos_busca):
+        param_name = f"termo_{i}"
+        where_clauses.append(f"UPPER(\"Infração\") LIKE UPPER(:{param_name})")
+        params[param_name] = f"%{termo}%"
+    
+    where_clause = " OR ".join(where_clauses)
+    
+    return executar_consulta_infracoes(db, where_clause, params, limit, skip)
+
 def pesquisar_infracoes(query: str, limit: int = 10, skip: int = 0, db: Session = None) -> Dict[str, Any]:
     try:
         # Guardar o termo de pesquisa original para mensagens
         query_original = query
         
         # Registrar a consulta original para fins de log
-        logger.info(f"Executando pesquisa com termo original: '{query_original}', limit: {limit}, skip: {skip}")
+        logger.info(f"Executando pesquisa INTELIGENTE com termo original: '{query_original}', limit: {limit}, skip: {skip}")
         
         # Remover hífens da consulta para padronização
-        query = query.replace('-', '')
+        query_limpa = query.replace('-', '').replace(' ', '')
         
         # Registrar se houve alteração
-        if query != query_original:
-            logger.info(f"Termo de pesquisa normalizado: '{query_original}' -> '{query}'")
+        if query_limpa != query_original:
+            logger.info(f"Termo de pesquisa normalizado: '{query_original}' -> '{query_limpa}'")
         
         # Validar consulta (usando o termo sem hífens)
-        erro_validacao = validar_consulta(query)
+        erro_validacao = validar_consulta(query_limpa)
         if erro_validacao:
             return erro_validacao
         
         # Normalizar o termo de busca
-        query_normalizada = normalizar_texto(query)
+        query_normalizada = normalizar_texto(query_limpa)
         logger.info(f"Termo normalizado para busca: '{query_normalizada}'")
         
         # Executar consulta apropriada baseada no tipo de pesquisa
-        if query.isdigit():
-            # Busca por código
+        if query_limpa.isdigit():
+            # Busca por código (suporta códigos parciais e formatados)
             result = executar_consulta_infracoes(
                 db, 
                 "CAST(\"Código de Infração\" AS TEXT) LIKE :codigo_parcial",
-                {"codigo_parcial": f"%{query}%"},
+                {"codigo_parcial": f"%{query_limpa}%"},
                 limit,
                 skip
             )
+            
+            # Processar resultados da consulta
+            resultados, total = processar_resultados(result)
+            
+            # Para buscas por código, retornar resultado direto
+            if total > 0:
+                return {
+                    "resultados": resultados,
+                    "total": total,
+                    "mensagem": None,
+                    "metodo_busca": "codigo"
+                }
+            else:
+                return {
+                    "resultados": [],
+                    "total": 0,
+                    "mensagem": f"Nenhuma infração encontrada para o código '{query_original}'. Verifique o número e tente novamente."
+                }
         else:
-            # Busca por texto - Abordagem mais simples e direta
+            # BUSCA INTELIGENTE POR TEXTO COM SINÔNIMOS
+            
+            # 1ª TENTATIVA: Busca com termo original
+            logger.info(f"1ª tentativa - Busca com termo original: '{query_original}'")
             result = executar_consulta_infracoes(
                 db, 
-                "\"Infração\" ILIKE :query_parcial",
-                {"query_parcial": f"%{query}%"},  # Usar o termo original, não o normalizado
+                "UPPER(\"Infração\") LIKE UPPER(:query_parcial)",
+                {"query_parcial": f"%{query_original}%"},
                 limit,
                 skip
             )
-        
-        # Processar resultados da consulta
-        resultados, total = processar_resultados(result)
-        
-        # Retornar resposta formatada - Usando o termo original na mensagem
-        if total > 0:
-            return {
-                "resultados": resultados,
-                "total": total,
-                "mensagem": None
-            }
-        else:
+            
+            resultados, total = processar_resultados(result)
+            
+            if total > 0:
+                logger.info(f"✅ Encontrou {total} resultados com termo original")
+                return {
+                    "resultados": resultados,
+                    "total": total,
+                    "mensagem": None,
+                    "metodo_busca": "original"
+                }
+            
+            # 2ª TENTATIVA: Busca com sinônimos se não encontrou nada
+            logger.info(f"2ª tentativa - Expandindo busca com sinônimos para: '{query_original}'")
+            termos_busca = expandir_termo_busca(query_original)
+            
+            if len(termos_busca) > 1:  # Se encontrou sinônimos
+                logger.info(f"Usando {len(termos_busca)} termos de busca: {termos_busca}")
+                result = buscar_com_sinonimos(db, termos_busca, limit, skip)
+                resultados, total = processar_resultados(result)
+                
+                if total > 0:
+                    logger.info(f"✅ Encontrou {total} resultados com sinônimos")
+                    return {
+                        "resultados": resultados,
+                        "total": total,
+                        "mensagem": f"Encontramos {total} infração(ões) relacionada(s) a '{query_original}' usando busca inteligente.",
+                        "metodo_busca": "sinonimos",
+                        "termos_usados": termos_busca[1:]  # Excluir termo original
+                    }
+            
+            # 3ª TENTATIVA: Busca por palavras individuais se ainda não encontrou
+            logger.info(f"3ª tentativa - Busca por palavras individuais")
+            palavras = query_original.split()
+            if len(palavras) > 1:
+                for palavra in palavras:
+                    if len(palavra) >= 3:  # Apenas palavras com 3+ caracteres
+                        logger.info(f"Tentando busca com palavra: '{palavra}'")
+                        result = executar_consulta_infracoes(
+                            db, 
+                            "UPPER(\"Infração\") LIKE UPPER(:query_parcial)",
+                            {"query_parcial": f"%{palavra}%"},
+                            limit,
+                            skip
+                        )
+                        
+                        resultados, total = processar_resultados(result)
+                        if total > 0:
+                            logger.info(f"✅ Encontrou {total} resultados com palavra '{palavra}'")
+                            return {
+                                "resultados": resultados,
+                                "total": total,
+                                "mensagem": f"Encontramos {total} infração(ões) relacionada(s) à palavra '{palavra}' da sua busca '{query_original}'.",
+                                "metodo_busca": "palavra_parcial",
+                                "palavra_encontrada": palavra
+                            }
+            
+            # Se chegou aqui, não encontrou nada
+            logger.info(f"❌ Nenhum resultado encontrado para '{query_original}' mesmo com busca inteligente")
             return {
                 "resultados": [],
                 "total": 0,
-                "mensagem": f"Nenhuma infração encontrada para '{query_original}'. Verifique o termo e tente novamente."
+                "mensagem": f"Nenhuma infração encontrada para '{query_original}'. Tente termos como: 'sinal', 'velocidade', 'álcool', 'estacionamento', 'documento' ou 'cinto'.",
+                "metodo_busca": "nenhum",
+                "sugestoes": ["sinal", "velocidade", "álcool", "estacionamento", "documento", "cinto", "capacete", "celular"]
             }
             
     except Exception as e:
