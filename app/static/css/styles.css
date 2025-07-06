@@ -225,10 +225,21 @@ ul {
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    max-width: 100%;
+    max-width: 90%;
     margin: 0 auto;
-    overflow-x: hidden; /* Sem scroll horizontal */
-    width: 100%;
+    overflow-x: auto;
+    min-height: 150px; /* Altura mínima para o container */
+    position: relative;
+    border-left: 4px solid var(--yellow);
+    transition: all 0.3s ease;
+    
+    /* INICIALMENTE OCULTO - SÓ APARECE QUANDO HÁ BUSCA */
+    display: none;
+}
+
+/* Quando há busca ativa, mostrar o container */
+.results-container.active {
+    display: block;
 }
 
 #results-table {
@@ -1292,6 +1303,19 @@ tr:hover {
     position: relative;
     border-left: 4px solid var(--yellow);
     transition: all 0.3s ease;
+    
+    /* INICIALMENTE OCULTO - SÓ APARECE QUANDO HÁ BUSCA */
+    display: none;
+}
+
+/* Quando há busca ativa, mostrar o container */
+.results-container.active {
+    display: block;
+}
+
+/* Quando há busca ativa, mostrar o container */
+.results-container.active {
+    display: block;
 }
 
 .results-container:hover {

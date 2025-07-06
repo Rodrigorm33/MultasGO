@@ -72,6 +72,12 @@ function mostrarErro(mensagem) {
     resultsTable.style.display = 'none';
     noResults.style.display = 'none';
     totalResults.style.display = 'none';
+    
+    // Mostrar o container de resultados quando há erro
+    const resultsContainer = document.querySelector('.results-container');
+    if (resultsContainer) {
+        resultsContainer.classList.add('active');
+    }
 }
 
 /**
@@ -90,6 +96,12 @@ function limparResultados() {
     if (cardsContainer) {
         cardsContainer.innerHTML = '';
         cardsContainer.style.display = 'none';
+    }
+    
+    // Ocultar o container de resultados quando não há busca
+    const resultsContainer = document.querySelector('.results-container');
+    if (resultsContainer) {
+        resultsContainer.classList.remove('active');
     }
 }
 
@@ -285,6 +297,12 @@ async function buscarInfracoes(query) {
     limparResultados();
     loadingElement.style.display = 'block';
     
+    // Mostrar o container de resultados quando há busca
+    const resultsContainer = document.querySelector('.results-container');
+    if (resultsContainer) {
+        resultsContainer.classList.add('active');
+    }
+    
     try {
         // Preparar parâmetros da requisição
         const params = new URLSearchParams({
@@ -318,6 +336,12 @@ async function buscarInfracoes(query) {
                 noResults.textContent = data.mensagem || 'Nenhuma infração encontrada. Tente outro termo de pesquisa.';
             }
             noResults.style.display = 'block';
+            
+            // Manter o container ativo mesmo sem resultados
+            const resultsContainer = document.querySelector('.results-container');
+            if (resultsContainer) {
+                resultsContainer.classList.add('active');
+            }
             return;
         }
         
