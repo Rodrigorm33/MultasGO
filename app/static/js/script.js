@@ -264,11 +264,6 @@ function exibirResultadosCards(resultados, query) {
                             <div class="detail-label">Artigos do CTB</div>
                             <div class="detail-value">${infracao.artigos_ctb || 'Não informado'}</div>
                         </div>
-                        
-                        <div class="detail-item">
-                            <div class="detail-label">Gravidade Completa</div>
-                            <div class="detail-value">${formatarGravidade(infracao.gravidade)}</div>
-                        </div>
                     </div>
                 </div>
             </div>

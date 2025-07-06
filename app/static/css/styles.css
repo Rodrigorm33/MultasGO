@@ -1367,51 +1367,7 @@ tr:hover {
 }
 */
 
-/* Adicionar semáforo decorativo ao lado do container */
-.results-container::before {
-    content: '';
-    position: absolute;
-    left: -24px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 55px;
-    background-color: #333;
-    border-radius: 5px;
-    z-index: -1;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.results-container::after {
-    content: '';
-    position: absolute;
-    left: -19px;
-    top: calc(50% - 15px);
-    width: 10px;
-    height: 10px;
-    background-color: var(--red);
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(229, 57, 53, 0.7);
-    animation: traffic-light 8s infinite;
-}
-
-@keyframes traffic-light {
-    0%, 33% {
-        background-color: var(--red);
-        box-shadow: 0 0 8px rgba(229, 57, 53, 0.7);
-        top: calc(50% - 15px);
-    }
-    34%, 66% {
-        background-color: var(--yellow);
-        box-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
-        top: calc(50% - 0px);
-    }
-    67%, 100% {
-        background-color: var(--green);
-        box-shadow: 0 0 8px rgba(76, 175, 80, 0.7);
-        top: calc(50% + 15px);
-    }
-}
+/* Semáforo decorativo removido - estava cortado em dispositivos móveis */
 /* Estilos para o Modal de Notícias */
 .modal {
     display: none;

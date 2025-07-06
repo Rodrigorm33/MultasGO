@@ -1040,8 +1040,32 @@
                 buscarDados(1);
             }
             
+            // Função para expandir/recolher card (sincronizada com página inicial)
+            function toggleCard(cardElement) {
+                const isExpanded = cardElement.classList.contains('expanded');
+                const detailsSection = cardElement.querySelector('.card-details');
+                const expandButton = cardElement.querySelector('.expand-button');
+                
+                if (isExpanded) {
+                    // Recolher
+                    cardElement.classList.remove('expanded');
+                    detailsSection.classList.remove('expanded');
+                    expandButton.classList.remove('expanded');
+                    expandButton.innerHTML = '<i class="fas fa-chevron-down expand-icon"></i> Ver mais detalhes';
+                } else {
+                    // Expandir
+                    cardElement.classList.add('expanded');
+                    detailsSection.classList.add('expanded');
+                    expandButton.classList.add('expanded');
+                    expandButton.innerHTML = '<i class="fas fa-chevron-up expand-icon"></i> Ocultar detalhes';
+                }
+            }
+            
             // Função global para mostrar detalhes (acessível pelo onclick na tabela)
             window.mostrarDetalhes = mostrarDetalhes;
+            
+            // Tornar a função toggleCard global para ser acessível pelo onclick
+            window.toggleCard = toggleCard;
             
             // Adicionar eventos
             form.addEventListener('submit', processarFormulario);
