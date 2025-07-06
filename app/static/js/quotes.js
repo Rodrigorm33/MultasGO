@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const placeholderQuotes = [
         {emoji: '🚦', text: 'Parado no sinal vermelho? Digite algo para seguir viagem!'},
         {emoji: '🏍️', text: 'Sem capacete e sem destino... Digite algo para pegar a estrada!'},
-        {emoji: '🚗', text: 'O carro tá na garagem... Bora colocar ele na pista? Pesquise algo!'},
+        // {emoji: '🚗', text: 'O carro tá na garagem... Bora colocar ele na pista? Pesquise algo!'},
         {emoji: '🛑', text: 'Sem busca, sem multa... Mas será que você tá dirigindo certo?'},
         {emoji: '🚔', text: 'Até agora, sem infrações... Mas digite algo para ter certeza!'},
         {emoji: '⛽', text: 'Tanque cheio, motor ligado... Só falta você acelerar essa busca!'},
