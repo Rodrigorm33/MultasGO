@@ -84,6 +84,13 @@ function limparResultados() {
     resultsTable.style.display = 'none';
     loadingElement.style.display = 'none';
     totalResults.style.display = 'none';
+    
+    // Limpar também os cards
+    const cardsContainer = document.getElementById('results-cards');
+    if (cardsContainer) {
+        cardsContainer.innerHTML = '';
+        cardsContainer.style.display = 'none';
+    }
 }
 
 /**
@@ -120,6 +127,144 @@ function formatarGravidade(gravidade) {
     // Se não conseguiu identificar, devolve o texto original
     console.log("Gravidade não reconhecida:", gravidade);
     return gravidade;
+}
+
+/**
+ * Função para expandir/recolher card
+ * @param {Element} cardElement - O elemento do card a ser expandido/recolhido
+ */
+function toggleCard(cardElement) {
+    const isExpanded = cardElement.classList.contains('expanded');
+    const detailsSection = cardElement.querySelector('.card-details');
+    const expandButton = cardElement.querySelector('.expand-button');
+    
+    if (isExpanded) {
+        // Recolher
+        cardElement.classList.remove('expanded');
+        detailsSection.classList.remove('expanded');
+        expandButton.classList.remove('expanded');
+        expandButton.innerHTML = '<i class="fas fa-chevron-down expand-icon"></i> Ver mais detalhes';
+    } else {
+        // Expandir
+        cardElement.classList.add('expanded');
+        detailsSection.classList.add('expanded');
+        expandButton.classList.add('expanded');
+        expandButton.innerHTML = '<i class="fas fa-chevron-up expand-icon"></i> Ocultar detalhes';
+    }
+}
+
+/**
+ * Função para aplicar classe de estilo baseada na gravidade (para cards)
+ * @param {string} gravidade - O texto da gravidade da infração
+ * @returns {string} - Classe CSS para aplicar no card
+ */
+function getGravidadeCardClass(gravidade) {
+    const gravidadeLower = gravidade.toLowerCase();
+    if (gravidadeLower.includes('leve')) {
+        return 'gravidade-leve';
+    } else if (gravidadeLower.includes('méd') || gravidadeLower.includes('med')) {
+        return 'gravidade-media';
+    } else if (gravidadeLower.includes('grav') && !gravidadeLower.includes('gravíss')) {
+        return 'gravidade-grave';
+    } else if (gravidadeLower.includes('gravíss')) {
+        return 'gravidade-gravissima';
+    }
+    return '';
+}
+
+/**
+ * Função para exibir os resultados como cards
+ * @param {Array} resultados - Array de infrações a serem exibidas
+ * @param {string} query - Termo de pesquisa para destacar
+ */
+function exibirResultadosCards(resultados, query) {
+    // Verificar se o container de cards existe, senão criar
+    let cardsContainer = document.getElementById('results-cards');
+    if (!cardsContainer) {
+        cardsContainer = document.createElement('div');
+        cardsContainer.id = 'results-cards';
+        cardsContainer.className = 'infractions-container';
+        
+        // Inserir o container após o totalResults
+        totalResults.insertAdjacentElement('afterend', cardsContainer);
+    }
+    
+    if (resultados.length === 0) {
+        cardsContainer.innerHTML = `
+            <div class="no-results-card">
+                <i class="fas fa-search"></i>
+                <h4>Nenhuma infração encontrada</h4>
+                <p>Tente ajustar os filtros ou usar termos diferentes na busca.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    resultados.forEach((infracao, index) => {
+        const gravidadeCardClass = getGravidadeCardClass(infracao.gravidade);
+        
+        html += `
+            <div class="infraction-card" data-codigo="${infracao.codigo}">
+                <div class="info-indicator">${index + 1}</div>
+                
+                <!-- Seção Principal (sempre visível) -->
+                <div class="card-main">
+                    <div class="card-codigo">${destacarTexto(infracao.codigo, query)}</div>
+                    
+                    <div class="card-descricao" title="${infracao.descricao}">
+                        ${destacarTexto(infracao.descricao, query)}
+                    </div>
+                    
+                    <div class="card-pontos">
+                        <div class="pontos-badge">${infracao.pontos} pts</div>
+                    </div>
+                    
+                    <div class="card-valor">
+                        <div class="valor-badge">${formatarMoeda(infracao.valor_multa)}</div>
+                    </div>
+                    
+                    <div class="card-gravidade">
+                        <div class="gravidade-badge ${gravidadeCardClass}">${infracao.gravidade}</div>
+                    </div>
+                    
+                    <div class="expand-button" onclick="toggleCard(this.closest('.infraction-card'))">
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                        Ver mais detalhes
+                    </div>
+                </div>
+                
+                <!-- Seção Expandida (detalhes adicionais) -->
+                <div class="card-details">
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Responsável</div>
+                            <div class="detail-value">${infracao.responsavel || '-'}</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-label">Órgão Autuador</div>
+                            <div class="detail-value">${infracao.orgao_autuador || '-'}</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-label">Artigos do CTB</div>
+                            <div class="detail-value">${infracao.artigos_ctb || 'Não informado'}</div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <div class="detail-label">Gravidade Completa</div>
+                            <div class="detail-value">${formatarGravidade(infracao.gravidade)}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    cardsContainer.innerHTML = html;
+    cardsContainer.style.display = 'block';
 }
 
 /**
@@ -180,26 +325,11 @@ async function buscarInfracoes(query) {
         totalResults.textContent = `Encontrados ${data.total} resultados para "${query}"`;
         totalResults.style.display = 'block';
         
-        // Preencher a tabela com os resultados
-        data.resultados.forEach(infracao => {
-            const row = document.createElement('tr');
-            
-            row.innerHTML = `
-                <td>${destacarTexto(infracao.codigo, query)}</td>
-                <td>${destacarTexto(infracao.descricao, query)}</td>
-                <td>${infracao.responsavel || '-'}</td>
-                <td>${infracao.pontos}</td>
-                <td>${formatarMoeda(infracao.valor_multa)}</td>
-                <td>${infracao.orgao_autuador || '-'}</td>
-                <td>${infracao.artigos_ctb || '-'}</td>
-                <td>${formatarGravidade(infracao.gravidade)}</td>
-            `;
-            
-            resultsBody.appendChild(row);
-        });
+        // Exibir resultados em cards ao invés de tabela
+        exibirResultadosCards(data.resultados, query);
         
-        // Exibir a tabela de resultados
-        resultsTable.style.display = 'table';
+        // Ocultar a tabela tradicional
+        resultsTable.style.display = 'none';
         
     } catch (error) {
         // Tratar erros que ocorrerem durante a busca
@@ -221,6 +351,9 @@ function animarBotaoPesquisa() {
         searchBtn.classList.remove('clicked');
     }, 300);
 }
+
+// Tornar a função toggleCard global para ser acessível pelo onclick
+window.toggleCard = toggleCard;
 
 // Adicionar evento de envio do formulário (único evento de busca)
 searchForm.addEventListener('submit', function(event) {
