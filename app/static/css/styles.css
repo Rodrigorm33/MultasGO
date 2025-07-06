@@ -1299,7 +1299,8 @@ tr:hover {
     transform: translateY(-2px);
 }
 
-/* Estilos para as frases de placeholder */
+/* Estilos para as frases de placeholder - TEMPORARIAMENTE DESABILITADO */
+/*
 .placeholder-quotes {
     text-align: center;
     padding: 20px;
@@ -1340,6 +1341,7 @@ tr:hover {
 .results-container:has(.loading:not([style*="display: none"])) .placeholder-quotes {
     display: none;
 }
+*/
 
 /* Adicionar semáforo decorativo ao lado do container */
 .results-container::before {
