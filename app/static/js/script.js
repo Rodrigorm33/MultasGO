@@ -374,6 +374,48 @@ function animarBotaoPesquisa() {
 // Tornar a função toggleCard global para ser acessível pelo onclick
 window.toggleCard = toggleCard;
 
+/**
+ * Valida se o termo de pesquisa é adequado (palavra única ou código)
+ * @param {string} query - Termo de pesquisa
+ * @returns {Object} - {valido: boolean, mensagem: string}
+ */
+function validarTermoPesquisa(query) {
+    // Verificar se é um código (números com possíveis traços/pontos)
+    const isCodigoNumerico = /^[\d\-\.\s]+$/.test(query);
+    if (isCodigoNumerico) {
+        return { valido: true, mensagem: '' };
+    }
+    
+    // Combinações permitidas (2 palavras específicas)
+    const combinacoesPermitidas = [
+        'cinto segurança', 'cinto seguranç', 'pneu desgastado', 'pneu ruim',
+        'telefone celular', 'telefone movel', 'bebida alcoólica', 'bebida alcoolica',
+        'velocidade máxima', 'velocidade maxima', 'faixa pedestre', 'faixa pedestres',
+        'luz vermelha', 'sinal vermelho', 'carteira motorista', 'carteira habilitação',
+        'carteira habilitaçao', 'documento veiculo', 'documento obrigatório',
+        'documento obrigatorio', 'via preferencial', 'mão direção', 'mao direcao',
+        'capacete proteção', 'capacete protecao', 'viseira capacete', 'placa identificação',
+        'placa identificacao', 'dispositivo segurança', 'dispositivo seguranca'
+    ];
+    
+    const queryLower = query.toLowerCase();
+    if (combinacoesPermitidas.some(combo => queryLower.includes(combo))) {
+        return { valido: true, mensagem: '' };
+    }
+    
+    // Contar palavras (separadas por espaços)
+    const palavras = query.trim().split(/\s+/).filter(palavra => palavra.length >= 2);
+    
+    if (palavras.length > 2) {
+        return {
+            valido: false,
+            mensagem: `Use apenas 1 palavra ou código para pesquisar. Exemplos: <strong>cinto</strong>, <strong>bafômetro</strong>, <strong>velocidade</strong>, <strong>60501</strong>`
+        };
+    }
+    
+    return { valido: true, mensagem: '' };
+}
+
 // Adicionar evento de envio do formulário (único evento de busca)
 searchForm.addEventListener('submit', function(event) {
     event.preventDefault();
@@ -387,6 +429,13 @@ searchForm.addEventListener('submit', function(event) {
     
     if (query.length > CONFIG.MAX_QUERY_LENGTH) {
         mostrarErro(`O termo de pesquisa não pode ter mais que ${CONFIG.MAX_QUERY_LENGTH} caracteres.`);
+        return;
+    }
+    
+    // Validar se é palavra única ou código
+    const validacao = validarTermoPesquisa(query);
+    if (!validacao.valido) {
+        mostrarErro(validacao.mensagem);
         return;
     }
     

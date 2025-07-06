@@ -502,17 +502,17 @@ def pesquisar_infracoes(query: str, limit: int = 10, skip: int = 0, db: Session 
         # Registrar a consulta original para fins de log
         logger.info(f"Executando pesquisa INTELIGENTE com termo original: '{query_original}', limit: {limit}, skip: {skip}")
         
+        # VALIDAR QUERY ORIGINAL ANTES DE LIMPÁ-LA
+        erro_validacao = validar_consulta(query_original)
+        if erro_validacao:
+            return erro_validacao
+        
         # Remover hífens da consulta para padronização
         query_limpa = query.replace('-', '').replace(' ', '')
         
         # Registrar se houve alteração
         if query_limpa != query_original:
             logger.info(f"Termo de pesquisa normalizado: '{query_original}' -> '{query_limpa}'")
-        
-        # Validar consulta (usando o termo sem hífens)
-        erro_validacao = validar_consulta(query_limpa)
-        if erro_validacao:
-            return erro_validacao
         
         # Normalizar o termo de busca
         query_normalizada = normalizar_texto(query_limpa)
