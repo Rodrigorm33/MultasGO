@@ -274,6 +274,45 @@ def validar_consulta(query: str) -> Optional[Dict[str, Any]]:
             "mensagem": "Consulta inválida. Por favor, use termos relacionados a infrações de trânsito."
         }
     
+    # Nova validação: verificar se é uma frase (múltiplas palavras)
+    query_limpo = query.strip()
+    
+    # Não aplicar validação para códigos numéricos
+    if not query_limpo.replace('-', '').replace(' ', '').isdigit():
+        # Dividir por espaços e contar palavras significativas
+        palavras = [p.strip() for p in query_limpo.split() if len(p.strip()) >= 2]
+        
+        # Combinações permitidas (que não devem gerar erro)
+        combinacoes_permitidas = [
+            # Nomes compostos comuns
+            ["cinto", "seguranca"], ["cinto", "segurança"],
+            ["telefone", "celular"], ["radio", "comunicador"],
+            ["banco", "dados"], ["codigo", "infração"], ["codigo", "infracao"],
+            ["capacete", "seguranca"], ["capacete", "segurança"],
+            ["faixa", "pedestre"], ["faixa", "pedestres"],
+            ["placa", "veiculo"], ["placa", "veículo"],
+            ["documento", "veiculo"], ["documento", "veículo"],
+            ["habilitacao", "vencida"], ["habilitação", "vencida"],
+            ["pneu", "desgastado"], ["pneu", "careca"],
+        ]
+        
+        # Verificar se é uma combinação permitida
+        combinacao_permitida = False
+        if len(palavras) == 2:
+            palavras_lower = [p.lower() for p in palavras]
+            for combinacao in combinacoes_permitidas:
+                if palavras_lower == [c.lower() for c in combinacao]:
+                    combinacao_permitida = True
+                    break
+        
+        # Se tem mais de 2 palavras OU tem 2 palavras que não são uma combinação permitida
+        if len(palavras) > 2 or (len(palavras) == 2 and not combinacao_permitida):
+            return {
+                "resultados": [],
+                "total": 0,
+                "mensagem": "Para melhores resultados, pesquise por apenas uma palavra ou código. Ex: cinto, bafômetro, velocidade, chinelo, capacete, 60501."
+            }
+    
     return None
 
 def expandir_termo_busca(termo_original: str) -> List[str]:
