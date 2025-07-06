@@ -1,10 +1,12 @@
+// Sistema de frases animadas TEMPORARIAMENTE DESABILITADO
+/*
 // Função para rodar as frases engraçadas no container vazio
 document.addEventListener('DOMContentLoaded', function() {
     // Array com as frases engraçadas e seus emojis
     const placeholderQuotes = [
         {emoji: '🚦', text: 'Parado no sinal vermelho? Digite algo para seguir viagem!'},
         {emoji: '🏍️', text: 'Sem capacete e sem destino... Digite algo para pegar a estrada!'},
-        // {emoji: '🚗', text: 'O carro tá na garagem... Bora colocar ele na pista? Pesquise algo!'},
+        {emoji: '🚗', text: 'O carro tá na garagem... Bora colocar ele na pista? Pesquise algo!'},
         {emoji: '🛑', text: 'Sem busca, sem multa... Mas será que você tá dirigindo certo?'},
         {emoji: '🚔', text: 'Até agora, sem infrações... Mas digite algo para ter certeza!'},
         {emoji: '⛽', text: 'Tanque cheio, motor ligado... Só falta você acelerar essa busca!'},
@@ -101,9 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
             observer.observe(element, { 
                 attributes: true, 
                 attributeFilter: ['style'] 
-            });
-        }
-    });
+                    });
+    }
+});
+*/
     
     // Adicionar ouvintes de eventos diretamente para os botões de pesquisa
     const searchBtn = document.getElementById('search-btn');
