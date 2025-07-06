@@ -19,9 +19,6 @@ logs/
 .env.test
 .env.production
 
-# Bancos de dados locais
-*.sqlite3
-*.db
 
 # Arquivos específicos do IDE
 .idea/
@@ -46,4 +43,4 @@ build/
 .DS_Store
 node_modules/
 __pycache__/
-EOF
+EOF# Banco temporário
