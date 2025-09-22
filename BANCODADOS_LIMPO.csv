@@ -141,8 +141,7 @@ Código de infração;Infração;Responsável;Valor da multa;Órgão Autuador;Ar
 52662;Participar na via como condutor em eventos organizados sem permissao;Condutor;2934.7;Municipal/Rodoviario;174;7.0;Gravissima10X
 52663;Participar como condutor de exibicao/demonstracao de pericia em manobra de veiculo sem permissao;Condutor;2934.7;Municipal/Rodoviario;174;7.0;Gravissima10X
 52741;Utilizar-se de veiculo para demonstrar ou exibir manobra perigosa, mediante arrancada brusca;Condutor;2934.7;Estadual/Rodoviario;175;7.0;Gravissima10X
-57970;Forcar passagem entre veiculos que, transitando em sentidos opostos, estejam na iminencia de passar um pelo outro ao realizar operacao de ultrapassagem;Condutor;2934.7;Municipal/Rodoviario;191;7.0;Gravissima10X
-75790;Recusar-se a ser submetido a teste, exame clinico, pericia ou outro procedimento que permita certificar influencia de alcool ou outra substancia psicoativa, na forma estabelecida pelo art. 277;Condutor;2934.7;Estadual/Rodoviario;165-A;7.0;Gravissima10X
+75790;Recusar-se a ser submetido a teste, exame clinico, pericia ou outro procedimento que permita certificar influencia de alcool ou outra substancia psicoativa, na forma estabelecida pelo art. 277 (palavras-chave: etilômetro ou etilometro, bafômetro ou bafometro, bebida, beber, bebeu);Condutor;2934.7;Estadual/Rodoviario;165-A;7.0;Gravissima10X
 56143;Parar na pista de rolamento das vias de transito rapido;Condutor;195.23;Municipal/Rodoviario;182 * V;5.0;Grave
 50100;Dirigir veiculo sem possuir CNH/PPD/ACC (inabilitado);Condutor;880.41;Estadual/Rodoviario;162 * I;7.0;Gravissima3X
 56144;Parar na pista de rolamento das demais vias dotadas de acostamento;Condutor;195.23;Municipal/Rodoviario;182 * V;5.0;Grave

@@ -4,7 +4,7 @@ const API_BASE_URL = window.location.origin + '/api/v1';
 // Configurações da API
 const CONFIG = {
     MIN_QUERY_LENGTH: 2,
-    MAX_QUERY_LENGTH: 100,
+    MAX_QUERY_LENGTH: 15,  // CORRIGIDO: 15 caracteres máximo
     DEFAULT_LIMIT: 100,
     DEFAULT_SKIP: 0
 };
@@ -16,15 +16,37 @@ const DEFAULT_HEADERS = {
 };
 
 // Elementos da página
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
-const searchBtn = document.getElementById('search-btn');
-const resultsTable = document.getElementById('results-table');
-const resultsBody = document.getElementById('results-body');
-const loadingElement = document.getElementById('loading');
-const errorMessage = document.getElementById('error-message');
-const noResults = document.getElementById('no-results');
-const totalResults = document.getElementById('total-results');
+let searchForm = null;
+let searchInput = null;
+let searchBtn = null;
+let resultsTable = null;
+let resultsBody = null;
+let loadingElement = null;
+let errorMessage = null;
+let noResults = null;
+let totalResults = null;
+
+// Função para inicializar elementos
+function inicializarElementos() {
+    searchForm = document.getElementById('search-form');
+    searchInput = document.getElementById('search-input');
+    searchBtn = document.getElementById('search-btn');
+    resultsTable = document.getElementById('results-table');
+    resultsBody = document.getElementById('results-body');
+    loadingElement = document.getElementById('loading');
+    errorMessage = document.getElementById('error-message');
+    noResults = document.getElementById('no-results');
+    totalResults = document.getElementById('total-results');
+    
+    // Verificar se elementos existem
+    console.log('🔍 Verificando elementos HTML:');
+    console.log('searchForm:', !!searchForm);
+    console.log('searchInput:', !!searchInput);
+    console.log('searchBtn:', !!searchBtn);
+    console.log('errorMessage:', !!errorMessage);
+    
+    return searchForm && searchInput && searchBtn && errorMessage;
+}
 
 // Variável para controlar se há uma pesquisa em andamento
 let isSearchInProgress = false;
@@ -66,7 +88,7 @@ function destacarTexto(texto, termo) {
  * @param {string} mensagem - Mensagem de erro a ser exibida
  */
 function mostrarErro(mensagem) {
-    errorMessage.textContent = mensagem || 'Ocorreu um erro na pesquisa. Por favor, tente novamente.';
+    errorMessage.innerHTML = mensagem || 'Ocorreu um erro na pesquisa. Por favor, tente novamente.';
     errorMessage.style.display = 'block';
     loadingElement.style.display = 'none';
     resultsTable.style.display = 'none';
@@ -325,7 +347,9 @@ async function buscarInfracoes(query) {
         // Verificar se há resultados
         if (data.total === 0 || !data.resultados || data.resultados.length === 0) {
             if (data.sugestao) {
-                const sugestaoHtml = `Nenhuma infração encontrada. Você quis dizer: <a href="#" onclick="buscarInfracoes('${data.sugestao}'); return false;">${data.sugestao}</a>?`;
+                // Destacar a palavra sugerida com a função existente
+                const sugestaoDestacada = destacarTexto(data.sugestao, data.sugestao);
+                const sugestaoHtml = `Você quis dizer: <a href="#" class="suggestion-link" onclick="buscarInfracoes('${data.sugestao}'); return false;">${sugestaoDestacada}</a>?`;
                 noResults.innerHTML = sugestaoHtml;
             } else {
                 noResults.textContent = data.mensagem || 'Nenhuma infração encontrada. Tente outro termo de pesquisa.';
@@ -380,33 +404,48 @@ window.toggleCard = toggleCard;
  * @returns {Object} - {valido: boolean, mensagem: string}
  */
 function validarTermoPesquisa(query) {
-    // Verificar se é um código (números com possíveis traços/pontos)
+    // VALIDAÇÃO 1: Tamanho mínimo
+    if (query.length < CONFIG.MIN_QUERY_LENGTH) {
+        return {
+            valido: false,
+            mensagem: `Digite pelo menos ${CONFIG.MIN_QUERY_LENGTH} caracteres para pesquisar.`
+        };
+    }
+    
+    // VALIDAÇÃO 2: Tamanho máximo RESTRITO - 15 caracteres
+    if (query.length > CONFIG.MAX_QUERY_LENGTH) {
+        return {
+            valido: false,
+            mensagem: `Use apenas 1 palavra ou código para pesquisar. Exemplos: <strong>cinto</strong>, <strong>bafômetro</strong>, <strong>velocidade</strong>, <strong>60501</strong>`
+        };
+    }
+    
+    // VALIDAÇÃO 3: Caracteres especiais não permitidos
+    const caracteresEspeciais = /[^a-zA-Z0-9áàãâäéêëíîïóôõöúûüçñ\s\-]/;
+    if (caracteresEspeciais.test(query)) {
+        return {
+            valido: false,
+            mensagem: `Use apenas 1 palavra ou código para pesquisar. Exemplos: <strong>cinto</strong>, <strong>bafômetro</strong>, <strong>velocidade</strong>, <strong>60501</strong>`
+        };
+    }
+    
+    // VALIDAÇÃO 4: Verificar se é código numérico (permitir sempre)
     const isCodigoNumerico = /^[\d\-\.\s]+$/.test(query);
     if (isCodigoNumerico) {
         return { valido: true, mensagem: '' };
     }
     
-    // Combinações permitidas (2 palavras específicas)
-    const combinacoesPermitidas = [
-        'cinto segurança', 'cinto seguranç', 'pneu desgastado', 'pneu ruim',
-        'telefone celular', 'telefone movel', 'bebida alcoólica', 'bebida alcoolica',
-        'velocidade máxima', 'velocidade maxima', 'faixa pedestre', 'faixa pedestres',
-        'luz vermelha', 'sinal vermelho', 'carteira motorista', 'carteira habilitação',
-        'carteira habilitaçao', 'documento veiculo', 'documento obrigatório',
-        'documento obrigatorio', 'via preferencial', 'mão direção', 'mao direcao',
-        'capacete proteção', 'capacete protecao', 'viseira capacete', 'placa identificação',
-        'placa identificacao', 'dispositivo segurança', 'dispositivo seguranca'
-    ];
-    
-    const queryLower = query.toLowerCase();
-    if (combinacoesPermitidas.some(combo => queryLower.includes(combo))) {
-        return { valido: true, mensagem: '' };
+    // VALIDAÇÃO 5: Múltiplas palavras - REJEITAR SEMPRE
+    const palavras = query.trim().split(/\s+/).filter(palavra => palavra.length >= 2);
+    if (palavras.length > 1) {
+        return {
+            valido: false,
+            mensagem: `Use apenas 1 palavra ou código para pesquisar. Exemplos: <strong>cinto</strong>, <strong>bafômetro</strong>, <strong>velocidade</strong>, <strong>60501</strong>`
+        };
     }
     
-    // Contar palavras (separadas por espaços)
-    const palavras = query.trim().split(/\s+/).filter(palavra => palavra.length >= 2);
-    
-    if (palavras.length > 2) {
+    // VALIDAÇÃO 6: Espaços no meio da palavra (detectar tentativas de múltiplas palavras)
+    if (query.includes(' ') && !isCodigoNumerico) {
         return {
             valido: false,
             mensagem: `Use apenas 1 palavra ou código para pesquisar. Exemplos: <strong>cinto</strong>, <strong>bafômetro</strong>, <strong>velocidade</strong>, <strong>60501</strong>`
@@ -416,57 +455,267 @@ function validarTermoPesquisa(query) {
     return { valido: true, mensagem: '' };
 }
 
-// Adicionar evento de envio do formulário (único evento de busca)
-searchForm.addEventListener('submit', function(event) {
-    event.preventDefault();
-    const query = searchInput.value.trim();
-    
-    // Validar o termo de pesquisa
-    if (query.length < CONFIG.MIN_QUERY_LENGTH) {
-        mostrarErro(`O termo de pesquisa deve ter pelo menos ${CONFIG.MIN_QUERY_LENGTH} caracteres.`);
-        return;
+/**
+ * Mostra popup quando usuário digita espaço
+ */
+function mostrarPopupEspaco() {
+    // Remover popup existente se houver
+    const popupExistente = document.getElementById('popup-espaco');
+    if (popupExistente) {
+        popupExistente.remove();
     }
     
-    if (query.length > CONFIG.MAX_QUERY_LENGTH) {
-        mostrarErro(`O termo de pesquisa não pode ter mais que ${CONFIG.MAX_QUERY_LENGTH} caracteres.`);
-        return;
-    }
+    // Criar popup
+    const popup = document.createElement('div');
+    popup.id = 'popup-espaco';
+    popup.innerHTML = `
+        <div class="popup-content">
+            <span class="popup-close" onclick="fecharPopupEspaco()">&times;</span>
+            <h3>⚠️ Atenção!</h3>
+            <p>Digite apenas <strong>uma palavra</strong> ou <strong>código</strong> para pesquisar.</p>
+            <p><strong>Exemplos:</strong> cinto, bafômetro, velocidade, 60501</p>
+            <button class="popup-go-btn" onclick="fecharPopupEspaco()">GO!</button>
+        </div>
+    `;
+    popup.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
     
-    // Validar se é palavra única ou código
-    const validacao = validarTermoPesquisa(query);
-    if (!validacao.valido) {
-        mostrarErro(validacao.mensagem);
-        return;
-    }
+    const popupContent = popup.querySelector('.popup-content');
+    popupContent.style.cssText = `
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        animation: fadeIn 0.3s ease-out;
+        position: relative;
+    `;
     
-    // Animar o botão e iniciar a pesquisa
-    animarBotaoPesquisa();
-    buscarInfracoes(query);
-});
+    const closeBtn = popup.querySelector('.popup-close');
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+    `;
+    
+    // Estilo do botão GO!
+    const goBtn = popup.querySelector('.popup-go-btn');
+    goBtn.style.cssText = `
+        margin-top: 20px;
+        padding: 12px 32px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(39,174,96,0.15);
+        transition: background 0.2s;
+    `;
+    goBtn.onmouseover = function() { goBtn.style.background = '#219150'; };
+    goBtn.onmouseout = function() { goBtn.style.background = '#27ae60'; };
+    
+    // Adicionar CSS de animação
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(popup);
+    // Removido o setTimeout para não fechar automaticamente
+}
 
-// Evento de input apenas para limpar mensagens de erro (sem pesquisa automática)
-searchInput.addEventListener('input', function() {
-    errorMessage.style.display = 'none';
-});
+/**
+ * Fecha o popup de espaço
+ */
+function fecharPopupEspaco() {
+    const popup = document.getElementById('popup-espaco');
+    if (popup) {
+        popup.remove();
+    }
+}
+
+// Tornar função global
+window.fecharPopupEspaco = fecharPopupEspaco;
 
 // Funcionalidades adicionais para a página
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM carregado, inicializando sistema...');
+    
+    // Inicializar elementos
+    if (!inicializarElementos()) {
+        console.error('❌ ERRO: Elementos HTML não encontrados!');
+        return;
+    }
+    
+    console.log('✅ Elementos HTML encontrados, anexando eventos...');
+    
+    // Anexar eventos apenas se elementos existem
+    if (searchForm && searchInput && searchBtn && errorMessage) {
+        
+        // Evento de envio do formulário
+        searchForm.addEventListener('submit', function(event) {
+            console.log('📝 Submit do formulário acionado');
+            event.preventDefault();
+            const query = searchInput.value.trim();
+            
+            console.log(`🔍 Query submetida: "${query}"`);
+            
+            // Validar o termo de pesquisa
+            if (query.length < CONFIG.MIN_QUERY_LENGTH) {
+                console.log('❌ Query muito curta');
+                mostrarErro(`O termo de pesquisa deve ter pelo menos ${CONFIG.MIN_QUERY_LENGTH} caracteres.`);
+                return;
+            }
+            
+            if (query.length > CONFIG.MAX_QUERY_LENGTH) {
+                console.log('❌ Query muito longa');
+                mostrarErro(`O termo de pesquisa não pode ter mais que ${CONFIG.MAX_QUERY_LENGTH} caracteres.`);
+                return;
+            }
+            
+            // Validar se é palavra única ou código
+            const validacao = validarTermoPesquisa(query);
+            if (!validacao.valido) {
+                console.log('❌ Validação falhou:', validacao.mensagem);
+                mostrarErro(validacao.mensagem);
+                return;
+            }
+            
+            console.log('✅ Validação passou, iniciando busca...');
+            
+            // Animar o botão e iniciar a pesquisa
+            animarBotaoPesquisa();
+            buscarInfracoes(query);
+        });
+
+        // Evento de input para validação em tempo real
+        searchInput.addEventListener('input', function(e) {
+            const valor = e.target.value;
+            console.log(`⌨️  Input: "${valor}" (${valor.length} chars)`);
+            
+            // VALIDAÇÃO 1: Limitar a 15 caracteres automaticamente
+            if (valor.length > CONFIG.MAX_QUERY_LENGTH) {
+                console.log('🚫 Limitando caracteres');
+                e.target.value = valor.substring(0, CONFIG.MAX_QUERY_LENGTH);
+                mostrarErro('Use apenas 1 palavra ou código para pesquisar. Exemplos: <strong>cinto</strong>, <strong>bafômetro</strong>, <strong>velocidade</strong>, <strong>60501</strong>');
+                return;
+            }
+            
+            // VALIDAÇÃO 2: Detectar espaços e mostrar popup
+            if (valor.includes(' ')) {
+                console.log('🚫 Espaços detectados, removendo...');
+                // Remover espaços automaticamente
+                e.target.value = valor.replace(/\s/g, '');
+                mostrarPopupEspaco();
+                return;
+            }
+            
+            // VALIDAÇÃO 3: Impedir caracteres especiais
+            const caracteresEspeciais = /[^a-zA-Z0-9áàãâäéêëíîïóôõöúûüçñ\-]/;
+            if (caracteresEspeciais.test(valor)) {
+                console.log('🚫 Caracteres especiais detectados, removendo...');
+                e.target.value = valor.replace(/[^a-zA-Z0-9áàãâäéêëíîïóôõöúûüçñ\-]/g, '');
+                mostrarErro('Use apenas 1 palavra ou código para pesquisar. Exemplos: <strong>cinto</strong>, <strong>bafômetro</strong>, <strong>velocidade</strong>, <strong>60501</strong>');
+                return;
+            }
+            
+            // Se chegou aqui, limpar mensagens de erro
+            errorMessage.style.display = 'none';
+        });
+
+        // Adicionar evento para impedir espaços com keydown também
+        searchInput.addEventListener('keydown', function(e) {
+            // Impedir espaço (código 32)
+            if (e.keyCode === 32) {
+                console.log('🚫 Espaço bloqueado no keydown');
+                e.preventDefault();
+                mostrarPopupEspaco();
+                return false;
+            }
+        });
+
+        // Adicionar evento para impedir colar texto com espaços
+        searchInput.addEventListener('paste', function(e) {
+            console.log('📋 Paste detectado');
+            // Aguardar o paste processar
+            setTimeout(() => {
+                const valor = e.target.value;
+                console.log(`📋 Valor após paste: "${valor}"`);
+                
+                // Limitar caracteres
+                if (valor.length > CONFIG.MAX_QUERY_LENGTH) {
+                    console.log('🚫 Limitando paste');
+                    e.target.value = valor.substring(0, CONFIG.MAX_QUERY_LENGTH);
+                }
+                
+                // Remover espaços
+                if (valor.includes(' ')) {
+                    console.log('🚫 Removendo espaços do paste');
+                    e.target.value = valor.replace(/\s/g, '');
+                    mostrarPopupEspaco();
+                }
+                
+                // Remover caracteres especiais
+                const caracteresEspeciais = /[^a-zA-Z0-9áàãâäéêëíîïóôõöúûüçñ\-]/;
+                if (caracteresEspeciais.test(valor)) {
+                    console.log('🚫 Removendo caracteres especiais do paste');
+                    e.target.value = valor.replace(/[^a-zA-Z0-9áàãâäéêëíîïóôõöúûüçñ\-]/g, '');
+                }
+            }, 10);
+        });
+        
+        console.log('✅ Todos os eventos anexados com sucesso!');
+    } else {
+        console.error('❌ ERRO: Não foi possível anexar eventos aos elementos');
+    }
+    
     // Configurar botões de ação
     document.querySelectorAll('.action-button').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
             // Scroll suave até o formulário de pesquisa
             const searchContainer = document.querySelector('.search-container');
-            searchContainer.scrollIntoView({ behavior: 'smooth' });
-            searchInput.focus();
+            if (searchContainer) {
+                searchContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+            if (searchInput) {
+                searchInput.focus();
+            }
         });
     });
     
     // Adicionar evento de clique ao botão de pesquisa para animação
-    searchBtn.addEventListener('click', function() {
-        animarBotaoPesquisa();
-    });
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            animarBotaoPesquisa();
+        });
+    }
     
     // Inicializar o foco no campo de pesquisa ao carregar a página
-    searchInput.focus();
+    if (searchInput) {
+        searchInput.focus();
+        console.log('✅ Foco no campo de pesquisa');
+    }
+    
+    console.log('🎉 Sistema inicializado com sucesso!');
 });

@@ -1,7 +1,49 @@
-fastapi==0.104.1
-uvicorn==0.24.0
-sqlalchemy==2.0.23
-pydantic==2.4.2
-python-dotenv==1.0.0
-unidecode==1.3.8
-jinja2==3.1.2
+# MultasGO - Dependências Otimizadas para Produção
+
+# Core Framework
+fastapi>=0.104.0,<0.105.0
+uvicorn[standard]>=0.24.0,<0.25.0
+
+# Database
+sqlalchemy>=2.0.0,<2.1.0
+
+# Text Processing & Search
+unidecode>=1.3.0,<1.4.0
+# rapidfuzz>=3.5.2,<3.6.0  # Opcional - sistema nativo implementado
+
+# Data Validation
+pydantic>=2.5.0,<2.6.0
+
+# File Upload & Forms
+python-multipart>=0.0.6,<0.1.0
+
+# Environment & Configuration
+python-dotenv>=1.0.0,<1.1.0
+
+# Template Engine
+jinja2>=3.1.0,<3.2.0
+
+# HTTP Client (for health checks, etc)
+requests>=2.31.0,<2.32.0
+
+# Performance and Monitoring
+psutil>=5.9.0,<6.0.0
+
+# Optional: Advanced search (fallback)
+# symspellpy>=6.7.7,<6.8.0
+# rapidfuzz>=3.5.2,<3.6.0  # Fallback para busca fuzzy (opcional)
+
+# Optional: Enhanced spell correction (lightweight alternatives)
+# jellyfish>=0.9.0,<1.0.0  # Algoritmos de similaridade leves
+# textdistance>=4.5.0,<5.0.0  # Múltiplos algoritmos de distância
+
+# Optional: IP geolocation (for advanced geo-blocking)
+# geoip2>=4.7.0,<5.0.0
+# maxminddb>=2.2.0,<3.0.0
+
+# Development Dependencies (install separately with pip install -r requirements-dev.txt)
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.5.0

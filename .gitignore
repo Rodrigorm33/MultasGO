@@ -1,32 +1,32 @@
-# Crie um arquivo .gitignore
-cat > .gitignore << 'EOF'
-# Ambiente virtual
+# === BANCOS DE DADOS - NUNCA SUBIR ===
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+multasgo.db*
+multasgo_backup.db*
+
+# === AMBIENTES VIRTUAIS ===
 __pycache__/
 *.py[cod]
 *$py.class
 .venv/
 venv/
 ENV/
+env/
 
-# Logs
-logs/
-*.log
-
-# Arquivos de ambiente - IMPORTANTE para proteger credenciais
+# === ARQUIVOS DE CONFIGURAÇÃO SENSÍVEIS ===
 .env
 .env.local
 .env.development
 .env.test
 .env.production
+*.env
 
-
-# Arquivos específicos do IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Arquivos de cache
+# === LOGS E CACHE ===
+logs/
+*.log
 .pytest_cache/
 .coverage
 htmlcov/
@@ -34,13 +34,40 @@ htmlcov/
 .nox/
 .hypothesis/
 
-# Arquivos de distribuição
+# === IDEs ===
+.idea/
+.vscode/
+*.swp
+*.swo
+.claude/
+
+# === DISTRIBUIÇÃO ===
 dist/
 build/
 *.egg-info/
 
-# Outros
+# === ARQUIVOS TEMPORÁRIOS ===
+*.tmp
+*.temp
+nul
+
+# === SISTEMA OPERACIONAL ===
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# === NODE.JS (se houver) ===
 node_modules/
-__pycache__/
-EOF# Banco temporário
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === BACKUPS ===
+*.bak
+backup_*.zip
+MultasGO_Backups/
+
+# === ARQUIVOS DE TESTE ===
+teste_*.py
+*_test.py
+test_*.py

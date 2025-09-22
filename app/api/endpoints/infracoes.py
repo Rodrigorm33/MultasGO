@@ -119,6 +119,56 @@ def validar_parametros_paginacao(skip: int, limit: int) -> None:
             detail="O parâmetro 'limit' não pode ser maior que 100"
         )
 
+def validar_dados_infracao(infracao: InfracaoSchema) -> None:
+    """Valida os dados de uma infração."""
+    if not infracao.codigo or len(infracao.codigo) < 4:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código da infração deve ter pelo menos 4 caracteres"
+        )
+    
+    if not infracao.descricao or len(infracao.descricao.strip()) < 10:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Descrição da infração deve ter pelo menos 10 caracteres"
+        )
+    
+    if not infracao.responsavel or len(infracao.responsavel.strip()) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Responsável deve ter pelo menos 2 caracteres"
+        )
+    
+    if infracao.valor_multa <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Valor da multa deve ser maior que zero"
+        )
+    
+    if not infracao.orgao_autuador or len(infracao.orgao_autuador.strip()) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Órgão autuador deve ter pelo menos 2 caracteres"
+        )
+    
+    if not infracao.artigos_ctb or len(infracao.artigos_ctb.strip()) < 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Artigos do CTB são obrigatórios"
+        )
+    
+    if infracao.pontos < 0 or infracao.pontos > 20:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Pontos deve estar entre 0 e 20"
+        )
+    
+    if not infracao.gravidade or len(infracao.gravidade.strip()) < 3:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Gravidade deve ter pelo menos 3 caracteres"
+        )
+
 def registrar_metrica(request: Request, inicio: float, endpoint: str) -> None:
     """Registra métricas de tempo de resposta e uso."""
     tempo_resposta = time.time() - inicio
@@ -193,6 +243,9 @@ def converter_row_para_schema(
     except (ValueError, TypeError):
         pontos_int = 0
     
+    # Tratar "Nao ha" como "Leve" para exibição
+    gravidade_display = "Leve" if str(gravidade) == "Nao ha" else str(gravidade) if gravidade else ""
+
     return InfracaoSchema(
         codigo=str(codigo) if codigo else "",
         descricao=str(descricao) if descricao else "",
@@ -201,7 +254,7 @@ def converter_row_para_schema(
         orgao_autuador=str(orgao_autuador) if orgao_autuador else "",
         artigos_ctb=str(artigos_ctb) if artigos_ctb else "",
         pontos=pontos_int,
-        gravidade=str(gravidade) if gravidade else ""
+        gravidade=gravidade_display
     )
 
 def converter_row_objeto(row: Any) -> InfracaoSchema:
@@ -219,6 +272,10 @@ def converter_row_objeto(row: Any) -> InfracaoSchema:
 
 def converter_dict_para_schema(item: Dict[str, Any]) -> InfracaoSchema:
     """Converte um dicionário para InfracaoSchema usando cache."""
+    # Tratar "Nao ha" como "Leve" para exibição
+    gravidade_original = item.get("gravidade", "")
+    gravidade_display = "Leve" if gravidade_original == "Nao ha" else gravidade_original
+
     return converter_row_para_schema(
         codigo=item.get("codigo", ""),
         descricao=item.get("descricao", ""),
@@ -227,7 +284,7 @@ def converter_dict_para_schema(item: Dict[str, Any]) -> InfracaoSchema:
         orgao_autuador=item.get("orgao_autuador", ""),
         artigos_ctb=item.get("artigos_ctb", ""),
         pontos=item.get("pontos", 0),
-        gravidade=item.get("gravidade", "")
+        gravidade=gravidade_display
     )
 
 @router.get(
@@ -245,7 +302,7 @@ def converter_dict_para_schema(item: Dict[str, Any]) -> InfracaoSchema:
                         "descricao": "Dirigir sob influência de álcool",
                         "responsavel": "Condutor",
                         "valor_multa": 2934.70,
-                        "orgao_autuador": "PRF",
+                        "orgao_autuador": "Estadual",
                         "artigos_ctb": "165",
                         "pontos": 7,
                         "gravidade": "Gravíssima"
@@ -307,7 +364,7 @@ def listar_infracoes(
                             "descricao": "Dirigir sob influência de álcool",
                             "responsavel": "Condutor",
                             "valor_multa": 2934.70,
-                            "orgao_autuador": "PRF",
+                            "orgao_autuador": "Estadual",
                             "artigos_ctb": "165",
                             "pontos": 7,
                             "gravidade": "Gravíssima"
@@ -379,6 +436,160 @@ def pesquisar(
             detail="Erro interno do servidor. Por favor, tente novamente mais tarde."
         )
 
+# NOVO EXPLORADOR - SIMPLES E FUNCIONAL
+@router.get(
+    "/explorador",
+    response_model=InfracaoPesquisaResponse,
+    summary="Explorador de infrações",
+    description="Lista todas as infrações com paginação simples",
+    responses={
+        200: {"description": "Lista de infrações carregada com sucesso"}
+    }
+)
+def explorador_infracoes(
+    request: Request,
+    skip: int = Query(0, ge=0, description="Registros para pular"),
+    limit: int = Query(10, gt=0, le=100, description="Máximo de registros"),
+    gravidade: Optional[str] = Query(None, description="Filtrar por gravidade (Leve, Média, Grave, Gravíssima)"),
+    responsavel: Optional[str] = Query(None, description="Filtrar por responsável (Condutor, Proprietário)"),
+    orgao: Optional[str] = Query(None, description="Filtrar por órgão autuador"),
+    pontos_min: Optional[int] = Query(None, ge=0, le=20, description="Pontos mínimos"),
+    pontos_max: Optional[int] = Query(None, ge=0, le=20, description="Pontos máximos"),
+    busca: Optional[str] = Query(None, description="Busca textual na descrição"),
+    db: Session = Depends(get_db)
+):
+    """Explorador com filtros e paginação"""
+    inicio = time.time()
+    try:
+        validar_parametros_paginacao(skip, limit)
+
+        # Criar filtros (apenas com valores válidos)
+        filtros = {}
+        if gravidade:
+            filtros["gravidade"] = gravidade
+        if responsavel:
+            filtros["responsavel"] = responsavel
+        if orgao:
+            filtros["orgao"] = orgao
+        if pontos_min is not None:
+            filtros["pontos_min"] = pontos_min
+        if pontos_max is not None:
+            filtros["pontos_max"] = pontos_max
+        if busca:
+            filtros["busca"] = busca
+
+        # SEMPRE usar ordenação por gravidade
+        from sqlalchemy import text
+
+        # Construir WHERE clause se há filtros
+        where_conditions = []
+        params = {"limit": limit, "skip": skip}
+
+        if filtros.get("gravidade"):
+            where_conditions.append("\"Gravidade\" LIKE :gravidade")
+            params["gravidade"] = f"%{filtros['gravidade']}%"
+
+        if filtros.get("responsavel"):
+            where_conditions.append("\"Responsável\" LIKE :responsavel")
+            params["responsavel"] = f"%{filtros['responsavel']}%"
+
+        if filtros.get("orgao"):
+            where_conditions.append("\"Órgão Autuador\" LIKE :orgao")
+            params["orgao"] = f"%{filtros['orgao']}%"
+
+        if filtros.get("busca"):
+            where_conditions.append("\"Infração\" LIKE :busca")
+            params["busca"] = f"%{filtros['busca']}%"
+
+        if filtros.get("pontos_min") is not None:
+            where_conditions.append("CAST(\"Pontos\" AS INTEGER) >= :pontos_min")
+            params["pontos_min"] = filtros["pontos_min"]
+
+        if filtros.get("pontos_max") is not None:
+            where_conditions.append("CAST(\"Pontos\" AS INTEGER) <= :pontos_max")
+            params["pontos_max"] = filtros["pontos_max"]
+
+        where_clause = " AND ".join(where_conditions) if where_conditions else "1=1"
+
+        # Query sempre com ordenação por gravidade
+        sql_query = f"""
+        SELECT
+            "Código de Infração" as codigo,
+            "Infração" as descricao,
+            "Responsável" as responsavel,
+            "Valor da multa" as valor_multa,
+            "Órgão Autuador" as orgao_autuador,
+            "Artigos do CTB" as artigos_ctb,
+            "Pontos" as pontos,
+            "Gravidade" as gravidade
+        FROM bdbautos
+        WHERE {where_clause}
+        ORDER BY
+            CASE "Gravidade"
+                WHEN 'Gravissima3X' THEN 1
+                WHEN 'Gravissima2X' THEN 2
+                WHEN 'Gravissima' THEN 3
+                WHEN 'Grave' THEN 4
+                WHEN 'Media' THEN 5
+                WHEN 'Leve' THEN 6
+                WHEN 'Nao ha' THEN 6
+                ELSE 7
+            END ASC,
+            "Código de Infração" ASC
+        LIMIT :limit OFFSET :skip
+        """
+
+        resultado_db = db.execute(text(sql_query), params)
+        rows = resultado_db.fetchall()
+
+        # Converter resultados
+        resultados = []
+        for row in rows:
+            # Tratar "Nao ha" como "Leve" para exibição
+            gravidade_display = "Leve" if row.gravidade == "Nao ha" else str(row.gravidade)
+
+            resultados.append({
+                "codigo": str(row.codigo),
+                "descricao": str(row.descricao),
+                "responsavel": str(row.responsavel),
+                "valor_multa": float(row.valor_multa) if row.valor_multa not in ['Nao ha', None] else 0.0,
+                "orgao_autuador": str(row.orgao_autuador),
+                "artigos_ctb": str(row.artigos_ctb),
+                "pontos": int(row.pontos) if str(row.pontos).isdigit() else 0,
+                "gravidade": gravidade_display
+            })
+
+        # Contar total
+        count_query = f"SELECT COUNT(*) as total FROM bdbautos WHERE {where_clause}"
+        count_params = {k: v for k, v in params.items() if k not in ['limit', 'skip']}
+        count_result = db.execute(text(count_query), count_params)
+        total = count_result.scalar()
+
+        resultado = {
+            "resultados": resultados,
+            "total": total,
+            "mensagem": None
+        }
+
+        resultado_explorador = InfracaoPesquisaResponse(
+            resultados=[converter_dict_para_schema(item) for item in resultado.get("resultados", [])],
+            total=resultado.get("total", 0),
+            mensagem=resultado.get("mensagem"),
+            sugestao=None
+        )
+
+        registrar_metrica(request, inicio, "explorador")
+        return resultado_explorador
+
+    except HTTPException as e:
+        raise
+    except Exception as e:
+        logger.error(f"Erro no explorador: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno do servidor"
+        )
+
 @router.get(
     "/{codigo}",
     response_model=InfracaoSchema,
@@ -394,7 +605,7 @@ def pesquisar(
                         "descricao": "Dirigir sob influência de álcool",
                         "responsavel": "Condutor",
                         "valor_multa": 2934.70,
-                        "orgao_autuador": "PRF",
+                        "orgao_autuador": "Estadual",
                         "artigos_ctb": "165",
                         "pontos": 7,
                         "gravidade": "Gravíssima"
@@ -475,203 +686,269 @@ def obter_infracao(
             detail="Erro interno do servidor. Por favor, tente novamente mais tarde."
         )
 
-# Esquema para os parâmetros do explorador
-from typing import List, Optional
-from pydantic import BaseModel, Field
-
-class ExplorarParams(BaseModel):
-    """Schema para parâmetros do explorador de infrações"""
-    gravidade: Optional[str] = Field(None, description="Filtro por gravidade")
-    responsavel: Optional[str] = Field(None, description="Filtro por responsável")
-    pontos: Optional[int] = Field(None, description="Filtro por pontos")
-    codigo: Optional[str] = Field(None, description="Filtro por código")
-    descricao: Optional[str] = Field(None, description="Filtro por descrição")
-    valor_multa_min: Optional[float] = Field(None, description="Valor mínimo da multa")
-    valor_multa_max: Optional[float] = Field(None, description="Valor máximo da multa")
-    orgao_autuador: Optional[str] = Field(None, description="Filtro por órgão autuador")
-    artigos_ctb: Optional[str] = Field(None, description="Filtro por artigos CTB")
-    orderby: Optional[str] = Field("codigo", description="Campo para ordenação")
-    direction: Optional[str] = Field("asc", description="Direção da ordenação (asc ou desc)")
-    skip: Optional[int] = Field(0, ge=0, description="Número de registros para pular")
-    limit: Optional[int] = Field(100, gt=0, le=1000, description="Número máximo de registros")
-
 @router.post(
-    "/explorador",
-    response_model=InfracaoPesquisaResponse,
-    summary="Explorador de infrações",
-    description="Permite filtrar e ordenar infrações por múltiplos critérios",
+    "/",
+    response_model=InfracaoSchema,
+    status_code=status.HTTP_201_CREATED,
+    summary="Criar nova infração",
+    description="Cria uma nova infração de trânsito no banco de dados.",
     responses={
-        200: {
-            "description": "Operação bem-sucedida",
+        201: {
+            "description": "Infração criada com sucesso",
             "content": {
                 "application/json": {
                     "example": {
-                        "resultados": [
-                            {
-                                "codigo": "5169-1",
-                                "descricao": "Dirigir sob influência de álcool",
-                                "responsavel": "Condutor",
-                                "valor_multa": 2934.70,
-                                "orgao_autuador": "PRF",
-                                "artigos_ctb": "165",
-                                "pontos": 7,
-                                "gravidade": "Gravíssima"
-                            }
-                        ],
-                        "total": 1,
-                        "mensagem": None
+                        "codigo": "99999",
+                        "descricao": "Nova infração de trânsito",
+                        "responsavel": "Condutor",
+                        "valor_multa": 195.23,
+                        "orgao_autuador": "DETRAN",
+                        "artigos_ctb": "244",
+                        "pontos": 4,
+                        "gravidade": "Média"
                     }
+                }
+            }
+        },
+        400: {
+            "description": "Dados inválidos",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Código da infração já existe"}
+                }
+            }
+        },
+        409: {
+            "description": "Conflito - Infração já existe",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Infração com código 99999 já existe"}
                 }
             }
         }
     }
 )
-async def explorar_infracoes(
+def criar_infracao(
     request: Request,
-    params: ExplorarParams,
+    infracao: InfracaoSchema,
     db: Session = Depends(get_db)
 ):
-    """
-    Endpoint para explorar infrações com filtros e ordenação avançados.
-    Permite filtrar por qualquer campo e ordenar em qualquer direção.
-    """
+    """Cria uma nova infração no banco de dados."""
     inicio = time.time()
+    
     try:
-        # Construir a cláusula WHERE dinamicamente
-        where_clauses = []
-        query_params = {}
+        # Validar dados
+        validar_dados_infracao(infracao)
         
-        # Adicionar filtros dinâmicos conforme especificado
-        if params.codigo:
-            where_clauses.append("CAST(\"Código de Infração\" AS TEXT) LIKE :codigo")
-            query_params["codigo"] = f"%{params.codigo}%"
-            
-        if params.descricao:
-            where_clauses.append("UPPER(\"Infração\") LIKE UPPER(:descricao)")
-            query_params["descricao"] = f"%{params.descricao}%"
-            
-        if params.responsavel:
-            if params.responsavel != "Todos":
-                where_clauses.append("UPPER(\"Responsável\") LIKE UPPER(:responsavel)")
-                query_params["responsavel"] = f"%{params.responsavel}%"
-                
-        if params.valor_multa_min is not None:
-            where_clauses.append("\"Valor da multa\" >= :valor_multa_min")
-            query_params["valor_multa_min"] = params.valor_multa_min
-            
-        if params.valor_multa_max is not None:
-            where_clauses.append("\"Valor da multa\" <= :valor_multa_max")
-            query_params["valor_multa_max"] = params.valor_multa_max
-            
-        if params.orgao_autuador:
-            if params.orgao_autuador != "Todos":
-                # Para valores específicos do seletor, usar igualdade exata
-                predefined_values = ["Municipal/Rodoviario", "Estadual/Rodoviario", "Estadual/Municipal/Rodoviario", "Estadual", "Rodoviario"]
-                if params.orgao_autuador in predefined_values:
-                    where_clauses.append("\"Órgão Autuador\" = :orgao_autuador")
-                    query_params["orgao_autuador"] = params.orgao_autuador
-                else:
-                    # Para busca livre (caso futuro), usar LIKE
-                    where_clauses.append("UPPER(\"Órgão Autuador\") LIKE UPPER(:orgao_autuador)")
-                    query_params["orgao_autuador"] = f"%{params.orgao_autuador}%"
-            
-        if params.artigos_ctb:
-            where_clauses.append("UPPER(\"Artigos do CTB\") LIKE UPPER(:artigos_ctb)")
-            query_params["artigos_ctb"] = f"%{params.artigos_ctb}%"
-            
-        if params.pontos is not None:
-            if params.pontos != 0:  # Se 0, considere como "Todos"
-                where_clauses.append("\"Pontos\" = :pontos")
-                query_params["pontos"] = params.pontos
-                
-        if params.gravidade:
-            if params.gravidade != "Todas":
-                # Tratamento especial para Gravíssima (capturar todas as variações)
-                if params.gravidade == "Gravissima":
-                    where_clauses.append("UPPER(\"Gravidade\") LIKE UPPER(:gravidade)")
-                    query_params["gravidade"] = "Gravissima%"  # Captura Gravissima, Gravissima2X, etc.
-                # Tratamento especial para Leve (capturar todas as variações)
-                elif params.gravidade == "Leve":
-                    where_clauses.append("UPPER(\"Gravidade\") LIKE UPPER(:gravidade)")
-                    query_params["gravidade"] = "Leve%"  # Captura Leve, Leve50%, etc.
-                # Para outros valores, busca exata
-                else:
-                    where_clauses.append("UPPER(\"Gravidade\") = UPPER(:gravidade)")
-                    query_params["gravidade"] = params.gravidade
+        # Verificar se já existe
+        existing = db.query(InfracaoModel).filter(
+            InfracaoModel.codigo == infracao.codigo
+        ).first()
         
-        # Construir a cláusula WHERE completa
-        where_clause = " AND ".join(where_clauses) if where_clauses else "1=1"
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Infração com código {infracao.codigo} já existe"
+            )
         
-        # Mapear os nomes dos campos para os nomes das colunas na tabela
-        column_mapping = {
-            "codigo": "\"Código de Infração\"",
-            "descricao": "\"Infração\"",
-            "responsavel": "\"Responsável\"",
-            "valor_multa": "\"Valor da multa\"",
-            "orgao_autuador": "\"Órgão Autuador\"",
-            "artigos_ctb": "\"Artigos do CTB\"",
-            "pontos": "\"Pontos\"",
-            "gravidade": "\"Gravidade\""
-        }
+        # Criar nova infração
+        nova_infracao = InfracaoModel(
+            codigo=infracao.codigo,
+            descricao=infracao.descricao,
+            responsavel=infracao.responsavel,
+            valor_multa=infracao.valor_multa,
+            orgao_autuador=infracao.orgao_autuador,
+            artigos_ctb=infracao.artigos_ctb,
+            pontos=infracao.pontos,
+            gravidade=infracao.gravidade
+        )
         
-        # Definir ordenação
-        order_column = column_mapping.get(params.orderby, "\"Código de Infração\"")
-        order_direction = "DESC" if params.direction.lower() == "desc" else "ASC"
+        db.add(nova_infracao)
+        db.commit()
+        db.refresh(nova_infracao)
         
-        # Construir e executar a consulta SQL
-        sql = f"""
-        SELECT 
-            "Código de Infração" as codigo,
-            "Infração" as descricao,
-            "Responsável" as responsavel,
-            "Valor da multa" as valor_multa,
-            "Órgão Autuador" as orgao_autuador,
-            "Artigos do CTB" as artigos_ctb,
-            "Pontos" as pontos,
-            "Gravidade" as gravidade
-        FROM bdbautos 
-        WHERE {where_clause}
-        ORDER BY {order_column} {order_direction}
-        LIMIT :limit OFFSET :skip
-        """
+        # Limpar cache do search_service
+        search_service.limpar_cache_palavras()
         
-        # Adicionar parâmetros de paginação
-        query_params["limit"] = params.limit
-        query_params["skip"] = params.skip
+        logger.info(f"Nova infração criada: {infracao.codigo}")
+        registrar_metrica(request, inicio, "criar_infracao")
         
-        # Executar a consulta
-        result = db.execute(text(sql), query_params)
+        return converter_row_objeto(nova_infracao)
         
-        # Processar resultados
-        resultados, total = processar_resultados(result)
-        
-        # Contar o total real de registros (opcional, pode impactar performance)
-        count_sql = f"""
-        SELECT COUNT(*) as total
-        FROM bdbautos 
-        WHERE {where_clause}
-        """
-        count_result = db.execute(text(count_sql), query_params).first()
-        total_count = count_result.total if count_result else total
-        
-        # Registrar métricas
-        registrar_metrica(request, inicio, "explorar_infracoes")
-        
-        # Retornar resposta
-        return {
-            "resultados": resultados,
-            "total": total_count,
-            "mensagem": None if total > 0 else "Nenhuma infração encontrada com os filtros selecionados."
-        }
-        
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
-        logger.error(f"Erro no banco de dados ao explorar infrações: {str(e)}")
+        logger.error(f"Erro no banco de dados ao criar infração: {str(e)}")
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Erro ao acessar o banco de dados. Por favor, tente novamente mais tarde."
         )
     except Exception as e:
-        logger.error(f"Erro inesperado ao explorar infrações: {str(e)}")
+        logger.error(f"Erro inesperado ao criar infração: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno do servidor. Por favor, tente novamente mais tarde."
+        )
+
+@router.put(
+    "/{codigo}",
+    response_model=InfracaoSchema,
+    summary="Atualizar infração",
+    description="Atualiza uma infração existente no banco de dados.",
+    responses={
+        200: {
+            "description": "Infração atualizada com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "codigo": "99999",
+                        "descricao": "Infração atualizada",
+                        "responsavel": "Condutor",
+                        "valor_multa": 195.23,
+                        "orgao_autuador": "DETRAN",
+                        "artigos_ctb": "244",
+                        "pontos": 4,
+                        "gravidade": "Média"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "Infração não encontrada",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Infração com código 99999 não encontrada"}
+                }
+            }
+        }
+    }
+)
+def atualizar_infracao(
+    request: Request,
+    codigo: str = Path(..., description="Código da infração a ser atualizada"),
+    infracao: InfracaoSchema = None,
+    db: Session = Depends(get_db)
+):
+    """Atualiza uma infração existente."""
+    inicio = time.time()
+    
+    try:
+        # Validar dados
+        validar_dados_infracao(infracao)
+        
+        # Buscar infração existente
+        existing = db.query(InfracaoModel).filter(
+            InfracaoModel.codigo == codigo
+        ).first()
+        
+        if not existing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Infração com código {codigo} não encontrada"
+            )
+        
+        # Atualizar campos
+        existing.descricao = infracao.descricao
+        existing.responsavel = infracao.responsavel
+        existing.valor_multa = infracao.valor_multa
+        existing.orgao_autuador = infracao.orgao_autuador
+        existing.artigos_ctb = infracao.artigos_ctb
+        existing.pontos = infracao.pontos
+        existing.gravidade = infracao.gravidade
+        
+        db.commit()
+        db.refresh(existing)
+        
+        # Limpar cache do search_service
+        search_service.limpar_cache_palavras()
+        
+        logger.info(f"Infração atualizada: {codigo}")
+        registrar_metrica(request, inicio, "atualizar_infracao")
+        
+        return converter_row_objeto(existing)
+        
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        logger.error(f"Erro no banco de dados ao atualizar infração: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Erro ao acessar o banco de dados. Por favor, tente novamente mais tarde."
+        )
+    except Exception as e:
+        logger.error(f"Erro inesperado ao atualizar infração: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno do servidor. Por favor, tente novamente mais tarde."
+        )
+
+@router.delete(
+    "/{codigo}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Deletar infração",
+    description="Remove uma infração do banco de dados.",
+    responses={
+        204: {
+            "description": "Infração deletada com sucesso"
+        },
+        404: {
+            "description": "Infração não encontrada",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Infração com código 99999 não encontrada"}
+                }
+            }
+        }
+    }
+)
+def deletar_infracao(
+    request: Request,
+    codigo: str = Path(..., description="Código da infração a ser deletada"),
+    db: Session = Depends(get_db)
+):
+    """Deleta uma infração do banco de dados."""
+    inicio = time.time()
+    
+    try:
+        # Buscar infração existente
+        existing = db.query(InfracaoModel).filter(
+            InfracaoModel.codigo == codigo
+        ).first()
+        
+        if not existing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Infração com código {codigo} não encontrada"
+            )
+        
+        # Deletar infração
+        db.delete(existing)
+        db.commit()
+        
+        # Limpar cache do search_service
+        search_service.limpar_cache_palavras()
+        
+        logger.info(f"Infração deletada: {codigo}")
+        registrar_metrica(request, inicio, "deletar_infracao")
+        
+        return None
+        
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        logger.error(f"Erro no banco de dados ao deletar infração: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Erro ao acessar o banco de dados. Por favor, tente novamente mais tarde."
+        )
+    except Exception as e:
+        logger.error(f"Erro inesperado ao deletar infração: {str(e)}")
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro interno do servidor. Por favor, tente novamente mais tarde."

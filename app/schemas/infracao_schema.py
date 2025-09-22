@@ -30,7 +30,7 @@ class InfracaoSchema(BaseModel):
                 "descricao": "Dirigir sob influência de álcool",
                 "responsavel": "Condutor",
                 "valor_multa": 2934.70,
-                "orgao_autuador": "PRF",
+                "orgao_autuador": "Estadual",
                 "artigos_ctb": "165",
                 "pontos": 7,
                 "gravidade": "Gravíssima"
@@ -53,7 +53,7 @@ class InfracaoPesquisaResponse(BaseModel):
                         "descricao": "Dirigir sob influência de álcool",
                         "responsavel": "Condutor",
                         "valor_multa": 2934.70,
-                        "orgao_autuador": "PRF",
+                        "orgao_autuador": "Estadual",
                         "artigos_ctb": "165",
                         "pontos": 7,
                         "gravidade": "Gravíssima"
