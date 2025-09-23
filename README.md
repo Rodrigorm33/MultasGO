@@ -1,282 +1,230 @@
-# 🚗 MultasGO - Sistema Avançado de Pesquisa de Infrações de Trânsito
+<img width="1222" height="801" alt="image" src="https://github.com/user-attachments/assets/5463d720-5e38-490a-ba22-bf1fab2ce067" />
 
-> **Sistema inteligente para consulta de autos de infração de trânsito brasileiro com correção ortográfica automática, sugestões "você quis dizer" e proteção avançada contra bots.**
+🚗 MultasGO – Pesquisa Inteligente de Infrações de Trânsito
 
-## 🌟 **Funcionalidades Principais**
+Sistema avançado para consulta de autos de infração no Brasil, com correção ortográfica, sugestões “você quis dizer” e proteção contra bots.
 
-### 🔍 **Sistema de Busca Inteligente**
-- **Pesquisa exata** por código de infração (ex: 60501, 51691)
-- **Pesquisa textual** com priorização por relevância
-- **Correção ortográfica automática** (ex: "velosidade" → "velocidade")
-- **Sistema "Você quis dizer"** igual ao Google com destaque visual
-- **Sinônimos inteligentes** (ex: "bafômetro" encontra infrações de álcool)
-- **Busca insensível a acentos** (funciona com "alcool" ou "álcool")
+🌟 Principais Funcionalidades
+🔍 Busca Inteligente
 
-### 🎨 **Interface Moderna**
-- **Design responsivo** com tema de semáforo (verde, amarelo, vermelho)
-- **Cards interativos** com detalhes expansíveis
-- **Destaque visual** dos termos pesquisados
-- **Validação em tempo real** do campo de busca
-- **Proteção contra múltiplas palavras** com popup educativo
+Pesquisa por código (ex: 60501) ou texto com relevância.
 
-### ⚡ **Performance e Otimização**
-- **Cache inteligente** com limite de memória configurável
-- **Warm-up automático** para primeira consulta 80% mais rápida
-- **Pool de conexões HTTP** reutilizáveis
-- **Monitor de performance** com alertas automáticos
-- **Garbage collection** inteligente para evitar memory leaks
+Correção ortográfica automática (ex: “velosidade” → “velocidade”).
 
-### 🛡️ **Segurança Avançada**
-- **Proteção anti-bot** com detecção de User-Agents maliciosos
-- **Bloqueio de IPs chineses** (70+ ranges mapeados)
-- **CAPTCHA matemático** para requests suspeitos
-- **Rate limiting** de 100 requests/min por IP
-- **Validação rigorosa** contra SQL injection e XSS
+Sistema “Você quis dizer” estilo Google.
 
-## 🚀 **Inicialização Rápida**
+Sinônimos contextuais (ex: “bafômetro” encontra infrações de álcool).
 
-### **⚠️ IMPORTANTE: Dados Não Incluídos**
-Por segurança, este repositório **NÃO inclui**:
-- ❌ **Banco de dados** (.gitignore)
-- ❌ **Arquivos CSV** com dados (.gitignore)
-- ❌ **Configurações .env** (.gitignore)
+Busca insensível a acentos (“alcool” / “álcool”).
 
-### **📊 Para Usar o Sistema:**
-1. **Obtenha os dados de infrações** (arquivo CSV do CTB)
-2. **Coloque na pasta raiz** como `BANCODADOS_LIMPO.csv`
-3. **Execute**: `python start.py`
+🎨 Interface Moderna
 
-### **Método Simplificado:**
-```bash
-# Clique duas vezes no arquivo ou execute:
+Design responsivo com tema de semáforo.
+
+Cards interativos com detalhes expansíveis.
+
+Destaque dos termos pesquisados.
+
+Validação de entrada em tempo real.
+
+Orientações educativas em pesquisas inválidas.
+
+⚡ Performance
+
+Cache inteligente com limite de memória configurável.
+
+Warm-up automático (primeira consulta até 80% mais rápida).
+
+Reuso de conexões HTTP.
+
+Monitor de performance com alertas.
+
+GC otimizado para evitar memory leaks.
+
+🛡️ Segurança
+
+Proteção anti-bot com detecção de User-Agents maliciosos.
+
+Bloqueio de IPs de alto risco (70+ ranges).
+
+CAPTCHA matemático em acessos suspeitos.
+
+Rate limiting (100 req/min/IP).
+
+Validação contra SQL Injection e XSS.
+
+🚀 Como Usar
+⚠️ Dados não incluídos
+
+Por segurança, o repositório não contém:
+
+❌ Banco de dados
+
+❌ Arquivos CSV
+
+❌ Configurações .env
+
+📊 Passos básicos
+
+Baixe o CSV de infrações do CTB.
+
+Renomeie para BANCODADOS_LIMPO.csv e coloque na raiz.
+
+Execute:
+
 python start.py
-```
+
 
 O sistema irá:
-- ✅ **Criar banco de dados** automaticamente
-- ✅ **Importar dados CSV** se disponível
-- ✅ Instalar dependências se necessário
-- ✅ Inicializar cache e warm-up
-- ✅ Abrir o navegador automaticamente em http://localhost:8080
+✅ Criar o banco de dados
+✅ Importar o CSV
+✅ Instalar dependências
+✅ Inicializar cache e warm-up
+✅ Abrir o navegador em http://localhost:8080
 
-### **📋 Dados Necessários:**
-- **Arquivo**: `BANCODADOS_LIMPO.csv` (não incluído no repositório)
-- **Formato**: CSV com colunas de infrações de trânsito
-- **Fonte**: Dados do Código de Trânsito Brasileiro (CTB)
+💻 Tecnologias
 
-### **Comandos Avançados:**
-```bash
-python start.py                    # Desenvolvimento
-python start.py --prod            # Produção
-python start.py --setup-only      # Apenas configurar
-```
+Backend
 
-## 💻 **Tecnologias e Arquitetura**
+FastAPI (async)
 
-### **Backend:**
-- **FastAPI** - Framework web moderno e async
-- **SQLite/PostgreSQL** - Suporte a ambos os bancos
-- **SQLAlchemy** - ORM com consultas SQL otimizadas
-- **Pydantic** - Validação de dados e schemas
+SQLite / PostgreSQL
 
-### **Sistemas Próprios Implementados:**
-- **SpellCorrector** - Sistema de correção ortográfica 100% Python nativo
-- **SuggestionEngine** - Motor de sugestões com 68+ correções diretas
-- **SmartCache** - Cache inteligente com TTL e limite de memória
-- **PerformanceMonitor** - Monitoramento em tempo real
-- **GeoSecurityMiddleware** - Proteção geográfica avançada
+SQLAlchemy + Pydantic
 
-### **Frontend:**
-- **HTML5/CSS3** moderno com design responsivo
-- **JavaScript ES6+** com fetch API
-- **Font Awesome** para ícones
-- **Design system** baseado em cores de semáforo
+Frontend
 
-## 📊 **Sistema de Correção Inteligente**
+HTML5 / CSS3 responsivo
 
-Sistema próprio de correção ortográfica com **95+ correções específicas** para termos de trânsito:
+JavaScript ES6+
 
-```python
-"velosidade" → "velocidade"    "alcol" → "alcool"
-"selular" → "celular"          "tansito" → "transito"
-"infraçao" → "infracao"        "peliculla" → "pelicula"
-```
+Font Awesome
 
-**Estratégia em 5 camadas** com taxa de sucesso de **100%** e tempo < 5ms por correção.
+Paleta baseada em semáforo
 
-## 🛡️ **Sistema de Segurança Avançada**
+Sistemas internos
 
-### **Proteção Anti-Bot:**
-- **70+ ranges de IPs chineses** mapeados e bloqueados
-- **Detecção de User-Agents maliciosos**: python-requests, scrapy, sqlmap, etc.
-- **CAPTCHA matemático** para requests suspeitos
-- **Análise de risco** baseada em múltiplos fatores
+SpellCorrector (ortografia)
 
-### **Níveis de Risco:**
-- 🟢 **SAFE** (0-19): Acesso normal
-- 🟡 **LOW** (20-39): Monitoramento
-- 🟠 **MEDIUM** (40-59): Rate limiting
-- 🔴 **HIGH** (60-79): CAPTCHA obrigatório
-- ⚫ **CRITICAL** (80+): Bloqueio imediato
+SuggestionEngine (sugestões)
 
-### **Padrões de Ataque Detectados:**
-```bash
-URLs suspeitas: /admin, /wp-admin, /phpmyadmin, /.env
-Parâmetros maliciosos: union, select, drop, script, eval
+SmartCache (cache com TTL)
+
+PerformanceMonitor (monitoramento)
+
+GeoSecurityMiddleware (proteção geográfica)
+
+📊 Correção Inteligente
+
+Mais de 95 correções específicas para termos de trânsito, com taxa de sucesso de 100% em <5ms.
+
+Exemplos:
+
+"velosidade" → "velocidade"
+"infraçao" → "infracao"
+"alcol" → "alcool"
+"tansito" → "transito"
+
+🛡️ Segurança
+Níveis de Risco
+
+🟢 SAFE (0–19): acesso normal
+
+🟡 LOW (20–39): monitorado
+
+🟠 MEDIUM (40–59): rate limiting
+
+🔴 HIGH (60–79): CAPTCHA obrigatório
+
+⚫ CRITICAL (80+): bloqueio
+
+Padrões Detectados
+
+URLs suspeitas: /admin, /phpmyadmin, /.env
+
+Injeções: union, drop, script, eval
+
 Headers ausentes: Accept, Accept-Language
-```
 
-## ⚙️ **Configuração Avançada**
+⚙️ Configuração
 
-### **Arquivo `.env` - Configurações Recomendadas:**
-```bash
-# === PERFORMANCE ===
-MAX_CACHE_MEMORY_MB=100        # Limite cache (ajustar conforme RAM)
-CACHE_CLEANUP_INTERVAL=1800    # Limpeza a cada 30min
-HTTP_POOL_CONNECTIONS=10       # Conexões simultâneas
-HTTP_TIMEOUT=30                # Timeout requests
+Arquivo .env (exemplo):
 
-# === WARM-UP ===
-ENABLE_WARMUP=True             # Ativar warm-up
-WARMUP_QUERIES=velocidade,alcool,celular,farol,estacionar
+MAX_CACHE_MEMORY_MB=100
+CACHE_CLEANUP_INTERVAL=1800
+HTTP_POOL_CONNECTIONS=10
+RATE_LIMIT_REQUESTS=100
+BLOCK_DURATION=300
+PORT=8080
 
-# === SEGURANÇA ===
-RATE_LIMIT_REQUESTS=100        # 100 requests/min por IP
-BLOCK_DURATION=300             # Bloqueio por 5min
-ENABLE_BOT_PROTECTION=True     # Proteção anti-bot
+📈 Monitoramento
 
-# === DATABASE ===
-DB_POOL_SIZE=5                 # Pool de conexões DB
-DB_MAX_OVERFLOW=10             # Conexões extras
-DB_POOL_RECYCLE=3600          # Reciclar conexões (1h)
+/debug/metrics → métricas de performance/cache
 
-# === PORTA ===
-PORT=8080                      # Porta produção = desenvolvimento
-```
+/debug/security-stats → estatísticas de segurança
 
-## 📈 **Monitoramento e Debug**
+Exemplo:
 
-### **Endpoints de Debug (desenvolvimento):**
+curl http://localhost:8080/debug/metrics | jq '.performance'
 
-#### 📊 **Métricas Completas** - `/debug/metrics`
-```json
-{
-  "performance": {
-    "memory": {"system_percent": 45.2, "process_mb": 180.5},
-    "optimization": {"gc_runs": 15, "cache_cleanups": 8}
-  },
-  "cache": {
-    "search": {"memory_usage_mb": 25.8, "hit_rate_percent": 89.5}
-  },
-  "geo_security": {
-    "chinese_ips_detected": 23,
-    "blocked_ips": 5
-  }
-}
-```
-
-#### 🔒 **Estatísticas de Segurança** - `/debug/security-stats`
-```json
-{
-  "active_clients": 15,
-  "blocked_clients": 3,
-  "suspicious_ips": 8,
-  "total_blocks": 12
-}
-```
-
-### **Comandos de Teste:**
-```bash
-# Verificar uso de memória
-curl http://localhost:8080/debug/metrics | jq '.performance.memory'
-
-# Verificar cache
-curl http://localhost:8080/debug/metrics | jq '.cache'
-
-# Verificar segurança
-curl http://localhost:8080/debug/security-stats
-```
-
-## 📁 **Estrutura do Projeto**
-
-```
+📁 Estrutura
 MultasGO/
 ├── app/
-│   ├── api/endpoints/           # Endpoints da API
-│   ├── core/                    # Sistemas fundamentais
-│   │   ├── cache_manager.py     # ✨ Cache inteligente
-│   │   ├── spell_corrector.py   # ✨ Correção ortográfica nativa
-│   │   ├── suggestion_engine.py # ✨ Motor de sugestões
-│   │   ├── performance_monitor.py # ✨ Monitor de performance
-│   │   └── http_manager.py      # ✨ Pool de conexões HTTP
-│   ├── db/                      # Configuração de banco
-│   ├── middleware/              # ✨ Middlewares de segurança
-│   ├── schemas/                 # Schemas Pydantic
-│   ├── services/                # Lógica de negócio
-│   ├── static/                  # Assets frontend
-│   │   ├── css/styles.css       # ✨ Design moderno
-│   │   └── js/script.js         # ✨ JavaScript otimizado
-│   └── templates/               # Templates HTML
-├── multasgo.db                  # Banco SQLite
-├── start.py                     # ✨ Inicializador inteligente
-├── CLAUDE.md                    # Instruções para Claude
-└── requirements.txt             # Dependências Python
-```
+│   ├── api/endpoints/         # Endpoints
+│   ├── core/                  # Sistemas internos
+│   ├── db/                    # Banco
+│   ├── middleware/            # Middlewares de segurança
+│   ├── schemas/               # Pydantic
+│   ├── services/              # Lógica
+│   ├── static/                # CSS/JS
+│   └── templates/             # HTML
+├── multasgo.db
+├── start.py
+└── requirements.txt
 
-## 🎯 **APIs Disponíveis**
+🎯 APIs
 
-### **Pesquisa Principal:**
-```bash
-GET /api/v1/infracoes/pesquisa?q={termo}&limit=10&skip=0
-```
-**Retorna:** Lista de infrações com correção automática e sugestões
+Pesquisa:
 
-### **Explorador de Infrações:**
-```bash
+GET /api/v1/infracoes/pesquisa?q={termo}
+
+
+Explorador:
+
 GET /api/v1/infracoes/explorador?skip=0&limit=10
-```
-**Retorna:** Lista paginada de todas as infrações
 
-### **Pesquisa Avançada:**
-```bash
+
+Pesquisa avançada:
+
 POST /api/v1/infracoes/explorador
 {
   "gravidade": "Gravissima",
   "pontos_min": 5,
   "busca": "velocidade"
 }
-```
 
-## 🎯 **Performance e Validação**
+🏆 Diferenciais
 
-| Métrica | Resultado |
-|---------|-----------|
-| **Correção ortográfica** | 100% taxa de sucesso, < 5ms |
-| **Cache hit rate** | > 80% após warm-up |
-| **Primeira consulta** | 80% mais rápida com warm-up |
-| **Ataques bloqueados** | 95% de proteção anti-bot |
-| **Uso de memória** | < 100MB cache controlado |
-| **Memory leaks** | Zero detectados |
+Correção ortográfica com “Você quis dizer” estilo Google.
 
-## 🏆 **Funcionalidades Únicas**
+Sinônimos inteligentes adaptados ao CTB.
 
-- **🔍 Sistema "Você Quis Dizer"** igual ao Google com destaque visual
-- **🧠 Sinônimos inteligentes** para termos de trânsito brasileiro
-- **🎓 Validação educativa** que ensina uso correto da busca
-- **🌏 Proteção geográfica** específica contra bots maliciosos
-- **⚡ Warm-up automático** para primeira consulta instantânea
-- **🔒 CAPTCHA matemático** para requests suspeitos
+Orientações educativas de pesquisa.
 
-## 📞 **Suporte e Contato**
+Proteção geográfica contra bots.
 
-- **Documentação API:** http://localhost:8080/docs (Swagger UI)
-- **Métricas de Debug:** http://localhost:8080/debug/metrics
-- **Interface Principal:** http://localhost:8080
+Warm-up para consultas imediatas.
 
-## 📄 **Licença**
+CAPTCHA matemático para acessos suspeitos.
 
-Este projeto está licenciado sob a licença MIT - Sistema otimizado para consulta de infrações de trânsito brasileiro.
+📞 Suporte
 
----
+Swagger: http://localhost:8080/docs
 
-**🎯 RESULTADO FINAL:** Sistema completo, otimizado e pronto para produção com todas as funcionalidades modernas de um motor de busca profissional, incluindo correção ortográfica automática, sugestões inteligentes e proteção robusta contra ataques.
+Métricas: http://localhost:8080/debug/metrics
+
+Interface: http://localhost:8080
+
+📄 Licença
+
+Licença MIT – Uso livre e otimizado para consultas ao CTB.
