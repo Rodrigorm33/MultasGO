@@ -79,5 +79,4 @@ test_*.py
 
 # === DOCUMENTAÇÃO E CONFIGURAÇÃO ===
 CLAUDE.md
-README.md
 deployVPS.md
