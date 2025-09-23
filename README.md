@@ -35,6 +35,17 @@
 
 ## 🚀 **Inicialização Rápida**
 
+### **⚠️ IMPORTANTE: Dados Não Incluídos**
+Por segurança, este repositório **NÃO inclui**:
+- ❌ **Banco de dados** (.gitignore)
+- ❌ **Arquivos CSV** com dados (.gitignore)
+- ❌ **Configurações .env** (.gitignore)
+
+### **📊 Para Usar o Sistema:**
+1. **Obtenha os dados de infrações** (arquivo CSV do CTB)
+2. **Coloque na pasta raiz** como `BANCODADOS_LIMPO.csv`
+3. **Execute**: `python start.py`
+
 ### **Método Simplificado:**
 ```bash
 # Clique duas vezes no arquivo ou execute:
@@ -42,10 +53,16 @@ python start.py
 ```
 
 O sistema irá:
-- ✅ Configurar banco de dados automaticamente
+- ✅ **Criar banco de dados** automaticamente
+- ✅ **Importar dados CSV** se disponível
 - ✅ Instalar dependências se necessário
 - ✅ Inicializar cache e warm-up
 - ✅ Abrir o navegador automaticamente em http://localhost:8080
+
+### **📋 Dados Necessários:**
+- **Arquivo**: `BANCODADOS_LIMPO.csv` (não incluído no repositório)
+- **Formato**: CSV com colunas de infrações de trânsito
+- **Fonte**: Dados do Código de Trânsito Brasileiro (CTB)
 
 ### **Comandos Avançados:**
 ```bash
@@ -75,27 +92,17 @@ python start.py --setup-only      # Apenas configurar
 - **Font Awesome** para ícones
 - **Design system** baseado em cores de semáforo
 
-## 📊 **Sistema de Correção Ortográfica**
+## 📊 **Sistema de Correção Inteligente**
 
-### **Estratégia em 5 Camadas:**
-1. **🎯 Busca Exata** - Verificação direta no banco
-2. **📚 Dicionário de Correções** - 95+ correções específicas de trânsito
-3. **🔄 Normalização** - Remove acentos e case insensitive
-4. **📏 Similaridade difflib** - Python nativo com algoritmo otimizado
-5. **⚡ Levenshtein** - Último recurso para casos extremos
+Sistema próprio de correção ortográfica com **95+ correções específicas** para termos de trânsito:
 
-### **Correções Especializadas:**
 ```python
-# Exemplos de correções implementadas:
-"velosidade" → "velocidade"
-"alcol" → "alcool"
-"selular" → "celular"
-"peliculla" → "pelicula"
-"tansito" → "transito"
-"infraçao" → "infracao"
+"velosidade" → "velocidade"    "alcol" → "alcool"
+"selular" → "celular"          "tansito" → "transito"
+"infraçao" → "infracao"        "peliculla" → "pelicula"
 ```
 
-### **Taxa de Sucesso: 100%** nos testes principais
+**Estratégia em 5 camadas** com taxa de sucesso de **100%** e tempo < 5ms por correção.
 
 ## 🛡️ **Sistema de Segurança Avançada**
 
@@ -240,44 +247,25 @@ POST /api/v1/infracoes/explorador
 }
 ```
 
-## 🧪 **Validação e Testes**
+## 🎯 **Performance e Validação**
 
-### **Sistema de Correção:**
-- ✅ Taxa de sucesso: **100%** nos testes principais
-- ✅ Tempo médio: **< 5ms** por correção
-- ✅ Estabilidade: **Zero travamentos**
-- ✅ **95+ correções específicas** para termos de trânsito
+| Métrica | Resultado |
+|---------|-----------|
+| **Correção ortográfica** | 100% taxa de sucesso, < 5ms |
+| **Cache hit rate** | > 80% após warm-up |
+| **Primeira consulta** | 80% mais rápida com warm-up |
+| **Ataques bloqueados** | 95% de proteção anti-bot |
+| **Uso de memória** | < 100MB cache controlado |
+| **Memory leaks** | Zero detectados |
 
-### **Performance:**
-- ✅ Primeira consulta **80% mais rápida** com warm-up
-- ✅ Cache hit rate **> 80%** após inicialização
-- ✅ Controle de memória **< 100MB** de cache
-- ✅ **Zero memory leaks** detectados
+## 🏆 **Funcionalidades Únicas**
 
-### **Segurança:**
-- ✅ **95% dos ataques** automatizados bloqueados
-- ✅ IPs chineses detectados e tratados
-- ✅ Rate limiting funcionando corretamente
-- ✅ CAPTCHA matemático operacional
-
-## 🏆 **Melhorias Implementadas**
-
-### **🔥 Principais Conquistas:**
-
-1. **✨ Sistema "Você Quis Dizer"** igual ao Google com palavra destacada
-2. **🚀 Performance Otimizada** - Cache inteligente e warm-up automático
-3. **🛡️ Segurança Anti-Bot** - Proteção avançada contra ataques
-4. **🔤 Correção Ortográfica Nativa** - Substituição completa do RapidFuzz
-5. **📱 Interface Moderna** - Design responsivo com UX aprimorada
-6. **⚡ Inicialização Simplificada** - Um comando para rodar tudo
-7. **📊 Monitoramento Completo** - Métricas e alertas em tempo real
-
-### **💡 Funcionalidades Únicas:**
-- **Sinônimos inteligentes** para termos de trânsito brasileiro
-- **Validação rigorosa** que educa o usuário sobre busca correta
-- **Cache com limite de memória** para evitar crashes
-- **Proteção geográfica** específica contra bots chineses
-- **Destaque visual** da palavra sugerida nas correções
+- **🔍 Sistema "Você Quis Dizer"** igual ao Google com destaque visual
+- **🧠 Sinônimos inteligentes** para termos de trânsito brasileiro
+- **🎓 Validação educativa** que ensina uso correto da busca
+- **🌏 Proteção geográfica** específica contra bots maliciosos
+- **⚡ Warm-up automático** para primeira consulta instantânea
+- **🔒 CAPTCHA matemático** para requests suspeitos
 
 ## 📞 **Suporte e Contato**
 
