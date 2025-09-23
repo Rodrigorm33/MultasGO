@@ -1,5 +1,7 @@
 # MultasGO - Sistema de Pesquisa de Infrações de Trânsito
 
+<img width="1004" height="686" alt="image" src="https://github.com/user-attachments/assets/e686d346-d7f9-4a66-927d-2ca291c39406" />
+
 Sistema web para consulta de autos de infração de trânsito brasileiro com busca inteligente e correção ortográfica.
 
 ## Funcionalidades
