@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MultasGO - Explorador de Infrações</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/img/apple-touch-icon.png">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    
+    <!-- CSS Responsivo para Tabela -->
+    <link rel="stylesheet" href="/static/css/responsive-table.css">
+    
+    <!-- CSS para Cards Expandíveis -->
+    <link rel="stylesheet" href="/static/css/expandable-cards.css">
+    
+    <!-- Estilos personalizados -->
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --accent-color: #fd7e14;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --yellow: #FFD700;
+            --dark-blue: #1a2238;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Estilos do cabeçalho */
+        .header {
+            background-color: var(--yellow);
+            color: var(--dark-blue);
+            padding: 15px 0;
+            margin: 0;
+            text-align: left;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo h1 {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        
+        .logo span {
+            font-weight: normal;
+        }
+        
+        .header h1 {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header hr {
+            width: 150px;
+            margin: 0 auto;
+            height: 4px;
+            background: linear-gradient(to right, #ff8c00, #ff0080);
+            border: none;
+            border-radius: 2px;
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            font-weight: 600;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-secondary {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #495057;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #dee2e6;
+            color: #212529;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .gravidade-light {
+            background-color: #e9f5e9;
+            color: #28a745;
+        }
+        
+        .gravidade-media {
+            background-color: #fff8e1;
+            color: #ffc107;
+        }
+        
+        .gravidade-grave {
+            background-color: #ffebee;
+            color: #dc3545;
+        }
+        
+        .gravidade-gravissima {
+            background-color: #5c0011;
+            color: white;
+        }
+        
+        .filter-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .error-message {
+            display: none;
+            color: var(--danger-color);
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .results-info {
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .btn-details {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Garantir que a tabela e células sejam visíveis */
+        #results-tbody tr {
+            display: table-row !important;
+        }
+        
+        #results-tbody td {
+            display: table-cell !important;
+        }
+        
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: #212529;
+            border-collapse: collapse;
+            display: table !important;
+        }
+        
+        /* Estilos de tabela movidos para responsive-table.css */
+    </style>
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header">
+      <div class="container header-container">
+        <div class="logo">
+          <a href="/" style="text-decoration: none; color: inherit;">
+            <h1>MULTAS<span>GO</span></h1>
+          </a>
+        </div>
+      </div>
+    </header>
+    
+    <div class="container py-4">
+        <div class="explorer-header mt-4">
+            <h1>Explorador de Infrações</h1>
+            <hr>
+            <p class="text-muted">Explore todas as infrações de trânsito com filtros e ordenação personalizados.</p>
+            
+            <!-- Aviso sobre responsividade -->
+            <div class="alert alert-info d-md-none" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Visualização Otimizada:</strong> Algumas colunas foram ocultadas para melhor visualização em dispositivos móveis. 
+                Use o botão "Detalhes" para ver informações completas.
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">Filtros</div>
+            <div class="card-body">
+                <form id="explorador-form">
+                    <div class="filter-section">
+                        <div class="mb-3">
+                            <label for="gravidade" class="form-label">Gravidade:</label>
+                            <select class="form-select" id="gravidade" name="gravidade">
+                                <option value="Todas" selected>Todas</option>
+                                <option value="Leve">Leve</option>
+                                <option value="Media">Média</option>
+                                <option value="Grave">Grave</option>
+                                <option value="Gravissima">Gravíssima</option>
+                                <option value="Nao ha">Não há</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="responsavel" class="form-label">Responsável:</label>
+                            <select class="form-select" id="responsavel" name="responsavel">
+                                <option value="Todos" selected>Todos</option>
+                                <option value="Condutor">Condutor</option>
+                                <option value="Proprietário">Proprietário</option>
+                                <option value="Embarcador">Embarcador</option>
+                                <option value="Transportador">Transportador</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="pontos" class="form-label">Pontos:</label>
+                            <select class="form-select" id="pontos" name="pontos">
+                                <option value="0" selected>Todos</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="7">7</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="codigo" class="form-label">Código:</label>
+                            <input type="text" class="form-control" id="codigo" name="codigo" placeholder="Ex: 5169">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="descricao" class="form-label">Descrição:</label>
+                            <input type="text" class="form-control" id="descricao" name="descricao" placeholder="Ex: excesso de velocidade">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="orgao_autuador" class="form-label">Órgão Autuador:</label>
+                            <select class="form-select" id="orgao_autuador" name="orgao_autuador">
+                                <option value="Todos" selected>Todos</option>
+                                <option value="Municipal/Rodoviario">Municipal/Rodoviário</option>
+                                <option value="Estadual/Rodoviario">Estadual/Rodoviário</option>
+                                <option value="Estadual/Municipal/Rodoviario">Estadual/Municipal/Rodoviário</option>
+                                <option value="Estadual">Estadual</option>
+                                <option value="Rodoviario">Rodoviário</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">Ordenação</div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="orderby" class="form-label">Ordenar por:</label>
+                                            <select class="form-select" id="orderby" name="orderby">
+                                                <option value="codigo" selected>Código</option>
+                                                <option value="descricao">Descrição</option>
+                                                <option value="responsavel">Responsável</option>
+                                                <option value="valor_multa">Valor da Multa</option>
+                                                <option value="pontos">Pontos</option>
+                                                <option value="gravidade">Gravidade</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="direction" class="form-label">Direção:</label>
+                                            <select class="form-select" id="direction" name="direction">
+                                                <option value="asc" selected>Crescente</option>
+                                                <option value="desc">Decrescente</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">Exibição</div>
+                                <div class="card-body">
+                                    <label for="items_per_page" class="form-label">Resultados por página:</label>
+                                    <select class="form-select" id="items_per_page" name="items_per_page">
+                                        <option value="10" selected>10 resultados</option>
+                                        <option value="25">25 resultados</option>
+                                        <option value="50">50 resultados</option>
+                                        <option value="100">100 resultados</option>
+                                        <option value="all">Todos os resultados</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end justify-content-end mt-3 mt-md-0">
+                            <button type="button" class="btn btn-secondary me-2" id="limpar-filtros">
+                                <i class="fas fa-eraser me-1"></i> Limpar Filtros
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i> Aplicar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="error-message" id="error-container">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="error-message">Ocorreu um erro ao processar sua solicitação.</span>
+        </div>
+        
+        <div class="loading" id="loading-container">
+            <div class="spinner-border loading-spinner text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-2">Carregando dados...</p>
+        </div>
+        
+        <!-- Header dos Resultados -->
+        <div class="results-header" id="results-header" style="display: none;">
+            <div class="results-count" id="results-count">0 infrações encontradas</div>
+            <div class="view-toggle">
+                <button class="toggle-btn active" id="toggle-cards">
+                    <i class="fas fa-th-large"></i> Cards
+                </button>
+                <button class="toggle-btn" id="toggle-table">
+                    <i class="fas fa-table"></i> Tabela
+                </button>
+            </div>
+        </div>
+
+        <!-- Container de Cards Expandíveis -->
+        <div class="infractions-container" id="infractions-container" style="display: block;">
+            <!-- Os cards serão inseridos aqui via JavaScript -->
+        </div>
+
+        <!-- Tabela Tradicional (oculta por padrão) -->
+        <div class="card" id="results-container" style="display: none !important;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Infrações</span>
+                <span class="results-info" id="results-count-table">0 infrações encontradas</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descrição</th>
+                                <th>Gravidade</th>
+                                <th>Responsável</th>
+                                <th>Pontos</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-tbody">
+                            <!-- Os resultados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <nav aria-label="Navegação de página">
+                    <ul class="pagination justify-content-center mb-0" id="pagination">
+                        <!-- Paginação será inserida aqui via JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Paginação para Cards -->
+        <div class="pagination-container" id="pagination-cards" style="display: none;">
+            <nav aria-label="Navegação de página">
+                <ul class="pagination justify-content-center mb-0" id="pagination-cards-list">
+                    <!-- Paginação será inserida aqui via JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Modal de Detalhes -->
+    <div class="modal fade" id="detalheModal" tabindex="-1" aria-labelledby="detalheModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detalheModalLabel">Detalhes da Infração</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="detalhe-content">
+                    <!-- Conteúdo detalhado será inserido aqui -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variáveis globais
+            let currentPage = 1;
+            let itemsPerPage = 10;
+            let totalItems = 0;
+            let currentFilters = {};
+            
+            // Elementos do DOM
+            const form = document.getElementById('explorador-form');
+            const resultsTable = document.getElementById('results-tbody');
+            const resultsCount = document.getElementById('results-count');
+            const resultsCountTable = document.getElementById('results-count-table');
+            const pagination = document.getElementById('pagination');
+            const paginationCards = document.getElementById('pagination-cards-list');
+            const loadingContainer = document.getElementById('loading-container');
+            const errorContainer = document.getElementById('error-container');
+            const errorMessage = document.getElementById('error-message');
+            const limparFiltrosBtn = document.getElementById('limpar-filtros');
+            
+            // Elementos para cards expandíveis
+            const infractionsContainer = document.getElementById('infractions-container');
+            const resultsHeader = document.getElementById('results-header');
+            const toggleCards = document.getElementById('toggle-cards');
+            const toggleTable = document.getElementById('toggle-table');
+            const resultsContainer = document.getElementById('results-container');
+            const paginationCardsContainer = document.getElementById('pagination-cards');
+            
+            // Estado da visualização (cards ou tabela)
+            let viewMode = 'cards'; // 'cards' ou 'table'
+            
+            // Modal de detalhes
+            const detalheModal = new bootstrap.Modal(document.getElementById('detalheModal'));
+            const detalheContent = document.getElementById('detalhe-content');
+            
+            // Função para formatar valores monetários
+            function formatarMoeda(valor) {
+                return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            }
+            
+            // Função para aplicar classe de estilo baseada na gravidade
+            function getGravidadeClass(gravidade) {
+                const gravidadeLower = gravidade.toLowerCase();
+                if (gravidadeLower.includes('leve')) {
+                    return 'gravidade-light';
+                } else if (gravidadeLower.includes('méd') || gravidadeLower.includes('med')) {
+                    return 'gravidade-media';
+                } else if (gravidadeLower.includes('grav') && !gravidadeLower.includes('gravíss')) {
+                    return 'gravidade-grave';
+                } else if (gravidadeLower.includes('gravíss')) {
+                    return 'gravidade-gravissima';
+                }
+                return '';
+            }
+            
+            // Função para aplicar classe de estilo baseada na gravidade (para cards)
+            function getGravidadeCardClass(gravidade) {
+                const gravidadeLower = gravidade.toLowerCase();
+                if (gravidadeLower.includes('leve')) {
+                    return 'gravidade-leve';
+                } else if (gravidadeLower.includes('méd') || gravidadeLower.includes('med')) {
+                    return 'gravidade-media';
+                } else if (gravidadeLower.includes('grav') && !gravidadeLower.includes('gravíss')) {
+                    return 'gravidade-grave';
+                } else if (gravidadeLower.includes('gravíss')) {
+                    return 'gravidade-gravissima';
+                }
+                return 'gravidade-leve';
+            }
+            
+            // Função para alternar entre visualizações
+            function toggleView(mode) {
+                viewMode = mode;
+                
+                if (mode === 'cards') {
+                    // Mostrar cards
+                    infractionsContainer.style.display = 'block';
+                    paginationCardsContainer.style.display = 'block';
+                    // Ocultar tabela
+                    resultsContainer.style.display = 'none';
+                    
+                    // Atualizar botões
+                    toggleCards.classList.add('active');
+                    toggleTable.classList.remove('active');
+                } else {
+                    // Mostrar tabela
+                    infractionsContainer.style.display = 'none';
+                    paginationCardsContainer.style.display = 'none';
+                    // Mostrar tabela
+                    resultsContainer.style.display = 'block';
+                    
+                    // Atualizar botões
+                    toggleCards.classList.remove('active');
+                    toggleTable.classList.add('active');
+                }
+            }
+            
+            // Função para expandir/recolher card
+            function toggleCard(cardElement) {
+                const isExpanded = cardElement.classList.contains('expanded');
+                const detailsSection = cardElement.querySelector('.card-details');
+                const expandButton = cardElement.querySelector('.expand-button');
+                
+                if (isExpanded) {
+                    // Recolher
+                    cardElement.classList.remove('expanded');
+                    detailsSection.classList.remove('expanded');
+                    expandButton.classList.remove('expanded');
+                    expandButton.innerHTML = '<i class="fas fa-chevron-down expand-icon"></i> Ver mais detalhes';
+                } else {
+                    // Expandir
+                    cardElement.classList.add('expanded');
+                    detailsSection.classList.add('expanded');
+                    expandButton.classList.add('expanded');
+                    expandButton.innerHTML = '<i class="fas fa-chevron-up expand-icon"></i> Ocultar detalhes';
+                }
+            }
+            
+            // Função para mostrar os detalhes de uma infração
+            function mostrarDetalhes(codigo) {
+                loadingContainer.style.display = 'block';
+                
+                fetch(`/api/v1/infracoes/${codigo}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro ao buscar detalhes da infração');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Construir o conteúdo do modal
+                        const gravidadeClass = getGravidadeClass(data.gravidade);
+                        
+                        let html = `
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4>Código: ${data.codigo}</h4>
+                                    <p class="text-muted">Artigos CTB: ${data.artigos_ctb || 'Não informado'}</p>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <span class="badge ${gravidadeClass}">${data.gravidade}</span>
+                                    <h5>${formatarMoeda(data.valor_multa)}</h5>
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h5>Descrição da Infração</h5>
+                                    <p>${data.descricao}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-subtitle mb-2 text-muted">Responsável</h6>
+                                            <p class="card-text">${data.responsavel}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-subtitle mb-2 text-muted">Pontos na CNH</h6>
+                                            <p class="card-text">${data.pontos}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-subtitle mb-2 text-muted">Órgão Autuador</h6>
+                                            <p class="card-text">${data.orgao_autuador}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        detalheContent.innerHTML = html;
+                        document.getElementById('detalheModalLabel').textContent = `Infração ${data.codigo}`;
+                        
+                        loadingContainer.style.display = 'none';
+                        detalheModal.show();
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        loadingContainer.style.display = 'none';
+                        errorContainer.style.display = 'block';
+                        errorMessage.textContent = 'Erro ao carregar detalhes da infração. Tente novamente mais tarde.';
+                    });
+            }
+            
+            // Função para buscar os dados
+            function buscarDados(page = 1) {
+                // Mostrar indicador de carregamento
+                loadingContainer.style.display = 'block';
+                errorContainer.style.display = 'none';
+                
+                // Atualizar itemsPerPage baseado no seletor
+                const itemsPerPageSelect = document.getElementById('items_per_page');
+                const selectedValue = itemsPerPageSelect.value;
+                
+                if (selectedValue === 'all') {
+                    itemsPerPage = 1000; // Limite alto para "todos"
+                } else {
+                    itemsPerPage = parseInt(selectedValue);
+                }
+                
+                // Calcular skip para paginação
+                const skip = (page - 1) * itemsPerPage;
+                
+                // Preparar dados para requisição
+                const requestData = {
+                    ...currentFilters,
+                    skip: skip,
+                    limit: itemsPerPage
+                };
+                
+                // Realizar requisição POST para o endpoint
+                fetch('/api/v1/infracoes/explorador', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Atualizar variáveis globais
+                    totalItems = data.total;
+                    currentPage = page;
+                    
+                    // Atualizar contagem de resultados
+                    const resultadosExibidos = data.resultados.length;
+                    const textoResultados = selectedValue === 'all' 
+                        ? `${totalItems} infrações encontradas (todas exibidas)`
+                        : `${totalItems} infrações encontradas (exibindo ${resultadosExibidos})`;
+                    
+                    resultsCount.textContent = textoResultados;
+                    resultsCountTable.textContent = textoResultados;
+                    
+                    // Mostrar header dos resultados
+                    resultsHeader.style.display = 'flex';
+                    
+                    // Processar e exibir resultados
+                    exibirResultados(data.resultados);
+                    
+                    // Atualizar paginação (ocultar se "todos" selecionado)
+                    if (selectedValue === 'all') {
+                        pagination.innerHTML = '';
+                        paginationCards.innerHTML = '';
+                        paginationCardsContainer.style.display = 'none';
+                    } else {
+                        atualizarPaginacao();
+                        paginationCardsContainer.style.display = viewMode === 'cards' ? 'block' : 'none';
+                    }
+                    
+                    // Esconder indicador de carregamento
+                    loadingContainer.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    loadingContainer.style.display = 'none';
+                    errorContainer.style.display = 'block';
+                    errorMessage.textContent = 'Ocorreu um erro ao buscar as infrações. Tente novamente mais tarde.';
+                    resultsTable.innerHTML = '';
+                    pagination.innerHTML = '';
+                    resultsCount.textContent = '0 infrações encontradas';
+                });
+            }
+            
+            // Função para exibir os resultados como cards
+            function exibirResultadosCards(resultados) {
+                if (resultados.length === 0) {
+                    infractionsContainer.innerHTML = `
+                        <div class="no-results-card">
+                            <i class="fas fa-search"></i>
+                            <h4>Nenhuma infração encontrada</h4>
+                            <p>Tente ajustar os filtros ou usar termos diferentes na busca.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                
+                resultados.forEach((infracao, index) => {
+                    const gravidadeCardClass = getGravidadeCardClass(infracao.gravidade);
+                    
+                    html += `
+                        <div class="infraction-card" data-codigo="${infracao.codigo}">
+                            <div class="info-indicator">${index + 1}</div>
+                            
+                            <!-- Seção Principal (sempre visível) -->
+                            <div class="card-main">
+                                <div class="card-codigo">${infracao.codigo}</div>
+                                
+                                <div class="card-descricao" title="${infracao.descricao}">
+                                    ${infracao.descricao}
+                                </div>
+                                
+                                <div class="card-pontos">
+                                    <div class="pontos-badge">${infracao.pontos} pts</div>
+                                </div>
+                                
+                                <div class="card-valor">
+                                    <div class="valor-badge">${formatarMoeda(infracao.valor_multa)}</div>
+                                </div>
+                                
+                                <div class="card-gravidade">
+                                    <div class="gravidade-badge ${gravidadeCardClass}">${infracao.gravidade}</div>
+                                </div>
+                                
+                                <div class="expand-button" onclick="toggleCard(this.closest('.infraction-card'))">
+                                    <i class="fas fa-chevron-down expand-icon"></i>
+                                    Ver mais detalhes
+                                </div>
+                            </div>
+                            
+                            <!-- Seção Expandida (detalhes adicionais) -->
+                            <div class="card-details">
+                                <div class="details-grid">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Responsável</div>
+                                        <div class="detail-value">${infracao.responsavel}</div>
+                                    </div>
+                                    
+                                    <div class="detail-item">
+                                        <div class="detail-label">Órgão Autuador</div>
+                                        <div class="detail-value">${infracao.orgao_autuador}</div>
+                                    </div>
+                                    
+                                    <div class="detail-item">
+                                        <div class="detail-label">Artigos do CTB</div>
+                                        <div class="detail-value">${infracao.artigos_ctb || 'Não informado'}</div>
+                                    </div>
+                                    
+                                    <div class="detail-item">
+                                        <div class="detail-label">Detalhes Completos</div>
+                                        <div class="detail-value">
+                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                    onclick="mostrarDetalhes('${infracao.codigo}')">
+                                                <i class="fas fa-info-circle"></i> Ver Modal Completo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                infractionsContainer.innerHTML = html;
+                console.log('Cards criados:', resultados.length);
+            }
+            
+            // Função para exibir os resultados na tabela
+            function exibirResultadosTabela(resultados) {
+                if (resultados.length === 0) {
+                    resultsTable.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="fas fa-search me-2"></i>
+                                Nenhuma infração encontrada com os filtros selecionados.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                
+                resultados.forEach(infracao => {
+                    const gravidadeClass = getGravidadeClass(infracao.gravidade);
+                    
+                    // Criar string com informações ocultas para tooltip
+                    const hiddenInfo = `Resp: ${infracao.responsavel} | Pts: ${infracao.pontos} | ${formatarMoeda(infracao.valor_multa)}`;
+                    
+                    html += `
+                        <tr data-hidden-info="${hiddenInfo}">
+                            <td title="Código: ${infracao.codigo}">${infracao.codigo}</td>
+                            <td title="${infracao.descricao}">${infracao.descricao.length > 50 
+                                ? infracao.descricao.substring(0, 50) + '...' 
+                                : infracao.descricao}</td>
+                            <td><span class="badge ${gravidadeClass}" title="Gravidade: ${infracao.gravidade}">${infracao.gravidade}</span></td>
+                            <td title="Responsável: ${infracao.responsavel}">${infracao.responsavel}</td>
+                            <td title="Pontos na CNH: ${infracao.pontos}">${infracao.pontos}</td>
+                            <td title="Valor da multa: ${formatarMoeda(infracao.valor_multa)}">${formatarMoeda(infracao.valor_multa)}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary btn-details" 
+                                        onclick="mostrarDetalhes('${infracao.codigo}')" title="Ver detalhes completos">
+                                    <i class="fas fa-info-circle"></i> <span class="d-none d-md-inline">Detalhes</span>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                resultsTable.innerHTML = html;
+                console.log('Tabela atualizada:', resultados.length);
+            }
+            
+            // Função unificada para exibir resultados
+            function exibirResultados(resultados) {
+                if (viewMode === 'cards') {
+                    exibirResultadosCards(resultados);
+                } else {
+                    exibirResultadosTabela(resultados);
+                }
+            }
+            
+            // Função para atualizar a paginação
+            function atualizarPaginacao() {
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                
+                // Limpar paginação atual
+                pagination.innerHTML = '';
+                paginationCards.innerHTML = '';
+                
+                // Se não houver páginas, não exibir paginação
+                if (totalPages <= 1) {
+                    return;
+                }
+                
+                // Criar HTML da paginação
+                const paginationHTML = criarHTMLPaginacao(totalPages);
+                
+                // Aplicar a ambas as paginações
+                pagination.innerHTML = paginationHTML;
+                paginationCards.innerHTML = paginationHTML;
+                
+                // Adicionar eventos para ambas
+                adicionarEventosPaginacao(pagination);
+                adicionarEventosPaginacao(paginationCards);
+            }
+            
+            // Função para criar HTML da paginação
+            function criarHTMLPaginacao(totalPages) {
+                
+                // Botão Anterior
+                let html = `
+                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                `;
+                
+                // Determinar quais páginas mostrar
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                
+                // Ajustar o início se estivermos perto do final
+                if (endPage === totalPages) {
+                    startPage = Math.max(1, endPage - 4);
+                }
+                
+                // Primeira página
+                if (startPage > 1) {
+                    html += `
+                        <li class="page-item">
+                            <a class="page-link" href="#" data-page="1">1</a>
+                        </li>
+                    `;
+                    
+                    if (startPage > 2) {
+                        html += `
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">...</a>
+                            </li>
+                        `;
+                    }
+                }
+                
+                // Páginas intermediárias
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `;
+                }
+                
+                // Última página
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        html += `
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">...</a>
+                            </li>
+                        `;
+                    }
+                    
+                    html += `
+                        <li class="page-item">
+                            <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
+                        </li>
+                    `;
+                }
+                
+                // Botão Próximo
+                html += `
+                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Próximo">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                `;
+                
+                return html;
+            }
+            
+            // Função para adicionar eventos de paginação
+            function adicionarEventosPaginacao(container) {
+                container.querySelectorAll('.page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = parseInt(this.getAttribute('data-page'));
+                        const totalPages = Math.ceil(totalItems / itemsPerPage);
+                        
+                        if (!isNaN(page) && page !== currentPage && page > 0 && page <= totalPages) {
+                            buscarDados(page);
+                        }
+                    });
+                });
+            }
+            
+            // Função para processar o formulário de filtros
+            function processarFormulario(e) {
+                e.preventDefault();
+                
+                // Coletar os valores do formulário
+                const formData = new FormData(form);
+                const filters = {};
+                
+                // Processar cada campo do formulário
+                for (let [key, value] of formData.entries()) {
+                    // Ignorar valores vazios ou padrão
+                    if (value && value.trim() !== '') {
+                        if (key === 'pontos') {
+                            filters[key] = parseInt(value);
+                        } else if (key === 'gravidade' && value === 'Todas') {
+                            // Ignorar filtro padrão
+                        } else if (key === 'responsavel' && value === 'Todos') {
+                            // Ignorar filtro padrão
+                        } else if (key === 'orgao_autuador' && value === 'Todos') {
+                            // Ignorar filtro padrão
+                        } else {
+                            filters[key] = value;
+                        }
+                    }
+                }
+                
+                // Sempre incluir ordenação
+                filters.orderby = formData.get('orderby') || 'codigo';
+                filters.direction = formData.get('direction') || 'asc';
+                
+                // Atualizar filtros atuais
+                currentFilters = filters;
+                
+                // Buscar dados com novos filtros
+                buscarDados(1);
+            }
+            
+            // Função para limpar os filtros
+            function limparFiltros() {
+                form.reset();
+                
+                // Redefinir para valores padrão
+                document.getElementById('gravidade').value = 'Todas';
+                document.getElementById('responsavel').value = 'Todos';
+                document.getElementById('pontos').value = '0';
+                document.getElementById('orgao_autuador').value = 'Todos';
+                document.getElementById('orderby').value = 'codigo';
+                document.getElementById('direction').value = 'asc';
+                document.getElementById('items_per_page').value = '10';
+                
+                // Redefinir filtros atuais
+                currentFilters = {
+                    orderby: 'codigo',
+                    direction: 'asc'
+                };
+                
+                // Redefinir itemsPerPage para padrão
+                itemsPerPage = 10;
+                
+                // Buscar dados sem filtros
+                buscarDados(1);
+            }
+            
+            // Função para expandir/recolher card (sincronizada com página inicial)
+            function toggleCard(cardElement) {
+                const isExpanded = cardElement.classList.contains('expanded');
+                const detailsSection = cardElement.querySelector('.card-details');
+                const expandButton = cardElement.querySelector('.expand-button');
+                
+                if (isExpanded) {
+                    // Recolher
+                    cardElement.classList.remove('expanded');
+                    detailsSection.classList.remove('expanded');
+                    expandButton.classList.remove('expanded');
+                    expandButton.innerHTML = '<i class="fas fa-chevron-down expand-icon"></i> Ver mais detalhes';
+                } else {
+                    // Expandir
+                    cardElement.classList.add('expanded');
+                    detailsSection.classList.add('expanded');
+                    expandButton.classList.add('expanded');
+                    expandButton.innerHTML = '<i class="fas fa-chevron-up expand-icon"></i> Ocultar detalhes';
+                }
+            }
+            
+            // Função global para mostrar detalhes (acessível pelo onclick na tabela)
+            window.mostrarDetalhes = mostrarDetalhes;
+            
+            // Tornar a função toggleCard global para ser acessível pelo onclick
+            window.toggleCard = toggleCard;
+            
+            // Adicionar eventos
+            form.addEventListener('submit', processarFormulario);
+            limparFiltrosBtn.addEventListener('click', limparFiltros);
+            
+            // Evento para mudança no seletor de items por página
+            document.getElementById('items_per_page').addEventListener('change', function() {
+                // Resetar para primeira página quando mudar items per page
+                currentPage = 1;
+                buscarDados(1);
+            });
+            
+            // Toggle entre cards e tabela
+            toggleCards.addEventListener('click', function() {
+                toggleView('cards');
+            });
+            
+            toggleTable.addEventListener('click', function() {
+                toggleView('table');
+            });
+            
+            // Carregar dados iniciais
+            buscarDados(1);
+        });
+    </script>
+</body>
+</html>

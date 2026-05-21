@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora de IPVA por Tabela FIPE | MultasGO</title>
+    <meta
+      name="description"
+      content="Calcule o IPVA estimado com base no valor FIPE do veiculo e aliquota do seu estado."
+    />
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/static/css/styles.css?v=3.0" />
+    <style>
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo {
+        margin-right: auto;
+      }
+      .nav-buttons {
+        display: flex;
+        gap: 12px;
+        margin-left: auto;
+      }
+      .btn-destacado {
+        background-color: #000;
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+      .btn-destacado:hover {
+        background-color: #333;
+        transform: translateY(-2px);
+      }
+      .ipva-wrapper {
+        max-width: 980px;
+        margin: 30px auto;
+        padding: 0 16px;
+      }
+      .ipva-card {
+        background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 6px 22px rgba(0,0,0,.08);
+      }
+      .ipva-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+      .field { display: flex; flex-direction: column; gap: 6px; }
+      label { font-weight: 700; color: #222; }
+      select, button { padding: 10px; border-radius: 8px; border: 1px solid #c9c9c9; font-size: 15px; }
+      button { background: #111; color: #fff; border: none; cursor: pointer; font-weight: 700; }
+      button:disabled { opacity: .6; cursor: not-allowed; }
+      .result { margin-top: 16px; padding: 16px; border-radius: 10px; background: #f5f9f5; border: 1px solid #d7e8d7; }
+      .result h3 { margin-top: 0; }
+      .muted { color: #666; font-size: 14px; }
+      .error { margin-top: 12px; color: #8f1010; font-weight: 600; }
+      @media (max-width: 720px) {
+        .header-container {
+          flex-direction: column;
+          gap: 12px;
+          align-items: flex-start;
+        }
+        .nav-buttons {
+          flex-wrap: wrap;
+        }
+        .ipva-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="container header-container">
+        <div class="logo"><h1>MULTAS<span>GO</span></h1></div>
+        <div class="nav-buttons">
+          <a href="/" class="btn-destacado">INICIO</a>
+          <a href="/explorador" class="btn-destacado">EXPLORADOR</a>
+          <a href="/noticias" class="btn-destacado">COLABORE</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="ipva-wrapper">
+      <section class="ipva-card">
+        <h2>Calculadora de IPVA (estimativa)</h2>
+        <p class="muted">Selecione estado, tipo e veiculo para calcular com base nos dados FIPE ja baixados.</p>
+
+        <div class="ipva-grid">
+          <div class="field">
+            <label for="estado">Estado (UF)</label>
+            <select id="estado"></select>
+          </div>
+          <div class="field">
+            <label for="tipo">Tipo</label>
+            <select id="tipo">
+              <option value="cars">Carros</option>
+              <option value="motorcycles">Motos</option>
+              <option value="trucks">Caminhoes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="marca">Marca</label>
+            <select id="marca" disabled></select>
+          </div>
+          <div class="field">
+            <label for="modelo">Modelo</label>
+            <select id="modelo" disabled></select>
+          </div>
+          <div class="field">
+            <label for="ano">Ano</label>
+            <select id="ano" disabled></select>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <button id="btnCalcular" disabled>Calcular IPVA</button>
+          </div>
+        </div>
+
+        <div id="erro" class="error" style="display:none;"></div>
+        <div id="resultado" class="result" style="display:none;"></div>
+      </section>
+    </main>
+
+    <script>
+      const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+      const estado = document.getElementById("estado");
+      const tipo = document.getElementById("tipo");
+      const marca = document.getElementById("marca");
+      const modelo = document.getElementById("modelo");
+      const ano = document.getElementById("ano");
+      const btn = document.getElementById("btnCalcular");
+      const erro = document.getElementById("erro");
+      const resultado = document.getElementById("resultado");
+
+      function moeda(v) {
+        return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      }
+
+      function setErro(msg) {
+        erro.style.display = msg ? "block" : "none";
+        erro.textContent = msg || "";
+      }
+
+      function resetSelect(el, placeholder) {
+        el.innerHTML = `<option value="">${placeholder}</option>`;
+        el.disabled = true;
+      }
+
+      async function getJson(url) {
+        const r = await fetch(url);
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || "Erro ao consultar API");
+        return data;
+      }
+
+      async function carregarMarcas() {
+        setErro("");
+        resetSelect(marca, "Selecione a marca");
+        resetSelect(modelo, "Selecione o modelo");
+        resetSelect(ano, "Selecione o ano");
+        btn.disabled = true;
+        resultado.style.display = "none";
+
+        const data = await getJson(`/api/v1/fipe/marcas?tipo=${encodeURIComponent(tipo.value)}`);
+        data.marcas.forEach((m) => {
+          const op = document.createElement("option");
+          op.value = m;
+          op.textContent = m;
+          marca.appendChild(op);
+        });
+        marca.disabled = false;
+      }
+
+      async function carregarModelos() {
+        setErro("");
+        resetSelect(modelo, "Selecione o modelo");
+        resetSelect(ano, "Selecione o ano");
+        btn.disabled = true;
+        resultado.style.display = "none";
+        if (!marca.value) return;
+
+        const qs = `tipo=${encodeURIComponent(tipo.value)}&marca=${encodeURIComponent(marca.value)}`;
+        const data = await getJson(`/api/v1/fipe/modelos?${qs}`);
+        data.modelos.forEach((m) => {
+          const op = document.createElement("option");
+          op.value = m;
+          op.textContent = m;
+          modelo.appendChild(op);
+        });
+        modelo.disabled = false;
+      }
+
+      async function carregarAnos() {
+        setErro("");
+        resetSelect(ano, "Selecione o ano");
+        btn.disabled = true;
+        resultado.style.display = "none";
+        if (!marca.value || !modelo.value) return;
+
+        const qs = `tipo=${encodeURIComponent(tipo.value)}&marca=${encodeURIComponent(marca.value)}&modelo=${encodeURIComponent(modelo.value)}`;
+        const data = await getJson(`/api/v1/fipe/anos?${qs}`);
+        data.anos.forEach((a) => {
+          const op = document.createElement("option");
+          op.value = a;
+          op.textContent = a;
+          ano.appendChild(op);
+        });
+        ano.disabled = false;
+      }
+
+      async function calcular() {
+        try {
+          setErro("");
+          if (!estado.value || !marca.value || !modelo.value || !ano.value) {
+            setErro("Preencha todos os campos antes de calcular.");
+            return;
+          }
+          const qs = new URLSearchParams({
+            estado: estado.value,
+            tipo: tipo.value,
+            marca: marca.value,
+            modelo: modelo.value,
+            ano: ano.value
+          });
+          const data = await getJson(`/api/v1/fipe/ipva?${qs.toString()}`);
+          const p = data.ipva.parcelas || [];
+          resultado.innerHTML = `
+            <h3>Resultado</h3>
+            <p><strong>Veiculo:</strong> ${data.veiculo.marca} ${data.veiculo.modelo} ${data.veiculo.ano}</p>
+            <p><strong>Valor FIPE:</strong> ${moeda(data.veiculo.preco_fipe_valor)} (${data.veiculo.mes_referencia || "referencia nao informada"})</p>
+            <p><strong>Aliquota (${data.estado}):</strong> ${data.ipva.aliquota_percentual}%</p>
+            <p><strong>IPVA total:</strong> ${moeda(data.ipva.ipva_total)}</p>
+            <p><strong>Parcelas:</strong> ${p.map(x => `${x.numero}x de ${moeda(x.valor)}`).join(" | ")}</p>
+          `;
+          resultado.style.display = "block";
+        } catch (e) {
+          setErro(e.message || "Falha ao calcular IPVA.");
+        }
+      }
+
+      UFS.forEach((uf) => {
+        const op = document.createElement("option");
+        op.value = uf;
+        op.textContent = uf;
+        if (uf === "SP") op.selected = true;
+        estado.appendChild(op);
+      });
+
+      tipo.addEventListener("change", () => carregarMarcas().catch((e) => setErro(e.message)));
+      marca.addEventListener("change", () => carregarModelos().catch((e) => setErro(e.message)));
+      modelo.addEventListener("change", () => carregarAnos().catch((e) => setErro(e.message)));
+      ano.addEventListener("change", () => { btn.disabled = !ano.value; });
+      btn.addEventListener("click", calcular);
+
+      carregarMarcas().catch((e) => setErro(e.message));
+    </script>
+  </body>
+</html>

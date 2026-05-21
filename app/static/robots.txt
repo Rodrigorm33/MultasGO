@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /explorador
+Allow: /pesquisa
+Allow: /infracao/
+Disallow: /api/
+Disallow: /debug/
+Disallow: /health
+Disallow: /static/js/
+Disallow: /static/css/
+
+Sitemap: https://multasgo.com.br/sitemap.xml

@@ -1,0 +1,516 @@
+/* ========================================================================
+   RESPONSIVE TABLE - ELIMINAR SCROLL HORIZONTAL
+   ======================================================================== */
+
+/* Estilos básicos para a tabela */
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: visible !important; /* Forçar remoção do scroll */
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+    display: table !important;
+    table-layout: fixed; /* Controla largura das colunas */
+}
+
+/* Definir larguras fixas para colunas */
+.table th,
+.table td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Larguras específicas para cada coluna */
+.table th:nth-child(1), /* Código */
+.table td:nth-child(1) {
+    width: 10%;
+    min-width: 80px;
+}
+
+.table th:nth-child(2), /* Descrição */
+.table td:nth-child(2) {
+    width: 40%;
+    min-width: 200px;
+}
+
+.table th:nth-child(3), /* Gravidade */
+.table td:nth-child(3) {
+    width: 15%;
+    min-width: 100px;
+}
+
+.table th:nth-child(4), /* Responsável */
+.table td:nth-child(4) {
+    width: 12%;
+    min-width: 90px;
+}
+
+.table th:nth-child(5), /* Pontos */
+.table td:nth-child(5) {
+    width: 8%;
+    min-width: 60px;
+}
+
+.table th:nth-child(6), /* Valor */
+.table td:nth-child(6) {
+    width: 10%;
+    min-width: 80px;
+}
+
+.table th:nth-child(7), /* Ações */
+.table td:nth-child(7) {
+    width: 5%;
+    min-width: 80px;
+}
+
+/* Truncar texto longo */
+.table td:nth-child(2) { /* Descrição */
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Estilo para badges de gravidade */
+.badge {
+    font-size: 0.7em;
+    padding: 0.35em 0.65em;
+    white-space: nowrap;
+}
+
+/* Ajustes para botões */
+.btn-details {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+/* ========================================================================
+   RESPONSIVIDADE PARA DIFERENTES TAMANHOS DE TELA
+   ======================================================================== */
+
+/* Tablets e telas médias (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+    .table th:nth-child(4), /* Responsável */
+    .table td:nth-child(4) {
+        display: none;
+    }
+    
+    .table th:nth-child(2), /* Descrição */
+    .table td:nth-child(2) {
+        width: 50%;
+    }
+    
+    .table th:nth-child(3), /* Gravidade */
+    .table td:nth-child(3) {
+        width: 20%;
+    }
+}
+
+/* Celulares e telas pequenas (até 767px) */
+@media (max-width: 767px) {
+    /* Ocultar colunas menos importantes */
+    .table th:nth-child(4), /* Responsável */
+    .table td:nth-child(4),
+    .table th:nth-child(5), /* Pontos */
+    .table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Reorganizar larguras */
+    .table th:nth-child(1), /* Código */
+    .table td:nth-child(1) {
+        width: 15%;
+        min-width: 60px;
+    }
+    
+    .table th:nth-child(2), /* Descrição */
+    .table td:nth-child(2) {
+        width: 45%;
+    }
+    
+    .table th:nth-child(3), /* Gravidade */
+    .table td:nth-child(3) {
+        width: 20%;
+    }
+    
+    .table th:nth-child(6), /* Valor */
+    .table td:nth-child(6) {
+        width: 15%;
+    }
+    
+    .table th:nth-child(7), /* Ações */
+    .table td:nth-child(7) {
+        width: 5%;
+    }
+    
+    /* Ajustar padding para economizar espaço */
+    .table th,
+    .table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Botões menores */
+    .btn-details {
+        padding: 0.125rem 0.25rem;
+        font-size: 0.7rem;
+    }
+    
+    /* Badges menores */
+    .badge {
+        font-size: 0.65em;
+        padding: 0.25em 0.5em;
+    }
+}
+
+/* Telas muito pequenas (até 480px) */
+@media (max-width: 480px) {
+    /* Ocultar mais colunas */
+    .table th:nth-child(6), /* Valor */
+    .table td:nth-child(6) {
+        display: none;
+    }
+    
+    /* Reorganizar larguras novamente */
+    .table th:nth-child(1), /* Código */
+    .table td:nth-child(1) {
+        width: 20%;
+    }
+    
+    .table th:nth-child(2), /* Descrição */
+    .table td:nth-child(2) {
+        width: 55%;
+    }
+    
+    .table th:nth-child(3), /* Gravidade */
+    .table td:nth-child(3) {
+        width: 25%;
+    }
+    
+    .table th:nth-child(7), /* Ações */
+    .table td:nth-child(7) {
+        width: 0%;
+        display: none; /* Ocultar ações em telas muito pequenas */
+    }
+    
+    /* Permitir quebra de linha na descrição */
+    .table td:nth-child(2) {
+        white-space: normal;
+        line-height: 1.3;
+    }
+}
+
+/* ========================================================================
+   MELHORIAS VISUAIS
+   ======================================================================== */
+
+/* Hover effect */
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.15s ease-in-out;
+}
+
+/* Alternating row colors */
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Melhorar visualização de texto truncado */
+.table td:nth-child(2):hover {
+    overflow: visible;
+    white-space: normal;
+    position: relative;
+    z-index: 10;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    padding: 0.75rem;
+}
+
+/* Indicador visual para colunas ocultas */
+@media (max-width: 1023px) {
+    .table::after {
+        content: "💡 Algumas colunas foram ocultadas para melhor visualização";
+        display: block;
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: center;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+    }
+}
+
+/* ========================================================================
+   FORÇA REMOÇÃO DE SCROLL HORIZONTAL
+   ======================================================================== */
+
+/* Força o container a não ter scroll */
+.container,
+.container-fluid {
+    overflow-x: hidden !important;
+}
+
+/* Garante que o card não exceda a largura */
+.card {
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+.card-body {
+    overflow-x: hidden !important;
+}
+
+/* Remove qualquer scroll que possa aparecer */
+body {
+    overflow-x: hidden !important;
+}
+
+html {
+    overflow-x: hidden !important;
+}
+
+/* Ajuste específico para o container da tabela */
+.table-responsive {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    background-color: white;
+}
+
+/* Estilo para headers da tabela */
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* ========================================================================
+   ESTILOS ESPECÍFICOS PARA A TABELA DA PÁGINA INDEX
+   ======================================================================== */
+
+/* Tabela de resultados na página principal */
+#results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    table-layout: fixed;
+}
+
+#results-table th,
+#results-table td {
+    padding: 0.75rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+#results-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Larguras das colunas da tabela principal */
+#results-table th:nth-child(1), /* Código */
+#results-table td:nth-child(1) {
+    width: 8%;
+    min-width: 70px;
+}
+
+#results-table th:nth-child(2), /* Descrição */
+#results-table td:nth-child(2) {
+    width: 30%;
+    min-width: 200px;
+}
+
+#results-table th:nth-child(3), /* Responsável */
+#results-table td:nth-child(3) {
+    width: 12%;
+    min-width: 90px;
+}
+
+#results-table th:nth-child(4), /* Pontos */
+#results-table td:nth-child(4) {
+    width: 8%;
+    min-width: 60px;
+}
+
+#results-table th:nth-child(5), /* Valor */
+#results-table td:nth-child(5) {
+    width: 10%;
+    min-width: 80px;
+}
+
+#results-table th:nth-child(6), /* Órgão Autuador */
+#results-table td:nth-child(6) {
+    width: 15%;
+    min-width: 100px;
+}
+
+#results-table th:nth-child(7), /* Artigos CTB */
+#results-table td:nth-child(7) {
+    width: 10%;
+    min-width: 80px;
+}
+
+#results-table th:nth-child(8), /* Gravidade */
+#results-table td:nth-child(8) {
+    width: 7%;
+    min-width: 80px;
+}
+
+/* Truncar descrição */
+#results-table td:nth-child(2) {
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Responsividade para tablets */
+@media (max-width: 1023px) and (min-width: 768px) {
+    #results-table th:nth-child(3), /* Responsável */
+    #results-table td:nth-child(3),
+    #results-table th:nth-child(6), /* Órgão Autuador */
+    #results-table td:nth-child(6),
+    #results-table th:nth-child(7), /* Artigos CTB */
+    #results-table td:nth-child(7) {
+        display: none;
+    }
+    
+    #results-table th:nth-child(2), /* Descrição */
+    #results-table td:nth-child(2) {
+        width: 50%;
+    }
+    
+    #results-table th:nth-child(8), /* Gravidade */
+    #results-table td:nth-child(8) {
+        width: 15%;
+    }
+}
+
+/* Responsividade para celulares */
+@media (max-width: 767px) {
+    #results-table th:nth-child(3), /* Responsável */
+    #results-table td:nth-child(3),
+    #results-table th:nth-child(4), /* Pontos */
+    #results-table td:nth-child(4),
+    #results-table th:nth-child(6), /* Órgão Autuador */
+    #results-table td:nth-child(6),
+    #results-table th:nth-child(7), /* Artigos CTB */
+    #results-table td:nth-child(7) {
+        display: none;
+    }
+    
+    #results-table th:nth-child(1), /* Código */
+    #results-table td:nth-child(1) {
+        width: 15%;
+    }
+    
+    #results-table th:nth-child(2), /* Descrição */
+    #results-table td:nth-child(2) {
+        width: 50%;
+    }
+    
+    #results-table th:nth-child(5), /* Valor */
+    #results-table td:nth-child(5) {
+        width: 20%;
+    }
+    
+    #results-table th:nth-child(8), /* Gravidade */
+    #results-table td:nth-child(8) {
+        width: 15%;
+    }
+    
+    #results-table th,
+    #results-table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Responsividade para telas muito pequenas */
+@media (max-width: 480px) {
+    #results-table th:nth-child(5), /* Valor */
+    #results-table td:nth-child(5) {
+        display: none;
+    }
+    
+    #results-table th:nth-child(1), /* Código */
+    #results-table td:nth-child(1) {
+        width: 20%;
+    }
+    
+    #results-table th:nth-child(2), /* Descrição */
+    #results-table td:nth-child(2) {
+        width: 60%;
+        white-space: normal;
+    }
+    
+    #results-table th:nth-child(8), /* Gravidade */
+    #results-table td:nth-child(8) {
+        width: 20%;
+    }
+    
+    #results-table th,
+    #results-table td {
+        padding: 0.5rem 0.2rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* ========================================================================
+   MELHORIAS PARA ACESSIBILIDADE
+   ======================================================================== */
+
+/* Adicionar tooltips visuais para colunas ocultas */
+.table td {
+    position: relative;
+}
+
+/* Indicador para dados importantes ocultos */
+@media (max-width: 767px) {
+    .table tr::after {
+        content: attr(data-hidden-info);
+        position: absolute;
+        bottom: -20px;
+        left: 0;
+        font-size: 0.7rem;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        padding: 0.25rem 0.5rem;
+        border-radius: 3px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .table tr:hover::after {
+        opacity: 1;
+    }
+} 

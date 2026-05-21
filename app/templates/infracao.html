@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EJERKTED2N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "G-EJERKTED2N");
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infração {{ codigo_formatado }} - {{ descricao_curta }} | MultasGO</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Infração {{ codigo_formatado }}: {{ descricao }}. Multa R$ {{ valor_formatado }}, {{ pontos_display }} pontos na CNH, gravidade {{ gravidade_display }}. Artigos do CTB: {{ artigos_ctb }}.">
+    <meta name="keywords" content="infração {{ codigo_formatado }}, multa trânsito {{ codigo_formatado }}, {{ descricao_curta|lower }}, valor multa, pontos CNH, CTB artigo {{ artigos_ctb }}">
+    <meta name="author" content="MultasGO">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://multasgo.com.br/infracao/{{ codigo }}/{{ slug }}">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Infração {{ codigo_formatado }} - {{ descricao_curta }}">
+    <meta property="og:description" content="Multa R$ {{ valor_formatado }}, {{ pontos_display }} pontos, gravidade {{ gravidade_display }}. {{ descricao }}">
+    <meta property="og:url" content="https://multasgo.com.br/infracao/{{ codigo }}/{{ slug }}">
+    <meta property="og:site_name" content="MultasGO">
+    <meta property="og:image" content="https://multasgo.com.br/static/img/favicon.png">
+    <meta property="og:locale" content="pt_BR">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Infração {{ codigo_formatado }} - {{ descricao_curta }}">
+    <meta name="twitter:description" content="Multa R$ {{ valor_formatado }}, {{ pontos_display }} pontos, gravidade {{ gravidade_display }}.">
+    <meta name="twitter:image" content="https://multasgo.com.br/static/img/favicon.png">
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Infração {{ codigo_formatado }} - {{ descricao_curta|replace('"', '\\"') }}",
+      "description": "{{ descricao|replace('"', '\\"') }}. Multa R$ {{ valor_formatado }}, {{ pontos_display }} pontos na CNH.",
+      "url": "https://multasgo.com.br/infracao/{{ codigo }}/{{ slug }}",
+      "publisher": {
+        "@type": "Organization",
+        "name": "MultasGO",
+        "url": "https://multasgo.com.br"
+      },
+      "mainEntityOfPage": "https://multasgo.com.br/infracao/{{ codigo }}/{{ slug }}",
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "MultasGO", "item": "https://multasgo.com.br"},
+          {"@type": "ListItem", "position": 2, "name": "Infrações", "item": "https://multasgo.com.br/explorador"},
+          {"@type": "ListItem", "position": 3, "name": "Infração {{ codigo_formatado }}"}
+        ]
+      }
+    }
+    </script>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/img/apple-touch-icon.png">
+
+    <link rel="stylesheet" href="/static/css/styles.css?v=3.0" />
+    <style>
+      .breadcrumb {
+        padding: 15px 0;
+        font-size: 14px;
+        color: #666;
+      }
+      .breadcrumb a {
+        color: #1a2238;
+        text-decoration: none;
+      }
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+      .breadcrumb span {
+        margin: 0 8px;
+        color: #999;
+      }
+
+      .infracao-page {
+        padding: 30px 0 60px;
+        background: #f8f9fa;
+        min-height: 60vh;
+      }
+
+      .infracao-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+      }
+
+      .infracao-header {
+        background: var(--dark-blue);
+        color: #fff;
+        padding: 30px;
+      }
+      .infracao-header .codigo {
+        font-size: 16px;
+        color: var(--yellow);
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+      }
+      .infracao-header h1 {
+        font-size: 22px;
+        font-weight: 600;
+        line-height: 1.4;
+        margin: 0;
+      }
+
+      .infracao-badges {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      .badge {
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .badge-gravidade {
+        color: #fff;
+      }
+      .badge-gravissima { background: var(--color-gravissima); }
+      .badge-grave { background: var(--color-grave); }
+      .badge-media { background: #e6a800; color: #1a2238; }
+      .badge-leve { background: var(--color-leve); }
+      .badge-na { background: #999; }
+
+      .badge-pontos {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.3);
+      }
+
+      .infracao-body {
+        padding: 30px;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
+      .info-item {
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid var(--yellow);
+      }
+      .info-item .label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .info-item .value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a2238;
+      }
+      .info-item .value.valor-multa {
+        color: var(--color-gravissima);
+        font-size: 24px;
+      }
+      .info-item.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .infracao-footer {
+        padding: 24px 30px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .btn-voltar {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: var(--yellow);
+        color: var(--dark-blue);
+        border-radius: 25px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s;
+      }
+      .btn-voltar:hover {
+        background: #e6c200;
+        transform: translateY(-1px);
+      }
+      .btn-pesquisar {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: var(--dark-blue);
+        color: #fff;
+        border-radius: 25px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s;
+      }
+      .btn-pesquisar:hover {
+        background: #2a3550;
+        transform: translateY(-1px);
+      }
+
+      /* Header do site */
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo { margin-right: auto; }
+      .nav-buttons {
+        display: flex;
+        gap: 20px;
+        margin-left: auto;
+      }
+      .btn-destacado {
+        background-color: #000;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+      .btn-destacado:hover {
+        background-color: #333;
+        transform: translateY(-2px);
+      }
+
+      /* Responsivo */
+      @media (max-width: 768px) {
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+        .infracao-header h1 {
+          font-size: 18px;
+        }
+        .infracao-header, .infracao-body {
+          padding: 20px;
+        }
+        .infracao-footer {
+          padding: 16px 20px;
+          flex-direction: column;
+        }
+        .btn-voltar, .btn-pesquisar {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container header-container">
+        <div class="logo">
+          <a href="/"><h1>MULTAS<span>GO</span></h1></a>
+        </div>
+        <div class="nav-buttons">
+          <a href="/ipva" class="btn-destacado">IPVA FIPE</a>
+          <a href="/explorador" class="btn-destacado">EXPLORADOR</a>
+          <a href="/" class="btn-destacado">PESQUISAR</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">MultasGO</a>
+        <span>›</span>
+        <a href="/explorador">Infrações</a>
+        <span>›</span>
+        <strong>{{ codigo_formatado }}</strong>
+      </nav>
+    </div>
+
+    <!-- Conteudo -->
+    <section class="infracao-page">
+      <div class="container">
+        <article class="infracao-card">
+          <div class="infracao-header">
+            <div class="codigo">INFRAÇÃO {{ codigo_formatado }}</div>
+            <h1>{{ descricao }}</h1>
+            <div class="infracao-badges">
+              <span class="badge badge-gravidade badge-{{ gravidade_class }}">{{ gravidade_display }}</span>
+              <span class="badge badge-pontos">{{ pontos_display }} pontos</span>
+            </div>
+          </div>
+
+          <div class="infracao-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="label">Valor da Multa</div>
+                <div class="value valor-multa">R$ {{ valor_formatado }}</div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">Responsável</div>
+                <div class="value">{{ responsavel }}</div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">Órgão Autuador</div>
+                <div class="value">{{ orgao_autuador }}</div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">Pontos na CNH</div>
+                <div class="value">{{ pontos_display }}</div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">Gravidade</div>
+                <div class="value">{{ gravidade_display }}</div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">Artigos do CTB</div>
+                <div class="value">{{ artigos_ctb }}</div>
+              </div>
+
+              <div class="info-item full-width">
+                <div class="label">Descrição Completa</div>
+                <div class="value" style="font-size:16px;font-weight:400;line-height:1.6;">{{ descricao }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="infracao-footer">
+            <a href="/explorador" class="btn-voltar">← Ver Todas as Infrações</a>
+            <a href="/ipva" class="btn-pesquisar">Calcular IPVA</a>
+            <a href="/" class="btn-pesquisar">Pesquisar Infrações</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="footer">
+      <div class="container">
+        <div class="footer-sections">
+          <div class="footer-section">
+            <h4>CONTATO</h4>
+            <p>rodrigo.moura@yahoo.com.br</p>
+          </div>
+          <div class="footer-section">
+            <h4>PORTAL DE NOTÍCIAS</h4>
+            <p>https://multasgo.com.br/noticias</p>
+          </div>
+          <div class="footer-section">
+            <h4>TERMOS E POLÍTICAS</h4>
+            <p>Termos de Uso</p>
+            <p>Política de Privacidade</p>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-logo">
+            <h2>MULTAS<span>GO</span></h2>
+            <p>AUTUE COM CONFIANÇA</p>
+          </div>
+          <p class="copyright">2025 © Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />    <!-- Google Analytics -->    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EJERKTED2N"></script>    <script>      window.dataLayer = window.dataLayer || [];      function gtag(){dataLayer.push(arguments);}      gtag("js", new Date());      gtag("config", "G-EJERKTED2N");    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MultasGO - Tabela de Infrações de Trânsito do Brasil</title>
+<!-- SEO Meta Tags -->    <meta name="description" content="Tabela completa de infrações de trânsito de todo o Brasil. Pesquise por código ou descrição: valores de multas, pontos na CNH, gravidade e artigos do CTB. Válido para todos os estados.">    <meta name="keywords" content="tabela infrações trânsito brasil, multas de trânsito, CTB, código de trânsito brasileiro, valor multa, pontos CNH, infrações todos os estados, consulta nacional multas">    <meta name="author" content="MultasGO">    <meta name="robots" content="index, follow">    <link rel="canonical" href="https://multasgo.com.br/">    <!-- Open Graph (WhatsApp, Facebook, Telegram) -->    <meta property="og:type" content="website">    <meta property="og:title" content="MultasGO - Tabela de Infrações de Trânsito do Brasil">    <meta property="og:description" content="Tabela nacional de infrações de trânsito. Valores de multas, pontos na CNH, gravidade e artigos do CTB. Todos os estados do Brasil.">    <meta property="og:url" content="https://multasgo.com.br/">    <meta property="og:site_name" content="MultasGO">    <meta property="og:image" content="https://multasgo.com.br/static/img/favicon.png">    <meta property="og:image:width" content="757">    <meta property="og:image:height" content="589">    <meta property="og:locale" content="pt_BR">    <!-- Twitter Card -->    <meta name="twitter:card" content="summary">    <meta name="twitter:title" content="MultasGO - Tabela de Infrações de Trânsito do Brasil">    <meta name="twitter:description" content="Tabela nacional de infrações de trânsito. Multas, pontos na CNH e artigos do CTB para todo o Brasil.">    <meta name="twitter:image" content="https://multasgo.com.br/static/img/favicon.png">    <!-- Schema.org JSON-LD -->    <script type="application/ld+json">    {      "@context": "https://schema.org",      "@type": "WebSite",      "name": "MultasGO",      "url": "https://multasgo.com.br",      "description": "Tabela completa de infrações de trânsito de todo o Brasil. Pesquise por código ou descrição.",      "areaServed": {        "@type": "Country",        "name": "Brazil"      },      "potentialAction": {        "@type": "SearchAction",        "target": "https://multasgo.com.br/pesquisa?q={search_term_string}",        "query-input": "required name=search_term_string"      }    }    </script>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/img/apple-touch-icon.png">
+    
+    <link rel="stylesheet" href="/static/css/styles.css?v=3.0" />
+    <link rel="stylesheet" href="/static/css/responsive-table.css?v=3.0" />
+    <link rel="stylesheet" href="/static/css/expandable-cards.css?v=3.0" />
+    <style>
+      /* Estilos específicos para o cabeçalho */
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        margin-right: auto;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 20px;
+        margin-left: auto;
+      }
+
+      .btn-destacado {
+        background-color: #000;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .btn-destacado:hover {
+        background-color: #333;
+        transform: translateY(-2px);
+      }
+
+      @media (max-width: 768px) {
+        .header-container {
+          flex-direction: column;
+          gap: 12px;
+          align-items: flex-start;
+        }
+        .nav-buttons {
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-left: 0;
+        }
+      }
+
+      /* Estilos para o modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+
+      .modal.show {
+        display: block;
+      }
+
+      .modal-content {
+        background-color: #fff;
+        margin: 5% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .close-modal {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+      }
+
+      .close-modal:hover {
+        color: #000;
+      }
+
+      .modal-header {
+        margin-bottom: 20px;
+        padding-right: 40px;
+      }
+
+      .modal-title {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .modal-body {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #444;
+      }
+
+      .modal-body p {
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Cabeçalho -->
+    <header class="header">
+      <div class="container header-container">
+        <div class="logo">
+          <h1>MULTAS<span>GO</span></h1>
+        </div>
+        <div class="nav-buttons">
+          <a href="/ipva" class="btn-destacado">IPVA FIPE</a>
+          <a href="/explorador" class="btn-destacado">EXPLORADOR</a>
+          <a href="/noticias" class="btn-destacado">COLABORE</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Seção Hero -->
+    <section class="hero">
+      <div class="container">
+        <h2 class="hero-title">
+          PESQUISE COM QUALQUER PALAVRA OU CÓDIGO,<br />
+          <span class="hero-emphasis">DO SEU JEITO — E ENCONTRE NA HORA</span>
+        </h2>
+
+        <!-- Logo pequena -->
+        <img
+          src="/static/img/phone-mockup1.png"
+          alt="Logo MultasGO!"
+          class="logo-pequena"
+        />
+
+        <p class="hero-description highlight-phrase">
+          Segurança nas informações e prática para o dia a dia.
+        </p>
+
+        <!-- Seção de Pesquisa (Substituindo o vídeo) -->
+        <div class="search-container">
+          <form id="search-form">
+            <input
+              type="text"
+              id="search-input"
+              class="search-input"
+              placeholder="Digite o código ou palavra-chave..."
+              required
+            />
+            <button type="submit" class="search-button" id="search-btn">
+              GO
+            </button>
+          </form>
+        </div>
+
+        <div class="error-message" id="error-message">
+          Ocorreu um erro na pesquisa. Por favor, tente novamente.
+        </div>
+
+        <div class="loading" id="loading">Carregando resultados...</div>
+
+        <div class="results-container">
+          <div class="no-results" id="no-results">
+            Nenhuma infração encontrada. Tente outro termo de pesquisa.
+          </div>
+
+          <div id="total-results" class="total-results"></div>
+
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descrição</th>
+                <th>Responsável</th>
+                <th>Pontos</th>
+                <th>Valor</th>
+                <th>Órgão Autuador</th>
+                <th>Artigos CTB</th>
+                <th>Gravidade</th>
+              </tr>
+            </thead>
+            <tbody id="results-body">
+              <!-- Resultados serão inseridos aqui via JavaScript -->
+            </tbody>
+          </table>
+
+          <!-- Novo elemento para as frases engraçadas -->
+          <div class="placeholder-quotes">
+            <!-- Será preenchido via JavaScript -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Benefícios -->
+    <section class="benefits">
+      <div class="container">
+        <h3 class="section-title text-center">
+          APP RÁPIDO E EFICIENTE, PRA QUEM REALMENTE PRECISA
+        </h3>
+
+        <div class="benefits-grid">
+          <div class="benefit-item">
+            <div class="benefit-icon icon-exclusive"></div>
+            <h3 class="benefit-title"><strong>Conteúdo Exclusivo</strong></h3>
+            <p class="benefit-desc">
+              Aqui você conta com os especialistas MultasGO para ter materiais
+              únicos e informações unificadas.
+            </p>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-icon icon-updates"></div>
+            <h3 class="benefit-title">
+              <strong>Informações Atualizadas</strong>
+            </h3>
+            <p class="benefit-desc">
+              Não fique mais inseguro(a)! Deixe que o App te informe as mudanças
+              na lei e te mantenha atualizado.
+            </p>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-icon icon-benefit"></div>
+            <h3 class="benefit-title">
+              <strong>De agente para Agente</strong>
+            </h3>
+            <p class="benefit-desc">
+              App feito e mantido por agentes de trânsito, simples e fácil de
+              usar.
+            </p>
+          </div>
+        </div>
+
+        <div class="action-button-container">
+          <a href="/explorador" class="action-button">COMEÇAR A CONSULTAR</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção de Informações Completas Unificada -->
+    <section class="complete-info">
+      <div class="container">
+        <h3 class="section-title text-center">
+          Informações Completas e Ferramentas Práticas
+        </h3>
+
+        <div class="complete-info-content">
+          <div class="complete-info-info">
+            <h4 class="title-yellow">Pesquisa Inteligente de Infrações</h4>
+            <p>
+              Encontre infrações de forma rápida usando palavras-chave.
+            </p>
+            
+            <p>
+              Evite frases longas. Em vez disso, digite termos simples como:
+            </p>
+
+            <ul class="feature-list traffic-light">
+              <li class="item-red">
+                etilômetro
+              </li>
+              <li class="item-amber">viseira</li>
+              <li class="item-green">
+                cinto
+              </li>
+              <li class="item-red">
+                pneu
+              </li>
+              <li class="item-amber">
+                CNH
+              </li>
+            </ul>
+
+            <p class="highlight-text">
+              Use palavras relacionadas à situação e descubra rapidamente a infração correspondente.
+            </p>
+
+            <h4 class="title-green">Futuros Recursos Exclusivos</h4>
+            <ul class="feature-list resources-list">
+              <li class="item-updates">
+                Legislação atualizada: Resoluções, Portarias, Deliberações e
+                conteúdo complementar
+              </li>
+              <li class="item-ctb">
+                CTB completo e comentado por especialistas
+              </li>
+              <li class="item-manual">
+                Manual Brasileiro de Fiscalização e Sinalização com referências
+                normativas
+              </li>
+              <li class="item-tools">
+                Ferramentas práticas: calculadora de velocidade considerando
+                margem de erro, tabela de medição do etilômetro e muito mais!
+              </li>
+            </ul>
+          </div>
+          <div class="complete-info-image">
+            <img
+              src="/static/img/phone-mockup2.png"
+              alt="MultasGO App"
+              class="info-logo"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seção FAQ -->
+    <section class="faq">
+      <div class="container">
+        <h3 class="section-title text-center">PERGUNTAS FREQUENTES</h3>
+
+        <div class="faq-container">
+          <div class="faq-item">
+            <div class="faq-question">
+              <span class="faq-arrow"></span>
+              <span class="faq-question-text"
+                >O app também serve para consultar multas de veículos e pontos
+                na CNH?</span
+              >
+            </div>
+            <div class="faq-answer">
+              Não, se você deseja consultar multas ou pontos na CNH, utilize o app Carteira Digital de Trânsito (CDT) ou acesse o site do Detran do seu estado.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question">
+              <span class="faq-arrow"></span>
+              <span class="faq-question-text">Termos de Uso</span>
+            </div>
+            <div class="faq-answer">
+              <p><strong>1. Aceitação dos Termos</strong></p>
+              <p>
+                Ao acessar e usar o aplicativo MultasGO, você concorda em
+                cumprir estes Termos de Uso. Se você não concordar com estes
+                termos, não deverá usar o aplicativo.
+              </p>
+
+              <p><strong>2. Descrição do Serviço</strong></p>
+              <p>
+                O MultasGO é um aplicativo de consulta de infrações de trânsito
+                que permite aos usuários pesquisar informações sobre códigos de
+                infração, valores de multas e legislação relacionada.
+              </p>
+
+              <p><strong>3. Uso do Serviço</strong></p>
+              <p>
+                Você concorda em usar o serviço apenas para fins legais e de
+                acordo com estes termos. Você não pode usar o serviço de maneira
+                que possa danificar, desabilitar ou sobrecarregar os servidores
+                ou redes do MultasGO.
+              </p>
+
+              <p><strong>4. Propriedade Intelectual</strong></p>
+              <p>
+                Todo o conteúdo apresentado no aplicativo MultasGO, incluindo
+                textos, gráficos, logos, ícones e software, é propriedade do
+                MultasGO e está protegido por leis de direitos autorais.
+              </p>
+
+              <p><strong>5. Limitação de Responsabilidade</strong></p>
+              <p>
+                O MultasGO não se responsabiliza por quaisquer danos diretos,
+                indiretos, incidentais, consequenciais ou punitivos resultantes
+                do uso ou incapacidade de uso do serviço.
+              </p>
+
+              <p><strong>6. Alterações nos Termos</strong></p>
+              <p>
+                O MultasGO reserva-se o direito de modificar estes termos a
+                qualquer momento. As alterações entrarão em vigor imediatamente
+                após a publicação dos termos revisados.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question">
+              <span class="faq-arrow"></span>
+              <span class="faq-question-text">Política de Privacidade</span>
+            </div>
+            <div class="faq-answer">
+              <p><strong>1. Coleta de Informações</strong></p>
+              <p>
+                O MultasGO coleta informações que você fornece diretamente, como
+                dados de registro e informações de pesquisa. Também coletamos
+                dados de uso, incluindo informações sobre como você interage com
+                o aplicativo.
+              </p>
+
+              <p><strong>2. Uso das Informações</strong></p>
+              <p>
+                Utilizamos suas informações para fornecer, manter e melhorar
+                nossos serviços, desenvolver novos serviços, e proteger o
+                MultasGO e nossos usuários.
+              </p>
+
+              <p><strong>3. Compartilhamento de Informações</strong></p>
+              <p>
+                Não compartilhamos suas informações pessoais com empresas,
+                organizações ou indivíduos externos ao MultasGO, exceto nas
+                seguintes circunstâncias: com seu consentimento, para
+                processamento externo, ou por motivos legais.
+              </p>
+
+              <p><strong>4. Segurança</strong></p>
+              <p>
+                Trabalhamos arduamente para proteger o MultasGO e nossos
+                usuários contra acesso não autorizado ou alteração, divulgação
+                ou destruição de informações que detemos.
+              </p>
+
+              <p><strong>5. Acesso e Controle</strong></p>
+              <p>
+                Você pode acessar, atualizar ou excluir suas informações
+                pessoais a qualquer momento através das configurações da sua
+                conta no aplicativo.
+              </p>
+
+              <p><strong>6. Alterações nesta Política</strong></p>
+              <p>
+                Nossa Política de Privacidade pode mudar de tempos em tempos.
+                Não reduziremos seus direitos sob esta Política de Privacidade
+                sem seu consentimento explícito.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Logo e Mensagem Final -->
+    <section class="final-message">
+      <div class="container">
+        <img
+          src="/static/img/phone-mockup1.png"
+          alt="MultasGO App Icon"
+          class="app-mockup-icon"
+        />
+        <p class="thanks-message">Go Go! Vamos juntos nessa missão!</p>
+        <p class="slogan">Autue com confiança</p>
+      </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="footer" id="footer">
+      <div class="container">
+        <div class="footer-sections">
+          <div class="footer-section">
+            <h4>CONTATO</h4>
+            <p>rodrigo.moura@yahoo.com.br</p>
+          </div>
+
+          <div class="footer-section">
+            <h4>PORTAL DE NOTÍCIAS</h4>
+            <p>https://multasgo.com.br/noticias</p>
+          </div>
+
+          <div class="footer-section">
+            <h4>TERMOS E POLÍTICAS</h4>
+            <p>Termos de Uso</p>
+            <p>Política de Privacidade</p>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <div class="footer-logo">
+            <h2>MULTAS<span>GO</span></h2>
+            <p>AUTUE COM CONFIANÇA</p>
+          </div>
+          <p class="copyright">2025 © Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modal para Notícias -->
+    <div id="news-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="modal-header">
+          <h2 class="modal-title">
+            Colabore com o MultasGO
+          </h2>
+        </div>
+        <div class="modal-body">
+          <p>
+            Este aplicativo foi criado com dedicação para facilitar nosso trabalho nas ruas, oferecendo uma ferramenta ágil e gratuita para consulta de infrações e aplicação da legislação.
+          </p>
+
+          <p>
+            Sua continuidade depende de melhorias constantes, e toda colaboração é bem-vinda para manter o projeto ativo e útil.
+          </p>
+
+          <p>
+            Se ele tem ajudado você, entre em contato e saiba como contribuir.
+          </p>
+
+          <p>
+            Obrigado pelo apoio!
+          </p>
+
+          <a href="mailto:rodrigo.moura@yahoo.com.br" class="contact-btn"
+            >Entrar em Contato</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/script.js?v=3.0"></script>
+    <script src="/static/js/quotes.js?v=3.0"></script>
+    <script src="/static/js/modal.js?v=3.0"></script>
+
+    <script>
+      // FAQ Toggle - Implementação correta
+      document.addEventListener("DOMContentLoaded", function () {
+        const faqItems = document.querySelectorAll(".faq-item");
+
+        // Definir o primeiro item como ativo inicialmente
+        if (faqItems.length > 0) {
+          faqItems[0].classList.add("active");
+        }
+
+        // Adicionar evento de clique para cada pergunta
+        faqItems.forEach((item) => {
+          const question = item.querySelector(".faq-question");
+
+          question.addEventListener("click", function () {
+            // Verificar se o item clicado já está ativo
+            const isActive = item.classList.contains("active");
+
+            // Fechar todos os itens
+            faqItems.forEach((otherItem) => {
+              otherItem.classList.remove("active");
+            });
+
+            // Se o item não estava ativo, torná-lo ativo
+            if (!isActive) {
+              item.classList.add("active");
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

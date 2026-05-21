@@ -1,0 +1,81 @@
+# === BANCOS DE DADOS - NUNCA SUBIR ===
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+multasgo.db*
+multasgo_backup.db*
+
+# === AMBIENTES VIRTUAIS ===
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+
+# === ARQUIVOS DE CONFIGURAÇÃO SENSÍVEIS ===
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+
+# === LOGS E CACHE ===
+logs/
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# === IDEs ===
+.idea/
+.vscode/
+*.swp
+*.swo
+.claude/
+
+# === DISTRIBUIÇÃO ===
+dist/
+build/
+*.egg-info/
+
+# === ARQUIVOS TEMPORÁRIOS ===
+*.tmp
+*.temp
+nul
+
+# === SISTEMA OPERACIONAL ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === NODE.JS (se houver) ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === BACKUPS ===
+*.bak
+backup_*.zip
+MultasGO_Backups/
+
+# === DATASETS PRIVADOS (não compartilhados) ===
+BANCODADOS.csv
+BANCODADOS_LIMPO.csv
+*.csv
+data/
+datasets/
+
+# === SECRETS/CHAVES ===
+*.pem
+*.key
+*.crt
+secrets/
