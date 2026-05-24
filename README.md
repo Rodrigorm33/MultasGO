@@ -302,8 +302,6 @@ GET /api/v1/infracoes/analytics/queries-sem-resultado
 ## 📞 **Suporte e Contato**
 
 - **Produção:** https://multasgo.com.br
-- **Documentação API:** https://multasgo.com.br/docs (Swagger UI)
-- **Dev local:** http://localhost:8080
 
 ## 📄 **Licença**
 
